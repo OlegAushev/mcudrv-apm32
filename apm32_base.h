@@ -1,6 +1,10 @@
 #pragma once
 
 
+#ifdef MCUDRV_APM32
+
+
+#include "../config.h"
 #include <cassert>
 #include <cstdint>
 
@@ -72,3 +76,6 @@ public:
 
 
 }
+
+
+#endif
