@@ -5,8 +5,8 @@
 
 
 #include "../config.h"
-#include <cassert>
 #include <cstdint>
+#include <cassert>
 
 
 #ifdef APM32F4xx

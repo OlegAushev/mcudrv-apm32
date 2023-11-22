@@ -114,8 +114,7 @@ public:
 
     virtual emb::gpio::State read() const override {
         assert(_initialized);
-        auto level = read_level();
-        return static_cast<emb::gpio::State>(1 - (level ^ std::to_underlying(_config.active_state)));
+        return (read_level() == std::to_underlying(_config.active_state)) ? emb::gpio::State::active : emb::gpio::State::inactive; 
     }
 // TODO
 // private:
