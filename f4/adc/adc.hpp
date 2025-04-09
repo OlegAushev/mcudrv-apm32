@@ -5,9 +5,11 @@
 
 #include <apm32f4xx_adc.h>
 
-#include <mcudrv/apm32/f4/dma/dma.hpp>
-#include <mcudrv/apm32/f4/gpio/gpio.hpp>
-#include <mcudrv/apm32/f4/system/system.hpp>
+#include <mcudrv-apm32/f4/dma/dma.hpp>
+#include <mcudrv-apm32/f4/gpio/gpio.hpp>
+#include <mcudrv-apm32/f4/system/system.hpp>
+
+#include <emblib/singleton.hpp>
 
 #include <optional>
 #include <utility>

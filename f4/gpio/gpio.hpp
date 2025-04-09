@@ -6,9 +6,9 @@
 #include <apm32f4xx_gpio.h>
 #include <apm32f4xx_rcm.h>
 
-#include <mcudrv/apm32/f4/apm32f4_base.hpp>
-#include <mcudrv/apm32/f4/system/system.hpp>
-#include <mcudrv/generic/gpio.hpp>
+#include <emblib/mcudef.hpp>
+#include <mcudrv-apm32/f4/apm32f4.hpp>
+#include <mcudrv-apm32/f4/system/system.hpp>
 
 #include <algorithm>
 #include <array>

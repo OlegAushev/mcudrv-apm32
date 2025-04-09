@@ -3,7 +3,10 @@
 #ifdef MCUDRV_APM32
 #ifdef APM32F4xx
 
-#include <mcudrv/apm32/f4/tim/timdef.hpp>
+#include <mcudrv-apm32/f4/tim/timdef.hpp>
+
+#include <emblib/noncopyable.hpp>
+#include <emblib/singleton.hpp>
 
 namespace mcu {
 namespace apm32 {

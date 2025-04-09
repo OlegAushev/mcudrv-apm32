@@ -5,10 +5,13 @@
 
 #include <apm32f4xx_usart.h>
 
-#include <mcudrv/apm32/f4/apm32f4_base.hpp>
-#include <mcudrv/apm32/f4/gpio/gpio.hpp>
-#include <mcudrv/apm32/f4/system/system.hpp>
-#include <mcudrv/generic/uart.hpp>
+#include <mcudrv-apm32/f4/apm32f4.hpp>
+#include <mcudrv-apm32/f4/gpio/gpio.hpp>
+#include <mcudrv-apm32/f4/system/system.hpp>
+
+#include <emblib/mcudef.hpp>
+#include <emblib/noncopyable.hpp>
+#include <emblib/singleton.hpp>
 
 namespace mcu {
 namespace apm32 {

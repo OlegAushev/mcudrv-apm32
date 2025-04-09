@@ -5,9 +5,11 @@
 
 #include <apm32f4xx_can.h>
 
-#include <mcudrv/apm32/f4/gpio/gpio.hpp>
-#include <mcudrv/apm32/f4/system/system.hpp>
-#include <mcudrv/generic/can.hpp>
+#include <mcudrv-apm32/f4/gpio/gpio.hpp>
+#include <mcudrv-apm32/f4/system/system.hpp>
+
+#include <emblib/can.hpp>
+#include <emblib/singleton.hpp>
 
 #include <emblib/core.hpp>
 #include <emblib/queue.hpp>

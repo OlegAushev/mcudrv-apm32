@@ -1,9 +1,5 @@
 #pragma once
 
-#ifdef MCUDRV_APM32
-
-#include <mcudrv/config.hpp>
-
 #include <cassert>
 #include <cstdint>
 
@@ -62,5 +58,3 @@ void modify_reg(volatile T& reg, T clearmask, T setmask) {
 inline uint32_t bit_position(uint32_t val) { return __CLZ(__RBIT(val)); }
 
 } // namespace mcu
-
-#endif
