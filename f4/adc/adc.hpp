@@ -18,6 +18,13 @@ namespace mcu {
 namespace apm32 {
 namespace adc {
 
+inline constexpr float vref() { return 3.3f; }
+
+template<typename T>
+constexpr T nmax() {
+    return T{4095};
+}
+
 enum class Peripheral : unsigned int { adc1, adc2, adc3 };
 
 constexpr size_t peripheral_count = 3;
