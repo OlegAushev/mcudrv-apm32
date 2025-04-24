@@ -83,7 +83,7 @@ public:
 
     void set_duty_cycle(Channel channel, emb::unsigned_perunit duty_cycle) {
         uint32_t compare_value =
-                uint32_t(duty_cycle.get() * float(_reg->AUTORLD));
+                uint32_t(duty_cycle.numval() * float(_reg->AUTORLD));
         switch (channel) {
         case Channel::channel1:
             write_reg(_reg->CC1, compare_value);
