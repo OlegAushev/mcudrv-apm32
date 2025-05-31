@@ -14,57 +14,54 @@ namespace apm32 {
 namespace tim {
 
 enum class OpMode {
-    inactive,
-    timebase,
-    input_capture,
-    output_compare,
-    pwm_generation,
-    one_pulse
+  inactive,
+  timebase,
+  input_capture,
+  output_compare,
+  pwm_generation,
+  one_pulse
 };
 
-enum class CountDir { up, down };
+enum class CountDir {
+  up,
+  down
+};
 
 struct ChPinConfig {
-    gpio::Port port;
-    gpio::Pin pin;
-    GPIO_AF_T altfunc;
+  gpio::Port port;
+  gpio::Pin pin;
+  GPIO_AF_T altfunc;
 };
 
-class ChPin {
+class ChPin : public gpio::AlternatePin {
 public:
-    ChPin(const ChPinConfig& config) {
-        gpio::AlternatePin({.port = config.port,
-                            .pin = config.pin,
-                            .config = {.pin{},
-                                       .mode = GPIO_MODE_AF,
-                                       .speed = GPIO_SPEED_50MHz,
-                                       .otype = GPIO_OTYPE_PP,
-                                       .pupd = GPIO_PUPD_NOPULL},
-                            .altfunc = config.altfunc,
-                            .active_state = mcu::gpio::active_state::high});
-    }
+  ChPin(ChPinConfig const& conf)
+      : gpio::AlternatePin(
+            gpio::AlternatePinConfig{.port = conf.port,
+                                     .pin = conf.pin,
+                                     .pull = gpio::Pull::none,
+                                     .output = gpio::Output::pushpull,
+                                     .speed = gpio::Speed::fast,
+                                     .altfunc = conf.altfunc}) {}
 };
 
 struct BkinPinConfig {
-    gpio::Port port;
-    gpio::Pin pin;
-    GPIO_PUPD_T pull;
-    GPIO_AF_T altfunc;
+  gpio::Port port;
+  gpio::Pin pin;
+  gpio::Pull pull;
+  GPIO_AF_T altfunc;
 };
 
-class BkinPin {
+class BkinPin : public gpio::AlternatePin {
 public:
-    BkinPin(const BkinPinConfig& config) {
-        gpio::AlternatePin({.port = config.port,
-                            .pin = config.pin,
-                            .config = {.pin{},
-                                       .mode = GPIO_MODE_AF,
-                                       .speed = GPIO_SPEED_50MHz,
-                                       .otype = GPIO_OTYPE_PP,
-                                       .pupd = config.pull},
-                            .altfunc = config.altfunc,
-                            .active_state = mcu::gpio::active_state::high});
-    }
+  BkinPin(BkinPinConfig const& conf)
+      : gpio::AlternatePin(
+            gpio::AlternatePinConfig{.port = conf.port,
+                                     .pin = conf.pin,
+                                     .pull = conf.pull,
+                                     .output = gpio::Output::pushpull,
+                                     .speed = gpio::Speed::fast,
+                                     .altfunc = conf.altfunc}) {}
 };
 
 } // namespace tim

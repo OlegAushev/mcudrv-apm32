@@ -7,18 +7,20 @@ namespace mcu {
 namespace apm32 {
 
 __attribute__((weak)) void init_clk() {
-    fatal_error("device init clock func not implemented");
+  fatal_error("device init clock func not implemented");
 }
 
 __attribute__((weak)) void update_clk() {
-    fatal_error("device update clock func not implemented");
+  fatal_error("device update clock func not implemented");
 }
 
-void init_core(const CoreConfig& config) {
-    NVIC_ConfigPriorityGroup(config.prigroup);
+void init_core(CoreConfig const& config) {
+  NVIC_ConfigPriorityGroup(config.prigroup);
 }
 
-void reset_device() { NVIC_SystemReset(); }
+void reset_device() {
+  NVIC_SystemReset();
+}
 
 } // namespace apm32
 } // namespace mcu

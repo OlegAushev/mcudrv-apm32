@@ -8,48 +8,40 @@ namespace apm32 {
 namespace i2c {
 
 Module::Module(Peripheral peripheral,
-               const SdaPinConfig& sda_pin_config,
-               const SclPinConfig& scl_pin_config,
-               const Config& config)
-        : emb::singleton_array<Module, peripheral_count>(
-                  this, std::to_underlying(peripheral)),
-          _peripheral(peripheral),
-          _reg(impl::instances[std::to_underlying(peripheral)]) {
-    _sda_pin.init({.port = sda_pin_config.port,
-                   .pin = sda_pin_config.pin,
-                   .config = {.pin{},
-                              .mode = GPIO_MODE_AF,
-                              .speed = GPIO_SPEED_50MHz,
-                              .otype = GPIO_OTYPE_OD,
-                              .pupd = GPIO_PUPD_NOPULL},
-                   .altfunc = sda_pin_config.altfunc,
-                   .active_state{}});
-
-    _scl_pin.init({.port = scl_pin_config.port,
-                   .pin = scl_pin_config.pin,
-                   .config = {.pin{},
-                              .mode = GPIO_MODE_AF,
-                              .speed = GPIO_SPEED_50MHz,
-                              .otype = GPIO_OTYPE_OD,
-                              .pupd = GPIO_PUPD_NOPULL},
-                   .altfunc = scl_pin_config.altfunc,
-                   .active_state{}});
-
-    _enable_clk(peripheral);
-
-    _cfg = config;
-    auto i2c_config = config.hal_config;
-    I2C_Config(_reg, &i2c_config);
+               SdaPinConfig const& sda_pin_conf,
+               SclPinConfig const& scl_pin_conf,
+               Config const& conf)
+    : emb::singleton_array<Module, periph_num>(this,
+                                               std::to_underlying(peripheral)),
+      peripheral_(peripheral),
+      regs_(detail::regs[std::to_underlying(peripheral)]),
+      sda_pin_{std::make_unique<gpio::AlternatePin>(
+          gpio::AlternatePinConfig{.port = sda_pin_conf.port,
+                                   .pin = sda_pin_conf.pin,
+                                   .pull = gpio::Pull::none,
+                                   .output = gpio::Output::opendrain,
+                                   .speed = gpio::Speed::fast,
+                                   .altfunc = sda_pin_conf.altfunc})},
+      scl_pin_{std::make_unique<gpio::AlternatePin>(
+          gpio::AlternatePinConfig{.port = scl_pin_conf.port,
+                                   .pin = scl_pin_conf.pin,
+                                   .pull = gpio::Pull::none,
+                                   .output = gpio::Output::opendrain,
+                                   .speed = gpio::Speed::fast,
+                                   .altfunc = scl_pin_conf.altfunc})},
+      conf_{conf} {
+  enable_clk(peripheral);
+  I2C_Config(regs_, const_cast<I2C_Config_T*>(&conf.hal_config));
 }
 
-void Module::_enable_clk(Peripheral peripheral) {
-    size_t i2c_idx = std::to_underlying(peripheral);
-    if (_clk_enabled[i2c_idx]) {
-        return;
-    }
+void Module::enable_clk(Peripheral peripheral) {
+  size_t i2c_idx{std::to_underlying(peripheral)};
+  if (clk_enabled_[i2c_idx]) {
+    return;
+  }
 
-    impl::clk_enable_funcs[i2c_idx]();
-    _clk_enabled[i2c_idx] = true;
+  detail::clk_enable_funcs[i2c_idx]();
+  clk_enabled_[i2c_idx] = true;
 }
 
 } // namespace i2c

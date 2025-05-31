@@ -20,160 +20,182 @@ namespace mcu {
 namespace apm32 {
 namespace spi {
 
-constexpr size_t peripheral_count = 3;
-enum class Peripheral : unsigned int { spi1, spi2, spi3 };
+using Regs = SPI_T;
 
-enum class Direction { rx, tx };
+constexpr size_t periph_num{3};
+
+enum class Peripheral : size_t {
+  spi1,
+  spi2,
+  spi3
+};
+
+enum class Direction {
+  rx,
+  tx
+};
 
 struct MosiPinConfig {
-    gpio::Port port;
-    gpio::Pin pin;
-    GPIO_AF_T altfunc;
+  gpio::Port port;
+  gpio::Pin pin;
+  GPIO_AF_T altfunc;
 };
+
 struct MisoPinConfig {
-    gpio::Port port;
-    gpio::Pin pin;
-    GPIO_AF_T altfunc;
+  gpio::Port port;
+  gpio::Pin pin;
+  GPIO_AF_T altfunc;
 };
+
 struct ClkPinConfig {
-    gpio::Port port;
-    gpio::Pin pin;
-    GPIO_AF_T altfunc;
+  gpio::Port port;
+  gpio::Pin pin;
+  GPIO_AF_T altfunc;
 };
+
 struct HwCsPinConfig {
-    gpio::Port port;
-    gpio::Pin pin;
-    GPIO_AF_T altfunc;
+  gpio::Port port;
+  gpio::Pin pin;
+  GPIO_AF_T altfunc;
 };
+
 struct SwCsPinConfig {
-    gpio::Port port;
-    gpio::Pin pin;
+  gpio::Port port;
+  gpio::Pin pin;
 };
 
 struct Config {
-    SPI_Config_T hal_config;
+  SPI_Config_T hal_config;
 };
 
-enum class InterruptEvent { txe, rxne, err };
+enum class InterruptEvent {
+  txe,
+  rxne,
+  err
+};
 
-namespace impl {
+namespace detail {
 
-inline const std::array<SPI_T*, peripheral_count> instances = {
-    SPI1, SPI2, SPI3};
+inline std::array<Regs*, periph_num> const regs = {SPI1, SPI2, SPI3};
 
-inline Peripheral to_peripheral(const SPI_T* instance) {
-    return static_cast<Peripheral>(std::distance(
-            instances.begin(),
-            std::find(instances.begin(), instances.end(), instance)));
+inline Peripheral get_peripheral(Regs const* reg) {
+  return static_cast<Peripheral>(
+      std::distance(regs.begin(), std::find(regs.begin(), regs.end(), reg)));
 }
 
-inline std::array<void (*)(void), peripheral_count> clk_enable_funcs = {
+inline std::array<void (*)(void), periph_num> clk_enable_funcs = {
     []() { RCM_EnableAPB2PeriphClock(RCM_APB2_PERIPH_SPI1); },
     []() { RCM_EnableAPB1PeriphClock(RCM_APB1_PERIPH_SPI2); },
     []() { RCM_EnableAPB1PeriphClock(RCM_APB1_PERIPH_SPI3); },
 };
 
-inline constexpr std::array<IRQn_Type, peripheral_count> irqn = {
+inline constexpr std::array<IRQn_Type, periph_num> irqn = {
     SPI1_IRQn, SPI2_IRQn, SPI3_IRQn};
 
-} // namespace impl
+} // namespace detail
 
-class Module : public emb::singleton_array<Module, peripheral_count>,
+class Module : public emb::singleton_array<Module, periph_num>,
                private emb::noncopyable {
 private:
-    const Peripheral _peripheral;
-    SPI_T* const _reg;
-    gpio::AlternatePin _mosi_pin;
-    gpio::AlternatePin _miso_pin;
-    gpio::AlternatePin _clk_pin;
-    gpio::AlternatePin _cs_pin;
-    std::vector<gpio::OutputPin> _cs_pins;
+  Peripheral const peripheral_;
+  Regs* const regs_;
+  std::unique_ptr<gpio::AlternatePin> mosi_pin_;
+  std::unique_ptr<gpio::AlternatePin> miso_pin_;
+  std::unique_ptr<gpio::AlternatePin> clk_pin_;
+  std::unique_ptr<gpio::AlternatePin> cs_pin_;
+  std::vector<std::unique_ptr<gpio::DigitalOutput>> cs_pins_;
 
-    static inline std::array<bool, peripheral_count> _clk_enabled{};
+  static inline std::array<bool, periph_num> clk_enabled_{};
 public:
-    Module(Peripheral peripheral,
-           const MosiPinConfig& mosi_pin_config,
-           const MisoPinConfig& miso_pin_config,
-           const ClkPinConfig& clk_pin_config,
-           const HwCsPinConfig& cs_pin_config,
-           const Config& config);
+  Module(Peripheral peripheral,
+         MosiPinConfig const& mosi_pin_conf,
+         MisoPinConfig const& miso_pin_conf,
+         ClkPinConfig const& clk_pin_conf,
+         HwCsPinConfig const& cs_pin_conf,
+         Config const& config);
 
-    Module(Peripheral peripheral,
-           const MosiPinConfig& mosi_pin_config,
-           const MisoPinConfig& miso_pin_config,
-           const ClkPinConfig& clk_pin_config,
-           std::initializer_list<SwCsPinConfig> cs_pin_configs,
-           const Config& config);
+  Module(Peripheral peripheral,
+         MosiPinConfig const& mosi_pin_conf,
+         MisoPinConfig const& miso_pin_conf,
+         ClkPinConfig const& clk_pin_conf,
+         std::initializer_list<SwCsPinConfig> cs_pin_confs,
+         Config const& config);
 
-    Peripheral peripheral() const { return _peripheral; }
-    SPI_T* reg() { return _reg; }
+  Peripheral peripheral() const { return peripheral_; }
 
-    static Module* instance(Peripheral peripheral) {
-        return emb::singleton_array<Module, peripheral_count>::instance(
-                std::to_underlying(peripheral));
+  Regs* reg() { return regs_; }
+
+  static Module* instance(Peripheral peripheral) {
+    return emb::singleton_array<Module, periph_num>::instance(
+        std::to_underlying(peripheral));
+  }
+
+  void enable() { regs_->CTRL1_B.SPIEN = 1; }
+
+  void disable() { regs_->CTRL1_B.SPIEN = 0; }
+
+  bool busy() const { return regs_->STS_B.BSYFLG == 1; }
+
+  bool rx_empty() const { return regs_->STS_B.RXBNEFLG == 0; }
+
+  bool tx_empty() const { return regs_->STS_B.TXBEFLG == 1; }
+
+  exec_status put_data(uint16_t data) {
+    if (!tx_empty()) {
+      return exec_status::busy;
     }
+    regs_->DATA_B.DATA = data;
+    return exec_status::ok;
+  }
 
-    void enable() { _reg->CTRL1_B.SPIEN = 1; }
-    void disable() { _reg->CTRL1_B.SPIEN = 0; }
-
-    bool busy() const { return _reg->STS_B.BSYFLG == 1; }
-    bool rx_empty() const { return _reg->STS_B.RXBNEFLG == 0; }
-    bool tx_empty() const { return _reg->STS_B.TXBEFLG == 1; }
-
-    exec_status put_data(uint16_t data) {
-        if (!tx_empty()) {
-            return exec_status::busy;
-        }
-        _reg->DATA_B.DATA = data;
-        return exec_status::ok;
+  std::optional<uint16_t> get_data() const {
+    if (rx_empty()) {
+      return {};
     }
+    uint16_t data = regs_->DATA_B.DATA;
+    return {data};
+  }
 
-    std::optional<uint16_t> get_data() const {
-        if (rx_empty()) {
-            return {};
-        }
-        uint16_t data = _reg->DATA_B.DATA;
-        return {data};
+  void set_bidirectional_mode(Direction dir) {
+    switch (dir) {
+    case Direction::rx:
+      regs_->CTRL1_B.BMOEN = 0;
+      break;
+    case Direction::tx:
+      regs_->CTRL1_B.BMOEN = 1;
+      break;
     }
+  }
 
-    void set_bidirectional_mode(Direction dir) {
-        switch (dir) {
-        case Direction::rx:
-            _reg->CTRL1_B.BMOEN = 0;
-            break;
-        case Direction::tx:
-            _reg->CTRL1_B.BMOEN = 1;
-            break;
-        }
+  void set_cs(size_t cs_idx = 0) {
+    if (cs_idx >= cs_pins_.size()) {
+      return;
     }
+    cs_pins_[cs_idx]->set();
+  }
 
-    void set_cs(size_t cs_idx = 0) {
-        if (cs_idx >= _cs_pins.size()) {
-            return;
-        }
-        _cs_pins[cs_idx].set();
+  void reset_cs(size_t cs_idx = 0) {
+    if (cs_idx >= cs_pins_.size()) {
+      return;
     }
-
-    void reset_cs(size_t cs_idx = 0) {
-        if (cs_idx >= _cs_pins.size()) {
-            return;
-        }
-        _cs_pins[cs_idx].reset();
-    }
+    cs_pins_[cs_idx]->reset();
+  }
 public:
-    void init_interrupts(std::initializer_list<InterruptEvent> events,
-                         IrqPriority priority);
-    void enable_interrupts() {
-        enable_irq(impl::irqn[std::to_underlying(_peripheral)]);
-    }
-    void disable_interrupts() {
-        disable_irq(impl::irqn[std::to_underlying(_peripheral)]);
-    }
+  void init_interrupts(std::initializer_list<InterruptEvent> events,
+                       IrqPriority priority);
+
+  void enable_interrupts() {
+    enable_irq(detail::irqn[std::to_underlying(peripheral_)]);
+  }
+
+  void disable_interrupts() {
+    disable_irq(detail::irqn[std::to_underlying(peripheral_)]);
+  }
 protected:
-    static void _enable_clk(Peripheral peripheral);
-    void _init_mosi_miso_clk(const MosiPinConfig& mosi_pin_config,
-                             const MisoPinConfig& miso_pin_config,
-                             const ClkPinConfig& clk_pin_config);
+  static void enable_clk(Peripheral peripheral);
+  void init_mosi_miso_clk(MosiPinConfig const& mosi_pin_conf,
+                          MisoPinConfig const& miso_pin_conf,
+                          ClkPinConfig const& clk_pin_conf);
 };
 
 } // namespace spi

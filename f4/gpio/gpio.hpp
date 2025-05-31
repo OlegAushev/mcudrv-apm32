@@ -12,60 +12,106 @@
 
 #include <algorithm>
 #include <array>
+#include <cstddef>
+#include <memory>
 #include <optional>
+#include <stdint.h>
 #include <utility>
 
 namespace mcu {
 namespace apm32 {
 namespace gpio {
 
-constexpr size_t port_count = 9;
+using PortRegs = GPIO_T;
 
-enum class Port : unsigned int {
-    gpioa,
-    gpiob,
-    gpioc,
-    gpiod,
-    gpioe,
-    gpiof,
-    gpiog,
-    gpioh,
-    gpioi
+constexpr size_t port_num{9};
+
+enum class Port : size_t {
+  gpioa,
+  gpiob,
+  gpioc,
+  gpiod,
+  gpioe,
+  gpiof,
+  gpiog,
+  gpioh,
+  gpioi
 };
 
-enum class Pin : uint16_t {
-    pin0 = GPIO_PIN_0,
-    pin1 = GPIO_PIN_1,
-    pin2 = GPIO_PIN_2,
-    pin3 = GPIO_PIN_3,
-    pin4 = GPIO_PIN_4,
-    pin5 = GPIO_PIN_5,
-    pin6 = GPIO_PIN_6,
-    pin7 = GPIO_PIN_7,
-    pin8 = GPIO_PIN_8,
-    pin9 = GPIO_PIN_9,
-    pin10 = GPIO_PIN_10,
-    pin11 = GPIO_PIN_11,
-    pin12 = GPIO_PIN_12,
-    pin13 = GPIO_PIN_13,
-    pin14 = GPIO_PIN_14,
-    pin15 = GPIO_PIN_15,
-};
-
-struct PinConfig {
-    Port port;
-    Pin pin;
-    GPIO_Config_T config;
-    GPIO_AF_T altfunc;
-    mcu::gpio::active_state active_state;
-};
-
-namespace impl {
-
-inline const std::array<GPIO_T*, port_count> gpio_instances = {
+inline std::array<PortRegs*, port_num> const regs{
     GPIOA, GPIOB, GPIOC, GPIOD, GPIOE, GPIOF, GPIOG, GPIOH, GPIOI};
 
-inline std::array<void (*)(void), port_count> gpio_clk_enable_funcs = {
+enum class Pin : uint16_t {
+  pin0 = GPIO_PIN_0,
+  pin1 = GPIO_PIN_1,
+  pin2 = GPIO_PIN_2,
+  pin3 = GPIO_PIN_3,
+  pin4 = GPIO_PIN_4,
+  pin5 = GPIO_PIN_5,
+  pin6 = GPIO_PIN_6,
+  pin7 = GPIO_PIN_7,
+  pin8 = GPIO_PIN_8,
+  pin9 = GPIO_PIN_9,
+  pin10 = GPIO_PIN_10,
+  pin11 = GPIO_PIN_11,
+  pin12 = GPIO_PIN_12,
+  pin13 = GPIO_PIN_13,
+  pin14 = GPIO_PIN_14,
+  pin15 = GPIO_PIN_15,
+};
+
+enum class Output : uint32_t {
+  pushpull = GPIO_OTYPE_PP,
+  opendrain = GPIO_OTYPE_OD
+};
+
+enum class Speed : uint32_t {
+  low = GPIO_SPEED_2MHz,
+  medium = GPIO_SPEED_25MHz,
+  fast = GPIO_SPEED_50MHz,
+  high = GPIO_SPEED_100MHz
+};
+
+enum class Pull : uint32_t {
+  none = GPIO_PUPD_NOPULL,
+  up = GPIO_PUPD_UP,
+  down = GPIO_PUPD_DOWN
+};
+;
+
+struct DigitalInputConfig {
+  Port port;
+  Pin pin;
+  Pull pull;
+  mcu::gpio::active_state active_state;
+};
+
+struct DigitalOutputConfig {
+  Port port;
+  Pin pin;
+  Pull pull;
+  Output output;
+  Speed speed;
+  mcu::gpio::active_state active_state;
+};
+
+struct AlternatePinConfig {
+  Port port;
+  Pin pin;
+  Pull pull;
+  Output output;
+  Speed speed;
+  GPIO_AF_T altfunc;
+};
+
+struct AnalogPinConfig {
+  Port port;
+  Pin pin;
+};
+
+namespace internal {
+
+inline std::array<void (*)(void), port_num> clk_enable_funcs{
     []() { RCM_EnableAHB1PeriphClock(RCM_AHB1_PERIPH_GPIOA); },
     []() { RCM_EnableAHB1PeriphClock(RCM_AHB1_PERIPH_GPIOB); },
     []() { RCM_EnableAHB1PeriphClock(RCM_AHB1_PERIPH_GPIOC); },
@@ -76,85 +122,64 @@ inline std::array<void (*)(void), port_count> gpio_clk_enable_funcs = {
     []() { RCM_EnableAHB1PeriphClock(RCM_AHB1_PERIPH_GPIOH); },
     []() { RCM_EnableAHB1PeriphClock(RCM_AHB1_PERIPH_GPIOI); }};
 
-class GpioPin {
+class Pin {
 private:
-    static inline std::array<uint16_t, port_count> _assigned{};
-    static inline std::array<bool, port_count> _clk_enabled{};
+  static inline std::array<uint16_t, port_num> assigned_{};
+  static inline std::array<bool, port_num> clk_enabled_{};
 protected:
-    // Config _cfg;
-    bool _initialized{false};
-    GPIO_T* _port;
-    uint16_t _pin;
-    std::optional<mcu::gpio::active_state> _active_state{std::nullopt};
-    GpioPin() = default;
+  Port const port_;
+  uint16_t const pin_;
+  PortRegs* const regs_;
+private:
+  Pin(Port port,
+      GPIO_Config_T const& conf,
+      std::optional<GPIO_AF_T> altfunc = std::nullopt);
+protected:
+  ~Pin();
+  Pin(DigitalInputConfig const& conf);
+  Pin(DigitalOutputConfig const& conf);
+  Pin(AlternatePinConfig const& conf);
+  Pin(AnalogPinConfig const& conf);
 public:
-    void init(PinConfig config) {
-        const size_t port_idx = std::to_underlying(config.port);
+  unsigned int pin_no() const { return __CLZ(__RBIT(pin_)); }
 
-        _port = impl::gpio_instances[port_idx];
-        _pin = std::to_underlying(config.pin);
-        _active_state = config.active_state;
-        config.config.pin = _pin;
+  uint16_t pin_bit() const { return static_cast<uint16_t>(pin_); }
 
-        if (_assigned[port_idx] & _pin) {
-            fatal_error();
-        }
-        _assigned[port_idx] |= uint16_t(_pin);
-
-        if (!_clk_enabled[port_idx]) {
-            gpio_clk_enable_funcs[port_idx]();
-            _clk_enabled[port_idx] = true;
-        }
-
-        if (config.config.mode == GPIO_MODE_AF) {
-            GPIO_ConfigPinAF(_port,
-                             static_cast<GPIO_PIN_SOURCE_T>(bit_position(_pin)),
-                             config.altfunc);
-        }
-
-        GPIO_Config(_port, &config.config);
-        _initialized = true;
-    }
-
-    unsigned int pin_no() const { return __CLZ(__RBIT(_pin)); }
-    uint16_t pin_bit() const { return static_cast<uint16_t>(_pin); }
-    const GPIO_T* port() const { return _port; }
-    bool initialized() const { return _initialized; }
+  PortRegs const* regs() const { return regs_; }
 };
 
-} // namespace impl
+} // namespace internal
 
-class InputPin : public mcu::gpio::input_pin, public impl::GpioPin {
-    // friend void ::EXTI0_IRQHandler();
-    // friend void ::EXTI1_IRQHandler();
-    // friend void ::EXTI2_IRQHandler();
-    // friend void ::EXTI3_IRQHandler();
-    // friend void ::EXTI4_IRQHandler();
-    // friend void ::HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin);
+class DigitalInput : public mcu::gpio::input_pin, public internal::Pin {
+  // friend void ::EXTI0_IRQHandler();
+  // friend void ::EXTI1_IRQHandler();
+  // friend void ::EXTI2_IRQHandler();
+  // friend void ::EXTI3_IRQHandler();
+  // friend void ::EXTI4_IRQHandler();
+  // friend void ::HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin);
+private:
+  mcu::gpio::active_state const active_state_;
 public:
-    InputPin() = default;
-    InputPin(const PinConfig& config) {
-        if (config.config.mode != GPIO_MODE_IN) {
-            fatal_error();
-        }
-        init(config);
-    }
+  DigitalInput(DigitalInputConfig const& conf)
+      : internal::Pin(conf), active_state_(conf.active_state) {}
 
-    virtual unsigned int read_level() const override {
-        assert(_initialized);
-        if ((read_reg(_port->IDATA) & _pin) != 0) {
-            return 1;
-        }
-        return 0;
-    }
+  mcu::gpio::active_state active_state() const { return active_state_; }
 
-    virtual mcu::gpio::pin_state read() const override {
-        assert(_initialized);
-        if (read_level() == std::to_underlying(*_active_state)) {
-            return mcu::gpio::pin_state::active;
-        }
-        return mcu::gpio::pin_state::inactive;
+  virtual unsigned int read_level() const override {
+    if ((read_reg(regs_->IDATA) & pin_) != 0) {
+      return 1;
     }
+    return 0;
+  }
+
+  virtual mcu::gpio::pin_state read() const override {
+    if (read_level() == std::to_underlying(active_state_)) {
+      return mcu::gpio::pin_state::active;
+    }
+    return mcu::gpio::pin_state::inactive;
+  }
+
+  // clang-format off
     // TODO
     // private:
     //     IRQn_Type _irqn = NonMaskableInt_IRQn;	// use NonMaskableInt_IRQn as value for not initialized interrupt
@@ -207,174 +232,137 @@ public:
     //             HAL_NVIC_EnableIRQ(_irqn);
     //         }
     //     }
+  // clang-format on
 };
 
-class OutputPin : public mcu::gpio::output_pin, public impl::GpioPin {
+class DigitalOutput : public mcu::gpio::output_pin, public internal::Pin {
+private:
+  mcu::gpio::active_state const active_state_;
 public:
-    OutputPin() = default;
-    OutputPin(
-            const PinConfig& config,
-            mcu::gpio::pin_state init_state = mcu::gpio::pin_state::inactive) {
-        if (config.config.mode != GPIO_MODE_OUT) {
-            fatal_error();
-        }
-        init(config);
-        OutputPin::set(init_state);
-    }
+  DigitalOutput(
+      DigitalOutputConfig const& conf,
+      mcu::gpio::pin_state init_state = mcu::gpio::pin_state::inactive)
+      : internal::Pin(conf), active_state_(conf.active_state) {
+    set(init_state);
+  }
 
-    virtual unsigned int read_level() const override {
-        assert(_initialized);
-        if ((read_reg(_port->IDATA) & _pin) != 0) {
-            return 1;
-        }
-        return 0;
-    }
+  mcu::gpio::active_state active_state() const { return active_state_; }
 
-    virtual void set_level(unsigned int level) override {
-        assert(_initialized);
-        if (level != 0) {
-            write_reg(_port->BSCL, _pin);
-        } else {
-            write_reg(_port->BSCH, _pin);
-        }
+  virtual unsigned int read_level() const override {
+    if ((read_reg(regs_->IDATA) & pin_) != 0) {
+      return 1;
     }
+    return 0;
+  }
 
-    virtual mcu::gpio::pin_state read() const override {
-        assert(_initialized);
-        if (read_level() == std::to_underlying(*_active_state)) {
-            return mcu::gpio::pin_state::active;
-        }
-        return mcu::gpio::pin_state::inactive;
+  virtual void set_level(unsigned int level) override {
+    if (level != 0) {
+      write_reg(regs_->BSCL, pin_);
+    } else {
+      write_reg(regs_->BSCH, pin_);
     }
+  }
 
-    virtual void
-    set(mcu::gpio::pin_state st = mcu::gpio::pin_state::active) override {
-        assert(_initialized);
-        if (st == mcu::gpio::pin_state::active) {
-            set_level(std::to_underlying(*_active_state));
-        } else {
-            set_level(1 - std::to_underlying(*_active_state));
-        }
+  virtual mcu::gpio::pin_state read() const override {
+    if (read_level() == std::to_underlying(active_state_)) {
+      return mcu::gpio::pin_state::active;
     }
+    return mcu::gpio::pin_state::inactive;
+  }
 
-    virtual void reset() override {
-        assert(_initialized);
-        set(mcu::gpio::pin_state::inactive);
+  virtual void
+  set(mcu::gpio::pin_state s = mcu::gpio::pin_state::active) override {
+    if (s == mcu::gpio::pin_state::active) {
+      set_level(std::to_underlying(active_state_));
+    } else {
+      set_level(1 - std::to_underlying(active_state_));
     }
+  }
 
-    virtual void toggle() override {
-        assert(_initialized);
-        uint16_t odr_reg = static_cast<uint16_t>(read_reg(_port->ODATA));
-        write_reg<uint16_t>(_port->BSCL, ~odr_reg & _pin);
-        write_reg<uint16_t>(_port->BSCH, odr_reg & _pin);
-    }
+  virtual void reset() override { set(mcu::gpio::pin_state::inactive); }
+
+  virtual void toggle() override {
+    uint16_t const odr_reg{static_cast<uint16_t>(read_reg(regs_->ODATA))};
+    write_reg<uint16_t>(regs_->BSCL, ~odr_reg & pin_);
+    write_reg<uint16_t>(regs_->BSCH, odr_reg & pin_);
+  }
 };
 
-class AlternatePin : public impl::GpioPin {
+class AlternatePin : public internal::Pin {
 public:
-    AlternatePin() = default;
-    AlternatePin(const PinConfig& config) {
-        if (config.config.mode != GPIO_MODE_AF) {
-            fatal_error();
-        }
-        init(config);
-    }
+  AlternatePin(AlternatePinConfig const& conf) : internal::Pin(conf) {}
 };
 
-class AnalogPin : public impl::GpioPin {
+class AnalogPin : public internal::Pin {
 public:
-    AnalogPin() = default;
-    AnalogPin(const PinConfig& config) {
-        if (config.config.mode != GPIO_MODE_AN) {
-            fatal_error();
-        }
-        init(config);
-    }
+  AnalogPin(AnalogPinConfig const& conf) : internal::Pin(conf) {}
 };
 
-enum class DurationLoggerMode { set_reset, toggle };
+enum class DurationLoggerMode {
+  set_reset,
+  toggle
+};
 
 enum class DurationLoggerChannel : unsigned int {
-    channel0,
-    channel1,
-    channel2,
-    channel3,
-    channel4,
-    channel5,
-    channel6,
-    channel7,
-    channel8,
-    channel9,
-    channel10,
-    channel11,
-    channel12,
-    channel13,
-    channel14,
-    channel15,
+  channel0,
+  channel1,
+  channel2,
+  channel3,
+  channel4,
+  channel5,
+  channel6,
+  channel7,
+  channel8,
+  channel9,
+  channel10,
+  channel11,
+  channel12,
+  channel13,
+  channel14,
+  channel15,
 };
 
 class DurationLogger {
 private:
-    struct LoggerPin {
-        GPIO_T* port;
-        uint16_t pin;
-    };
-    static inline std::array<std::optional<LoggerPin>, 16> _pins;
-    const std::optional<LoggerPin> _pin;
-    const DurationLoggerMode _mode;
+  static inline std::array<std::unique_ptr<DigitalOutput>, 16> pins_{};
+  DigitalOutput* const pin_;
+  DurationLoggerMode const mode_;
 public:
-    static OutputPin init_channel(DurationLoggerChannel channel,
-                                  Port port,
-                                  Pin pin) {
-        OutputPin logger_pin({.port = port,
-                              .pin = pin,
-                              .config = {.pin{},
-                                         .mode = GPIO_MODE_OUT,
-                                         .speed = GPIO_SPEED_100MHz,
-                                         .otype = GPIO_OTYPE_PP,
-                                         .pupd = GPIO_PUPD_NOPULL},
-                              .altfunc{},
-                              .active_state = mcu::gpio::active_state::high});
-        _pins[std::to_underlying(channel)] = {
-            impl::gpio_instances[std::to_underlying(port)],
-            std::to_underlying(pin)};
-        return logger_pin;
+  static void init_channel(DurationLoggerChannel channel, Port port, Pin pin) {
+    pins_[std::to_underlying(channel)] = std::make_unique<DigitalOutput>(
+        DigitalOutputConfig{.port = port,
+                            .pin = pin,
+                            .pull = Pull::none,
+                            .output = Output::pushpull,
+                            .speed = Speed::high,
+                            .active_state = mcu::gpio::active_state::high});
+  }
+
+  DurationLogger(DurationLoggerChannel channel, DurationLoggerMode mode)
+      : pin_(pins_[std::to_underlying(channel)].get()), mode_(mode) {
+    if (!pin_) {
+      return;
     }
 
-    DurationLogger(DurationLoggerChannel channel, DurationLoggerMode mode)
-            : _pin(_pins[std::to_underlying(channel)]), _mode(mode) {
-        if (!_pin.has_value()) {
-            return;
-        }
+    if (mode_ == DurationLoggerMode::set_reset) {
+      pin_->set_level(1);
+    } else {
+      pin_->toggle();
+      pin_->toggle();
+    }
+  }
 
-        if (_mode == DurationLoggerMode::set_reset) {
-            write_reg<uint16_t>(_pin->port->BSCL, _pin->pin);
-        } else {
-            uint16_t odr_reg =
-                    static_cast<uint16_t>(read_reg(_pin->port->ODATA));
-            write_reg<uint16_t>(_pin->port->BSCL, ~odr_reg & _pin->pin);
-            write_reg<uint16_t>(_pin->port->BSCH, odr_reg & _pin->pin);
-
-            odr_reg = static_cast<uint16_t>(read_reg(_pin->port->ODATA));
-            write_reg<uint16_t>(_pin->port->BSCL, ~odr_reg & _pin->pin);
-            write_reg<uint16_t>(_pin->port->BSCH, odr_reg & _pin->pin);
-        }
+  ~DurationLogger() {
+    if (!pin_) {
+      return;
     }
 
-    ~DurationLogger() {
-        if (!_pin.has_value()) {
-            return;
-        }
-
-        if (_mode == DurationLoggerMode::set_reset) {
-            write_reg<uint16_t>(_pin->port->BSCH, _pin->pin);
-        } else {
-            uint16_t odr_reg =
-                    static_cast<uint16_t>(read_reg(_pin->port->ODATA));
-            write_reg<uint16_t>(_pin->port->BSCL, ~odr_reg & _pin->pin);
-            write_reg<uint16_t>(_pin->port->BSCH, odr_reg & _pin->pin);
-        }
+    if (mode_ == DurationLoggerMode::set_reset) {
+      pin_->set_level(0);
+    } else {
+      pin_->toggle();
     }
+  }
 };
 
 } // namespace gpio

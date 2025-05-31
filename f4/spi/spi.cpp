@@ -8,131 +8,114 @@ namespace apm32 {
 namespace spi {
 
 Module::Module(Peripheral peripheral,
-               const MosiPinConfig& mosi_pin_config,
-               const MisoPinConfig& miso_pin_config,
-               const ClkPinConfig& clk_pin_config,
-               const HwCsPinConfig& cs_pin_config,
-               const Config& config)
-        : emb::singleton_array<Module, peripheral_count>(
-                  this, std::to_underlying(peripheral)),
-          _peripheral(peripheral),
-          _reg(impl::instances[std::to_underlying(peripheral)]) {
-    _init_mosi_miso_clk(mosi_pin_config, miso_pin_config, clk_pin_config);
+               MosiPinConfig const& mosi_pin_conf,
+               MisoPinConfig const& miso_pin_conf,
+               ClkPinConfig const& clk_pin_conf,
+               HwCsPinConfig const& cs_pin_conf,
+               Config const& conf)
+    : emb::singleton_array<Module, periph_num>(this,
+                                               std::to_underlying(peripheral)),
+      peripheral_(peripheral),
+      regs_{detail::regs[std::to_underlying(peripheral)]} {
+  init_mosi_miso_clk(mosi_pin_conf, miso_pin_conf, clk_pin_conf);
 
-    _cs_pin.init({.port = cs_pin_config.port,
-                  .pin = cs_pin_config.pin,
-                  .config = {.pin{},
-                             .mode = GPIO_MODE_AF,
-                             .speed = GPIO_SPEED_25MHz,
-                             .otype = GPIO_OTYPE_PP,
-                             .pupd = GPIO_PUPD_NOPULL},
-                  .altfunc = cs_pin_config.altfunc,
-                  .active_state = mcu::gpio::active_state::low});
-
-    _enable_clk(peripheral);
-
-    auto spi_config = config.hal_config;
-    SPI_Config(_reg, &spi_config);
-    SPI_Enable(_reg);
+  cs_pin_ = std::make_unique<gpio::AlternatePin>(
+      gpio::AlternatePinConfig{.port = cs_pin_conf.port,
+                               .pin = cs_pin_conf.pin,
+                               .pull = gpio::Pull::none,
+                               .output = gpio::Output::pushpull,
+                               .speed = gpio::Speed::medium,
+                               .altfunc = cs_pin_conf.altfunc});
+  enable_clk(peripheral);
+  SPI_Config(regs_, const_cast<SPI_Config_T*>(&conf.hal_config));
+  SPI_Enable(regs_);
 }
 
 Module::Module(Peripheral peripheral,
-               const MosiPinConfig& mosi_pin_config,
-               const MisoPinConfig& miso_pin_config,
-               const ClkPinConfig& clk_pin_config,
-               std::initializer_list<SwCsPinConfig> cs_pin_configs,
-               const Config& config)
-        : emb::singleton_array<Module, peripheral_count>(
-                  this, std::to_underlying(peripheral)),
-          _peripheral(peripheral),
-          _reg(impl::instances[std::to_underlying(peripheral)]) {
-    if (cs_pin_configs.size() != 0 &&
-        config.hal_config.mode != SPI_MODE_MASTER) {
-        fatal_error();
-    }
+               MosiPinConfig const& mosi_pin_conf,
+               MisoPinConfig const& miso_pin_conf,
+               ClkPinConfig const& clk_pin_conf,
+               std::initializer_list<SwCsPinConfig> cs_pin_confs,
+               Config const& conf)
+    : emb::singleton_array<Module, periph_num>(this,
+                                               std::to_underlying(peripheral)),
+      peripheral_(peripheral),
+      regs_{detail::regs[std::to_underlying(peripheral)]} {
+  if (cs_pin_confs.size() != 0 && conf.hal_config.mode != SPI_MODE_MASTER) {
+    fatal_error();
+  }
 
-    _init_mosi_miso_clk(mosi_pin_config, miso_pin_config, clk_pin_config);
+  init_mosi_miso_clk(mosi_pin_conf, miso_pin_conf, clk_pin_conf);
 
-    for (auto pincfg : cs_pin_configs) {
-        _cs_pins.emplace_back(gpio::OutputPin(
-                gpio::PinConfig{.port = pincfg.port,
-                                .pin = pincfg.pin,
-                                .config = {.pin{},
-                                           .mode = GPIO_MODE_OUT,
-                                           .speed = GPIO_SPEED_25MHz,
-                                           .otype = GPIO_OTYPE_PP,
-                                           .pupd = GPIO_PUPD_UP},
-                                .altfunc{},
-                                .active_state = mcu::gpio::active_state::low}));
-        _cs_pins.back().reset();
-    }
+  for (auto pinconf : cs_pin_confs) {
+    cs_pins_.emplace_back(
+        std::make_unique<gpio::DigitalOutput>(gpio::DigitalOutputConfig{
+            .port = pinconf.port,
+            .pin = pinconf.pin,
+            .pull = gpio::Pull::up,
+            .output = gpio::Output::pushpull,
+            .speed = gpio::Speed::medium,
+            .active_state = mcu::gpio::active_state::low}));
+    cs_pins_.back()->reset();
+  }
 
-    _enable_clk(peripheral);
-
-    auto spi_config = config.hal_config;
-    SPI_Config(_reg, &spi_config);
+  enable_clk(peripheral);
+  SPI_Config(regs_, const_cast<SPI_Config_T*>(&conf.hal_config));
+  SPI_Enable(regs_);
 }
 
 void Module::init_interrupts(std::initializer_list<InterruptEvent> events,
                              IrqPriority priority) {
-    for (auto event : events) {
-        switch (event) {
-        case InterruptEvent::txe:
-            _reg->CTRL2_B.TXBEIEN = 1;
-            break;
-        case InterruptEvent::rxne:
-            _reg->CTRL2_B.RXBNEIEN = 1;
-            break;
-        case InterruptEvent::err:
-            _reg->CTRL2_B.ERRIEN = 1;
-            break;
-        }
+  for (auto event : events) {
+    switch (event) {
+    case InterruptEvent::txe:
+      regs_->CTRL2_B.TXBEIEN = 1;
+      break;
+    case InterruptEvent::rxne:
+      regs_->CTRL2_B.RXBNEIEN = 1;
+      break;
+    case InterruptEvent::err:
+      regs_->CTRL2_B.ERRIEN = 1;
+      break;
     }
-    set_irq_priority(impl::irqn[std::to_underlying(_peripheral)], priority);
+  }
+  set_irq_priority(detail::irqn[std::to_underlying(peripheral_)], priority);
 }
 
-void Module::_enable_clk(Peripheral peripheral) {
-    size_t spi_idx = std::to_underlying(peripheral);
-    if (_clk_enabled[spi_idx]) {
-        return;
-    }
+void Module::enable_clk(Peripheral peripheral) {
+  size_t spi_idx{std::to_underlying(peripheral)};
+  if (clk_enabled_[spi_idx]) {
+    return;
+  }
 
-    impl::clk_enable_funcs[spi_idx]();
-    _clk_enabled[spi_idx] = true;
+  detail::clk_enable_funcs[spi_idx]();
+  clk_enabled_[spi_idx] = true;
 }
 
-void Module::_init_mosi_miso_clk(const MosiPinConfig& mosi_pin_config,
-                                 const MisoPinConfig& miso_pin_config,
-                                 const ClkPinConfig& clk_pin_config) {
-    _mosi_pin.init({.port = mosi_pin_config.port,
-                    .pin = mosi_pin_config.pin,
-                    .config = {.pin{},
-                               .mode = GPIO_MODE_AF,
-                               .speed = GPIO_SPEED_100MHz,
-                               .otype = GPIO_OTYPE_PP,
-                               .pupd = GPIO_PUPD_NOPULL},
-                    .altfunc = mosi_pin_config.altfunc,
-                    .active_state = mcu::gpio::active_state::high});
-
-    _miso_pin.init({.port = miso_pin_config.port,
-                    .pin = miso_pin_config.pin,
-                    .config = {.pin{},
-                               .mode = GPIO_MODE_AF,
-                               .speed = GPIO_SPEED_100MHz,
-                               .otype = GPIO_OTYPE_PP,
-                               .pupd = GPIO_PUPD_NOPULL},
-                    .altfunc = miso_pin_config.altfunc,
-                    .active_state = mcu::gpio::active_state::high});
-
-    _clk_pin.init({.port = clk_pin_config.port,
-                   .pin = clk_pin_config.pin,
-                   .config = {.pin{},
-                              .mode = GPIO_MODE_AF,
-                              .speed = GPIO_SPEED_100MHz,
-                              .otype = GPIO_OTYPE_PP,
-                              .pupd = GPIO_PUPD_NOPULL},
-                   .altfunc = clk_pin_config.altfunc,
-                   .active_state = mcu::gpio::active_state::high});
+void Module::init_mosi_miso_clk(MosiPinConfig const& mosi_pin_conf,
+                                MisoPinConfig const& miso_pin_conf,
+                                ClkPinConfig const& clk_pin_conf) {
+  mosi_pin_ = std::make_unique<gpio::AlternatePin>(
+      gpio::AlternatePinConfig{.port = mosi_pin_conf.port,
+                               .pin = mosi_pin_conf.pin,
+                               .pull = gpio::Pull::none,
+                               .output = gpio::Output::pushpull,
+                               .speed = gpio::Speed::high,
+                               .altfunc = mosi_pin_conf.altfunc});
+  miso_pin_ = std::make_unique<gpio::AlternatePin>(
+      gpio::AlternatePinConfig{.port = miso_pin_conf.port,
+                               .pin = miso_pin_conf.pin,
+                               .pull = gpio::Pull::none,
+                               .output = gpio::Output::pushpull,
+                               .speed = gpio::Speed::high,
+                               .altfunc = miso_pin_conf.altfunc});
+  clk_pin_ = std::make_unique<gpio::AlternatePin>(
+      gpio::AlternatePinConfig{.port = clk_pin_conf.port,
+                               .pin = clk_pin_conf.pin,
+                               .pull = gpio::Pull::none,
+                               .output = gpio::Output::pushpull,
+                               .speed = gpio::Speed::high,
+                               .altfunc = clk_pin_conf.altfunc});
 }
 
 } // namespace spi
