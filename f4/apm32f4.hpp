@@ -9,18 +9,20 @@
 namespace mcu {
 
 enum class exec_status {
-    ok,
-    error,
-    busy,
-    timeout,
-    invalid_argument,
-    overflow,
+  ok,
+  error,
+  busy,
+  timeout,
+  invalid_argument,
+  overflow,
 };
 
-inline void fatal_error() { emb::fatal_error("mcudrv fatal error"); }
+inline void fatal_error() {
+  emb::fatal_error("mcudrv fatal error");
+}
 
-inline void fatal_error(const char* hint, int code = 0) {
-    emb::fatal_error(hint, code);
+inline void fatal_error(char const* hint, int code = 0) {
+  emb::fatal_error(hint, code);
 }
 
 } // namespace mcu

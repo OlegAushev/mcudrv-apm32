@@ -111,21 +111,7 @@ struct AnalogPinConfig {
 
 namespace internal {
 
-inline std::array<void (*)(void), port_num> clk_enable_funcs{
-    []() { RCM_EnableAHB1PeriphClock(RCM_AHB1_PERIPH_GPIOA); },
-    []() { RCM_EnableAHB1PeriphClock(RCM_AHB1_PERIPH_GPIOB); },
-    []() { RCM_EnableAHB1PeriphClock(RCM_AHB1_PERIPH_GPIOC); },
-    []() { RCM_EnableAHB1PeriphClock(RCM_AHB1_PERIPH_GPIOD); },
-    []() { RCM_EnableAHB1PeriphClock(RCM_AHB1_PERIPH_GPIOE); },
-    []() { RCM_EnableAHB1PeriphClock(RCM_AHB1_PERIPH_GPIOF); },
-    []() { RCM_EnableAHB1PeriphClock(RCM_AHB1_PERIPH_GPIOG); },
-    []() { RCM_EnableAHB1PeriphClock(RCM_AHB1_PERIPH_GPIOH); },
-    []() { RCM_EnableAHB1PeriphClock(RCM_AHB1_PERIPH_GPIOI); }};
-
 class Pin {
-private:
-  static inline std::array<uint16_t, port_num> assigned_{};
-  static inline std::array<bool, port_num> clk_enabled_{};
 protected:
   Port const port_;
   uint16_t const pin_;
@@ -146,6 +132,10 @@ public:
   uint16_t pin_bit() const { return static_cast<uint16_t>(pin_); }
 
   PortRegs const* regs() const { return regs_; }
+private:
+  static inline std::array<uint16_t, port_num> assigned_{};
+  static inline std::array<bool, port_num> clk_enabled_{};
+  static std::array<void (*)(void), port_num> enable_port_clk_;
 };
 
 } // namespace internal

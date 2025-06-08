@@ -30,6 +30,14 @@ enum class Peripheral : size_t {
   usart6,
 };
 
+inline std::array<Regs*, periph_num> const regs = {
+    USART1, USART2, USART3, UART4, UART5, USART6};
+
+inline Peripheral get_peripheral(Regs const* reg) {
+  return static_cast<Peripheral>(
+      std::distance(regs.begin(), std::find(regs.begin(), regs.end(), reg)));
+}
+
 struct RxPinConfig {
   gpio::Port port;
   gpio::Pin pin;
@@ -46,26 +54,19 @@ struct Config {
   USART_Config_T hal_config;
 };
 
-namespace impl {
+namespace internal {
 
-inline std::array<Regs*, periph_num> const regs = {
-    USART1, USART2, USART3, UART4, UART5, USART6};
-
-inline Peripheral get_peripheral(Regs const* reg) {
-  return static_cast<Peripheral>(
-      std::distance(regs.begin(), std::find(regs.begin(), regs.end(), reg)));
-}
-
-inline std::array<void (*)(void), periph_num> clk_enable_funcs = {
-    []() { RCM_EnableAPB2PeriphClock(RCM_APB2_PERIPH_USART1); },
-    []() { RCM_EnableAPB1PeriphClock(RCM_APB1_PERIPH_USART2); },
-    []() { RCM_EnableAPB1PeriphClock(RCM_APB1_PERIPH_USART3); },
-    []() { RCM_EnableAPB1PeriphClock(RCM_APB1_PERIPH_UART4); },
-    []() { RCM_EnableAPB1PeriphClock(RCM_APB1_PERIPH_UART5); },
-    []() { RCM_EnableAPB2PeriphClock(RCM_APB2_PERIPH_USART6); },
+class RxPin : public gpio::AlternatePin {
+public:
+  RxPin(RxPinConfig const& conf);
 };
 
-} // namespace impl
+class TxPin : public gpio::AlternatePin {
+public:
+  TxPin(TxPinConfig const& conf);
+};
+
+} // namespace internal
 
 class Module : public mcu::uart::tty,
                public emb::singleton_array<Module, periph_num>,
@@ -73,10 +74,8 @@ class Module : public mcu::uart::tty,
 private:
   Peripheral const peripheral_;
   USART_T* const regs_;
-  gpio::AlternatePin rx_pin_;
-  gpio::AlternatePin tx_pin_;
-
-  static inline std::array<bool, periph_num> clk_enabled_{};
+  internal::RxPin rx_pin_;
+  internal::TxPin tx_pin_;
 public:
   Module(Peripheral peripheral,
          RxPinConfig const& rx_pin_conf,
@@ -124,7 +123,15 @@ public:
   //     return 1;
   // }
 protected:
+  static inline std::array<bool, periph_num> clk_enabled_{};
   static void enable_clk(Peripheral peripheral);
+  static inline std::array<void (*)(void), periph_num> enable_clk_ = {
+      []() { RCM_EnableAPB2PeriphClock(RCM_APB2_PERIPH_USART1); },
+      []() { RCM_EnableAPB1PeriphClock(RCM_APB1_PERIPH_USART2); },
+      []() { RCM_EnableAPB1PeriphClock(RCM_APB1_PERIPH_USART3); },
+      []() { RCM_EnableAPB1PeriphClock(RCM_APB1_PERIPH_UART4); },
+      []() { RCM_EnableAPB1PeriphClock(RCM_APB1_PERIPH_UART5); },
+      []() { RCM_EnableAPB2PeriphClock(RCM_APB2_PERIPH_USART6); }};
 };
 
 } // namespace usart

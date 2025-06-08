@@ -33,18 +33,6 @@ struct ChPinConfig {
   GPIO_AF_T altfunc;
 };
 
-class ChPin : public gpio::AlternatePin {
-public:
-  ChPin(ChPinConfig const& conf)
-      : gpio::AlternatePin(
-            gpio::AlternatePinConfig{.port = conf.port,
-                                     .pin = conf.pin,
-                                     .pull = gpio::Pull::none,
-                                     .output = gpio::Output::pushpull,
-                                     .speed = gpio::Speed::fast,
-                                     .altfunc = conf.altfunc}) {}
-};
-
 struct BkinPinConfig {
   gpio::Port port;
   gpio::Pin pin;
@@ -52,17 +40,31 @@ struct BkinPinConfig {
   GPIO_AF_T altfunc;
 };
 
+namespace internal {
+
+class ChPin : public gpio::AlternatePin {
+public:
+  ChPin(ChPinConfig const& conf)
+      : gpio::AlternatePin{{.port = conf.port,
+                            .pin = conf.pin,
+                            .pull = gpio::Pull::none,
+                            .output = gpio::Output::pushpull,
+                            .speed = gpio::Speed::fast,
+                            .altfunc = conf.altfunc}} {}
+};
+
 class BkinPin : public gpio::AlternatePin {
 public:
   BkinPin(BkinPinConfig const& conf)
-      : gpio::AlternatePin(
-            gpio::AlternatePinConfig{.port = conf.port,
-                                     .pin = conf.pin,
-                                     .pull = conf.pull,
-                                     .output = gpio::Output::pushpull,
-                                     .speed = gpio::Speed::fast,
-                                     .altfunc = conf.altfunc}) {}
+      : gpio::AlternatePin{{.port = conf.port,
+                            .pin = conf.pin,
+                            .pull = conf.pull,
+                            .output = gpio::Output::pushpull,
+                            .speed = gpio::Speed::fast,
+                            .altfunc = conf.altfunc}} {}
 };
+
+} // namespace internal
 
 } // namespace tim
 } // namespace apm32

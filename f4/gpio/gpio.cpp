@@ -7,6 +7,17 @@ namespace mcu {
 namespace apm32 {
 namespace gpio {
 
+std::array<void (*)(void), port_num> internal::Pin::enable_port_clk_{
+    []() { RCM_EnableAHB1PeriphClock(RCM_AHB1_PERIPH_GPIOA); },
+    []() { RCM_EnableAHB1PeriphClock(RCM_AHB1_PERIPH_GPIOB); },
+    []() { RCM_EnableAHB1PeriphClock(RCM_AHB1_PERIPH_GPIOC); },
+    []() { RCM_EnableAHB1PeriphClock(RCM_AHB1_PERIPH_GPIOD); },
+    []() { RCM_EnableAHB1PeriphClock(RCM_AHB1_PERIPH_GPIOE); },
+    []() { RCM_EnableAHB1PeriphClock(RCM_AHB1_PERIPH_GPIOF); },
+    []() { RCM_EnableAHB1PeriphClock(RCM_AHB1_PERIPH_GPIOG); },
+    []() { RCM_EnableAHB1PeriphClock(RCM_AHB1_PERIPH_GPIOH); },
+    []() { RCM_EnableAHB1PeriphClock(RCM_AHB1_PERIPH_GPIOI); }};
+
 internal::Pin::Pin(Port port,
                    GPIO_Config_T const& conf,
                    std::optional<GPIO_AF_T> altfunc)
@@ -19,7 +30,7 @@ internal::Pin::Pin(Port port,
   assigned_[port_idx] |= uint16_t(pin_);
 
   if (!clk_enabled_[port_idx]) {
-    clk_enable_funcs[port_idx]();
+    enable_port_clk_[port_idx]();
     clk_enabled_[port_idx] = true;
   }
 

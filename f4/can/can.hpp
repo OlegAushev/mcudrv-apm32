@@ -61,17 +61,6 @@ struct Config {
 
 namespace internal {
 
-inline std::array<void (*)(void), periph_num> clk_enable_funcs = {
-    []() { RCM_EnableAPB1PeriphClock(RCM_APB1_PERIPH_CAN1); },
-    []() { RCM_EnableAPB1PeriphClock(RCM_APB1_PERIPH_CAN2); }};
-
-inline constexpr std::array<IRQn_Type, periph_num> can_rx0_irqn = {
-    CAN1_RX0_IRQn, CAN2_RX0_IRQn};
-inline constexpr std::array<IRQn_Type, periph_num> can_rx1_irqn = {
-    CAN1_RX1_IRQn, CAN2_RX1_IRQn};
-inline constexpr std::array<IRQn_Type, periph_num> can_tx_irqn = {CAN1_TX_IRQn,
-                                                                  CAN2_TX_IRQn};
-
 class RxPin : public gpio::AlternatePin {
 public:
   RxPin(RxPinConfig const& conf);
@@ -82,6 +71,12 @@ public:
   TxPin(TxPinConfig const& conf);
 };
 
+inline constexpr std::array<IRQn_Type, periph_num> can_rx0_irqn = {
+    CAN1_RX0_IRQn, CAN2_RX0_IRQn};
+inline constexpr std::array<IRQn_Type, periph_num> can_rx1_irqn = {
+    CAN1_RX1_IRQn, CAN2_RX1_IRQn};
+inline constexpr std::array<IRQn_Type, periph_num> can_tx_irqn = {CAN1_TX_IRQn,
+                                                                  CAN2_TX_IRQn};
 } // namespace internal
 
 enum class RxFifo {
@@ -100,11 +95,8 @@ class Module : public emb::singleton_array<Module, periph_num>,
 private:
   Peripheral const peripheral_;
   Regs* const regs_;
-
   internal::RxPin rx_pin_;
   internal::TxPin tx_pin_;
-
-  static inline std::array<bool, periph_num> clk_enabled_{};
 
   uint8_t filter_count_{0};
 #ifdef CAN2
@@ -172,7 +164,11 @@ public:
     }
   }
 private:
-  static void _enable_clk(Peripheral peripheral);
+  static inline std::array<bool, periph_num> clk_enabled_{};
+  static void enable_clk(Peripheral peripheral);
+  static inline std::array<void (*)(void), periph_num> enable_clk_ = {
+      []() { RCM_EnableAPB1PeriphClock(RCM_APB1_PERIPH_CAN1); },
+      []() { RCM_EnableAPB1PeriphClock(RCM_APB1_PERIPH_CAN2); }};
 };
 
 } // namespace can

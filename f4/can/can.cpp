@@ -36,7 +36,7 @@ Module::Module(Peripheral peripheral,
       regs_{can::regs[static_cast<size_t>(peripheral_)]},
       rx_pin_{rx_pin_conf},
       tx_pin_{tx_pin_conf} {
-  _enable_clk(peripheral);
+  enable_clk(peripheral);
   CAN_Config(regs_, const_cast<CAN_Config_T*>(&conf.hal_config));
 }
 
@@ -201,13 +201,13 @@ void Module::disable_interrupts() {
   disable_irq(internal::can_tx_irqn[std::to_underlying(peripheral_)]);
 }
 
-void Module::_enable_clk(Peripheral peripheral) {
+void Module::enable_clk(Peripheral peripheral) {
   auto can_idx{std::to_underlying(peripheral)};
   if (clk_enabled_[can_idx]) {
     return;
   }
 
-  internal::clk_enable_funcs[can_idx]();
+  enable_clk_[can_idx]();
   clk_enabled_[can_idx] = true;
 }
 

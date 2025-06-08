@@ -95,22 +95,12 @@ struct InjectedChannelConfig {
   uint16_t offset;
 };
 
-namespace internal {
-
-inline std::array<void (*)(void), periph_num> clk_enable_funcs{
-    []() { RCM_EnableAPB2PeriphClock(RCM_APB2_PERIPH_ADC1); },
-    []() { RCM_EnableAPB2PeriphClock(RCM_APB2_PERIPH_ADC2); },
-    []() { RCM_EnableAPB2PeriphClock(RCM_APB2_PERIPH_ADC3); }};
-
-} // namespace internal
-
 class Module : public emb::singleton_array<Module, periph_num>,
                private emb::noncopyable {
 private:
   Peripheral const peripheral_;
   Regs* const regs_;
   static inline CommonRegs* common_regs_{nullptr};
-  static inline std::array<bool, periph_num> clk_enabled_{};
 public:
   Module(Peripheral peripheral, Config const& conf, dma::Stream* dma = nullptr);
 
@@ -212,8 +202,13 @@ public:
     }
     return false;
   }
-protected:
+private:
+  static inline std::array<bool, periph_num> clk_enabled_{};
   static void enable_clk(Peripheral peripheral);
+  static inline std::array<void (*)(void), periph_num> enable_clk_{
+      []() { RCM_EnableAPB2PeriphClock(RCM_APB2_PERIPH_ADC1); },
+      []() { RCM_EnableAPB2PeriphClock(RCM_APB2_PERIPH_ADC2); },
+      []() { RCM_EnableAPB2PeriphClock(RCM_APB2_PERIPH_ADC3); }};
 };
 
 } // namespace adc

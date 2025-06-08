@@ -141,7 +141,7 @@ void Module::enable_clk(Peripheral peripheral) {
     return;
   }
 
-  internal::clk_enable_funcs[adc_idx]();
+  enable_clk_[adc_idx]();
   clk_enabled_[adc_idx] = true;
 }
 

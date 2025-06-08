@@ -7,6 +7,22 @@ namespace mcu {
 namespace apm32 {
 namespace usart {
 
+internal::RxPin::RxPin(RxPinConfig const& conf)
+    : gpio::AlternatePin{{.port = conf.port,
+                          .pin = conf.pin,
+                          .pull = gpio::Pull::none,
+                          .output = gpio::Output::pushpull,
+                          .speed = gpio::Speed::fast,
+                          .altfunc = conf.altfunc}} {}
+
+internal::TxPin::TxPin(TxPinConfig const& conf)
+    : gpio::AlternatePin{{.port = conf.port,
+                          .pin = conf.pin,
+                          .pull = gpio::Pull::none,
+                          .output = gpio::Output::pushpull,
+                          .speed = gpio::Speed::fast,
+                          .altfunc = conf.altfunc}} {}
+
 Module::Module(Peripheral peripheral,
                RxPinConfig const& rx_pin_conf,
                TxPinConfig const& tx_pin_conf,
@@ -14,19 +30,9 @@ Module::Module(Peripheral peripheral,
     : emb::singleton_array<Module, periph_num>(this,
                                                std::to_underlying(peripheral)),
       peripheral_(peripheral),
-      regs_{impl::regs[std::to_underlying(peripheral)]},
-      rx_pin_{gpio::AlternatePinConfig{.port = rx_pin_conf.port,
-                                       .pin = rx_pin_conf.pin,
-                                       .pull = gpio::Pull::none,
-                                       .output = gpio::Output::pushpull,
-                                       .speed = gpio::Speed::fast,
-                                       .altfunc = rx_pin_conf.altfunc}},
-      tx_pin_{gpio::AlternatePinConfig{.port = tx_pin_conf.port,
-                                       .pin = tx_pin_conf.pin,
-                                       .pull = gpio::Pull::none,
-                                       .output = gpio::Output::pushpull,
-                                       .speed = gpio::Speed::fast,
-                                       .altfunc = tx_pin_conf.altfunc}} {
+      regs_{usart::regs[std::to_underlying(peripheral)]},
+      rx_pin_{rx_pin_conf},
+      tx_pin_{tx_pin_conf} {
   enable_clk(peripheral);
   USART_Config(regs_, const_cast<USART_Config_T*>(&config.hal_config));
   USART_Enable(regs_);
@@ -38,7 +44,7 @@ void Module::enable_clk(Peripheral peripheral) {
     return;
   }
 
-  impl::clk_enable_funcs[usart_idx]();
+  enable_clk_[usart_idx]();
   clk_enabled_[usart_idx] = true;
 }
 

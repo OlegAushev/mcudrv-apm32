@@ -6,131 +6,137 @@
 #include <emblib/math.hpp>
 #include <mcudrv-apm32/f4/tim/adv/base.hpp>
 
+#include <memory>
+#include <utility>
+
 namespace mcu {
 namespace apm32 {
 namespace tim {
 namespace adv {
 
 struct PwmConfig {
-    float freq;
-    float deadtime_ns;
-    bool arr_preload;
-    TMR_BaseConfig_T hal_base_config;
-    TMR_BDTConfig_T hal_bdt_config;
+  float freq;
+  float deadtime_ns;
+  bool arr_preload;
+  TMR_BaseConfig_T hal_base_config;
+  TMR_BDTConfig_T hal_bdt_config;
 };
 
 struct PwmChannelConfig {
-    TMR_OCConfig_T hal_oc_config;
-    TMR_OC_PRELOAD_T oc_preload;
+  TMR_OCConfig_T hal_oc_config;
+  TMR_OC_PRELOAD_T oc_preload;
 };
 
-class PwmTimer : public impl::AbstractTimer {
+class PwmTimer : public internal::AbstractTimer {
 private:
-    float _freq{0};
-    float _t_dts_ns{0};
-    float _deadtime{0};
-    bool _brk_enabled{false};
+  float freq_{0};
+  float t_dts_ns_{0};
+  float deadtime_{0};
+  std::array<std::pair<std::unique_ptr<mcu::apm32::tim::internal::ChPin>,
+                       std::unique_ptr<mcu::apm32::tim::internal::ChPin>>,
+             4>
+      ch_pins_{};
+  std::unique_ptr<mcu::apm32::tim::internal::BkinPin> bkin_pin_{};
+  bool brk_enabled_{false};
 public:
-    PwmTimer(Peripheral peripheral, const PwmConfig& config, BkinPin* pin_bkin);
+  PwmTimer(Peripheral peripheral,
+           PwmConfig const& conf,
+           BkinPinConfig const* bkin_conf);
 
-    static PwmTimer* instance(Peripheral peripheral) {
-        assert(impl::AbstractTimer::instance(std::to_underlying(peripheral))
-                       ->mode() == OpMode::pwm_generation);
-        return static_cast<PwmTimer*>(
-                impl::AbstractTimer::instance(std::to_underlying(peripheral)));
+  static PwmTimer* instance(Peripheral peripheral) {
+    assert(internal::AbstractTimer::instance(std::to_underlying(peripheral))
+               ->mode() == OpMode::pwm_generation);
+    return static_cast<PwmTimer*>(
+        internal::AbstractTimer::instance(std::to_underlying(peripheral)));
+  }
+
+  void init_channel(Channel channel,
+                    ChPinConfig const* ch_conf,
+                    ChPinConfig const* chn_conf,
+                    PwmChannelConfig const& conf);
+
+  bool active() const { return regs_->BDT_B.MOEN == 1; }
+
+  void start() {
+    if (brk_enabled_) {
+      regs_->STS_B.BRKIFLG = 0;
+      regs_->DIEN_B.BRKIEN = 1;
     }
+    regs_->BDT_B.MOEN = 1;
+  }
 
-    void init_channel(Channel channel,
-                      ChPin* pin_ch,
-                      ChPin* pin_chn,
-                      const PwmChannelConfig& config);
-
-    bool active() const { return _reg->BDT_B.MOEN == 1; }
-
-    void start() {
-        if (_brk_enabled) {
-            _reg->STS_B.BRKIFLG = 0;
-            _reg->DIEN_B.BRKIEN = 1;
-        }
-        _reg->BDT_B.MOEN = 1;
+  void stop() {
+    regs_->BDT_B.MOEN = 0;
+    if (brk_enabled_) {
+      // disable break interrupts to prevent instant call of BRK ISR
+      regs_->DIEN_B.BRKIEN = 0;
     }
+  }
 
-    void stop() {
-        _reg->BDT_B.MOEN = 0;
-        if (_brk_enabled) {
-            // disable break interrupts to prevent instant call of BRK ISR
-            _reg->DIEN_B.BRKIEN = 0;
-        }
+  emb::unsigned_perunit duty_cycle(Channel channel) const {
+    switch (channel) {
+    case Channel::channel1:
+      return emb::unsigned_perunit{float(regs_->CC1) / float(regs_->AUTORLD)};
+    case Channel::channel2:
+      return emb::unsigned_perunit{float(regs_->CC2) / float(regs_->AUTORLD)};
+    case Channel::channel3:
+      return emb::unsigned_perunit{float(regs_->CC3) / float(regs_->AUTORLD)};
+    case Channel::channel4:
+      return emb::unsigned_perunit{float(regs_->CC4) / float(regs_->AUTORLD)};
     }
+    return {};
+  }
 
-    emb::unsigned_perunit duty_cycle(Channel channel) const {
-        switch (channel) {
-        case Channel::channel1:
-            return emb::unsigned_perunit{float(_reg->CC1) /
-                                         float(_reg->AUTORLD)};
-        case Channel::channel2:
-            return emb::unsigned_perunit{float(_reg->CC2) /
-                                         float(_reg->AUTORLD)};
-        case Channel::channel3:
-            return emb::unsigned_perunit{float(_reg->CC3) /
-                                         float(_reg->AUTORLD)};
-        case Channel::channel4:
-            return emb::unsigned_perunit{float(_reg->CC4) /
-                                         float(_reg->AUTORLD)};
-        }
-        return {};
+  void set_duty_cycle(Channel channel, emb::unsigned_perunit duty_cycle) {
+    uint32_t compare_value =
+        uint32_t(duty_cycle.numval() * float(regs_->AUTORLD));
+    switch (channel) {
+    case Channel::channel1:
+      write_reg(regs_->CC1, compare_value);
+      break;
+    case Channel::channel2:
+      write_reg(regs_->CC2, compare_value);
+      break;
+    case Channel::channel3:
+      write_reg(regs_->CC3, compare_value);
+      break;
+    case Channel::channel4:
+      write_reg(regs_->CC4, compare_value);
+      break;
     }
+  }
 
-    void set_duty_cycle(Channel channel, emb::unsigned_perunit duty_cycle) {
-        uint32_t compare_value =
-                uint32_t(duty_cycle.numval() * float(_reg->AUTORLD));
-        switch (channel) {
-        case Channel::channel1:
-            write_reg(_reg->CC1, compare_value);
-            break;
-        case Channel::channel2:
-            write_reg(_reg->CC2, compare_value);
-            break;
-        case Channel::channel3:
-            write_reg(_reg->CC3, compare_value);
-            break;
-        case Channel::channel4:
-            write_reg(_reg->CC4, compare_value);
-            break;
-        }
-    }
+  float freq() const { return freq_; }
 
-    float freq() const { return _freq; }
+  void init_update_interrupts(IrqPriority priority);
 
-    void init_update_interrupts(IrqPriority priority);
+  void enable_update_interrupts() {
+    regs_->STS_B.UIFLG = 0;
+    clear_pending_irq(internal::up_irq_nums[std::to_underlying(peripheral_)]);
+    enable_irq(internal::up_irq_nums[std::to_underlying(peripheral_)]);
+  }
 
-    void enable_update_interrupts() {
-        _reg->STS_B.UIFLG = 0;
-        clear_pending_irq(impl::up_irq_nums[std::to_underlying(_peripheral)]);
-        enable_irq(impl::up_irq_nums[std::to_underlying(_peripheral)]);
-    }
+  void disable_update_interrupts() {
+    disable_irq(internal::up_irq_nums[std::to_underlying(peripheral_)]);
+  }
 
-    void disable_update_interrupts() {
-        disable_irq(impl::up_irq_nums[std::to_underlying(_peripheral)]);
-    }
+  void ack_update_interrupt() { regs_->STS_B.UIFLG = 0; }
 
-    void ack_update_interrupt() { _reg->STS_B.UIFLG = 0; }
+  void init_break_interrupts(IrqPriority priority);
 
-    void init_break_interrupts(IrqPriority priority);
+  void enable_break_interrupts() {
+    regs_->STS_B.BRKIFLG = 0;
+    clear_pending_irq(internal::brk_irq_nums[std::to_underlying(peripheral_)]);
+    enable_irq(internal::brk_irq_nums[std::to_underlying(peripheral_)]);
+  }
 
-    void enable_break_interrupts() {
-        _reg->STS_B.BRKIFLG = 0;
-        clear_pending_irq(impl::brk_irq_nums[std::to_underlying(_peripheral)]);
-        enable_irq(impl::brk_irq_nums[std::to_underlying(_peripheral)]);
-    }
+  void disable_break_interrupts() {
+    disable_irq(internal::brk_irq_nums[std::to_underlying(peripheral_)]);
+  }
 
-    void disable_break_interrupts() {
-        disable_irq(impl::brk_irq_nums[std::to_underlying(_peripheral)]);
-    }
-
-    void ack_break_interrupt() { _reg->STS_B.BRKIFLG = 0; }
+  void ack_break_interrupt() { regs_->STS_B.BRKIFLG = 0; }
 private:
-    void _init_bdt(const PwmConfig& config, BkinPin* pin_bkin);
+  void init_bdt(PwmConfig const& config, BkinPinConfig const* pin_bkin);
 };
 
 } // namespace adv
