@@ -73,21 +73,21 @@ public:
     }
   }
 
-  emb::unsigned_perunit duty_cycle(Channel channel) const {
+  emb::unsigned_pu duty_cycle(Channel channel) const {
     switch (channel) {
     case Channel::channel1:
-      return emb::unsigned_perunit{float(regs_->CC1) / float(regs_->AUTORLD)};
+      return emb::unsigned_pu{float(regs_->CC1) / float(regs_->AUTORLD)};
     case Channel::channel2:
-      return emb::unsigned_perunit{float(regs_->CC2) / float(regs_->AUTORLD)};
+      return emb::unsigned_pu{float(regs_->CC2) / float(regs_->AUTORLD)};
     case Channel::channel3:
-      return emb::unsigned_perunit{float(regs_->CC3) / float(regs_->AUTORLD)};
+      return emb::unsigned_pu{float(regs_->CC3) / float(regs_->AUTORLD)};
     case Channel::channel4:
-      return emb::unsigned_perunit{float(regs_->CC4) / float(regs_->AUTORLD)};
+      return emb::unsigned_pu{float(regs_->CC4) / float(regs_->AUTORLD)};
     }
     return {};
   }
 
-  void set_duty_cycle(Channel channel, emb::unsigned_perunit duty_cycle) {
+  void set_duty_cycle(Channel channel, emb::unsigned_pu duty_cycle) {
     uint32_t compare_value =
         uint32_t(duty_cycle.numval() * float(regs_->AUTORLD));
     switch (channel) {
