@@ -27,15 +27,15 @@ internal::TxPin::TxPin(TxPinConfig const& conf)
                           .altfunc = conf.altfunc}} {}
 
 Module::Module(Peripheral peripheral,
-               RxPinConfig const& rx_pin_conf,
-               TxPinConfig const& tx_pin_conf,
+               RxPinConfig const& rx_pinconf,
+               TxPinConfig const& tx_pinconf,
                Config const& conf)
     : emb::singleton_array<Module, periph_num>(this,
                                                std::to_underlying(peripheral)),
       peripheral_(peripheral),
       regs_{can::regs[static_cast<size_t>(peripheral_)]},
-      rx_pin_{rx_pin_conf},
-      tx_pin_{tx_pin_conf} {
+      rx_pin_{rx_pinconf},
+      tx_pin_{tx_pinconf} {
   enable_clk(peripheral);
   CAN_Config(regs_, const_cast<CAN_Config_T*>(&conf.hal_config));
 }

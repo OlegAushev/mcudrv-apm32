@@ -126,8 +126,8 @@ private:
   Config const conf_;
 public:
   Module(Peripheral peripheral,
-         SdaPinConfig const& sda_pin_conf,
-         SclPinConfig const& scl_pin_conf,
+         SdaPinConfig const& sda_pinconf,
+         SclPinConfig const& scl_pinconf,
          Config const& conf);
 
   Peripheral peripheral() const { return peripheral_; }

@@ -115,13 +115,14 @@ public:
         std::to_underlying(peripheral));
   }
 
-  [[nodiscard]] std::unique_ptr<gpio::AnalogPin> init_injected(
-      PinConfig const& pin_conf, InjectedChannelConfig const& channel_conf);
-  [[nodiscard]] std::unique_ptr<gpio::AnalogPin> init_regular(
-      PinConfig const& pin_conf, RegularChannelConfig const& channel_conf);
+  [[nodiscard]] std::unique_ptr<gpio::AnalogPin>
+  init_injected(PinConfig const& pinconf, InjectedChannelConfig const& chconf);
 
-  void init_internal_injected(InjectedChannelConfig const& channel_conf);
-  void init_internal_regular(RegularChannelConfig const& channel_conf);
+  [[nodiscard]] std::unique_ptr<gpio::AnalogPin>
+  init_regular(PinConfig const& pinconf, RegularChannelConfig const& chconf);
+
+  void init_internal_injected(InjectedChannelConfig const& chconf);
+  void init_internal_regular(RegularChannelConfig const& chconf);
 
   void start_injected() {
     if (regs_->STS_B.INJCSFLG == 1) {

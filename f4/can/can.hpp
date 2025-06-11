@@ -108,8 +108,8 @@ private:
   emb::queue<can_frame, 32> txqueue_;
 public:
   Module(Peripheral peripheral,
-         RxPinConfig const& rx_pin_conf,
-         TxPinConfig const& tx_pin_conf,
+         RxPinConfig const& rx_pinconf,
+         TxPinConfig const& tx_pinconf,
          Config const& conf);
   RxMessageAttribute register_rxmessage(CAN_FilterConfig_T const& filter);
 

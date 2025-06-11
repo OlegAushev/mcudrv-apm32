@@ -125,17 +125,17 @@ private:
   std::vector<std::unique_ptr<internal::SwSsPin>> ss_pins_;
 public:
   Module(Peripheral peripheral,
-         MosiPinConfig const& mosi_pin_conf,
-         MisoPinConfig const& miso_pin_conf,
-         ClkPinConfig const& clk_pin_conf,
-         HwSsPinConfig const& ss_pin_conf,
+         MosiPinConfig const& mosi_pinconf,
+         MisoPinConfig const& miso_pinconf,
+         ClkPinConfig const& clk_pinconf,
+         HwSsPinConfig const& ss_pinconf,
          Config const& config);
 
   Module(Peripheral peripheral,
-         MosiPinConfig const& mosi_pin_conf,
-         MisoPinConfig const& miso_pin_conf,
-         ClkPinConfig const& clk_pin_conf,
-         std::initializer_list<SwSsPinConfig> ss_pin_confs,
+         MosiPinConfig const& mosi_pinconf,
+         MisoPinConfig const& miso_pinconf,
+         ClkPinConfig const& clk_pinconf,
+         std::initializer_list<SwSsPinConfig> ss_pinconfs,
          Config const& config);
 
   Peripheral peripheral() const { return peripheral_; }

@@ -75,51 +75,49 @@ Module::Module(Peripheral peripheral, Config const& conf, dma::Stream* dma)
 }
 
 std::unique_ptr<gpio::AnalogPin> Module::init_injected(
-    PinConfig const& pin_config, InjectedChannelConfig const& channel_conf) {
+    PinConfig const& pinconf, InjectedChannelConfig const& chconf) {
   auto pin{std::make_unique<gpio::AnalogPin>(
-      gpio::AnalogPinConfig{.port = pin_config.port, .pin = pin_config.pin})};
+      gpio::AnalogPinConfig{.port = pinconf.port, .pin = pinconf.pin})};
 
-  for (auto rank : channel_conf.ranks) {
+  for (auto rank : chconf.ranks) {
     ADC_ConfigInjectedChannel(regs_,
-                              channel_conf.channel,
+                              chconf.channel,
                               static_cast<ADC_INJEC_CHANNEL_T>(rank),
-                              channel_conf.sampletime);
+                              chconf.sampletime);
     ADC_ConfigInjectedOffset(
-        regs_, static_cast<ADC_INJEC_CHANNEL_T>(rank), channel_conf.offset);
+        regs_, static_cast<ADC_INJEC_CHANNEL_T>(rank), chconf.offset);
   }
 
   return pin;
 }
 
 std::unique_ptr<gpio::AnalogPin> Module::init_regular(
-    PinConfig const& pin_conf, RegularChannelConfig const& channel_conf) {
+    PinConfig const& pinconf, RegularChannelConfig const& chconf) {
   auto pin{std::make_unique<gpio::AnalogPin>(
-      gpio::AnalogPinConfig{.port = pin_conf.port, .pin = pin_conf.pin})};
+      gpio::AnalogPinConfig{.port = pinconf.port, .pin = pinconf.pin})};
 
-  for (auto rank : channel_conf.ranks) {
-    ADC_ConfigRegularChannel(
-        regs_, channel_conf.channel, rank, channel_conf.sampletime);
+  for (auto rank : chconf.ranks) {
+    ADC_ConfigRegularChannel(regs_, chconf.channel, rank, chconf.sampletime);
   }
 
   return pin;
 }
 
-void Module::init_internal_injected(InjectedChannelConfig const& channel_conf) {
-  for (auto rank : channel_conf.ranks) {
+void Module::init_internal_injected(InjectedChannelConfig const& chconf) {
+  for (auto rank : chconf.ranks) {
     ADC_ConfigInjectedChannel(regs_,
-                              channel_conf.channel,
+                              chconf.channel,
                               static_cast<ADC_INJEC_CHANNEL_T>(rank),
-                              channel_conf.sampletime);
+                              chconf.sampletime);
     ADC_ConfigInjectedOffset(
-        regs_, static_cast<ADC_INJEC_CHANNEL_T>(rank), channel_conf.offset);
+        regs_, static_cast<ADC_INJEC_CHANNEL_T>(rank), chconf.offset);
   }
   ADC_EnableTempSensorVrefint();
 }
 
-void Module::init_internal_regular(RegularChannelConfig const& channel_conf) {
-  for (auto rank : channel_conf.ranks) {
-    ADC_ConfigRegularChannel(
-        regs_, channel_conf.channel, rank, channel_conf.sampletime);
+void Module::init_internal_regular(RegularChannelConfig const& chconf) {
+  for (auto rank : chconf.ranks) {
+    ADC_ConfigRegularChannel(regs_, chconf.channel, rank, chconf.sampletime);
   }
   ADC_EnableTempSensorVrefint();
 }

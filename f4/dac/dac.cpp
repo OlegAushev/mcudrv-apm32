@@ -16,9 +16,9 @@ Module::Module(Peripheral peripheral)
 }
 
 std::unique_ptr<gpio::AnalogPin> Module::initialize_channel(
-    Channel channel, PinConfig const& pin_conf, ChannelConfig const& conf) {
+    Channel channel, PinConfig const& pinconf, ChannelConfig const& conf) {
   auto pin{std::make_unique<gpio::AnalogPin>(
-      gpio::AnalogPinConfig{.port = pin_conf.port, .pin = pin_conf.pin})};
+      gpio::AnalogPinConfig{.port = pinconf.port, .pin = pinconf.pin})};
   DAC_Config(std::to_underlying(channel),
              const_cast<DAC_Config_T*>(&conf.hal_config));
   DAC_Enable(static_cast<DAC_CHANNEL_T>(channel));

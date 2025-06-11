@@ -48,43 +48,43 @@ internal::SwSsPin::SwSsPin(SwSsPinConfig const& conf)
                            .active_state = mcu::gpio::active_state::low}} {}
 
 Module::Module(Peripheral peripheral,
-               MosiPinConfig const& mosi_pin_conf,
-               MisoPinConfig const& miso_pin_conf,
-               ClkPinConfig const& clk_pin_conf,
-               HwSsPinConfig const& ss_pin_conf,
+               MosiPinConfig const& mosi_pinconf,
+               MisoPinConfig const& miso_pinconf,
+               ClkPinConfig const& clk_pinconf,
+               HwSsPinConfig const& ss_pinconf,
                Config const& conf)
     : emb::singleton_array<Module, periph_num>(this,
                                                std::to_underlying(peripheral)),
       peripheral_(peripheral),
       regs_{spi::regs[std::to_underlying(peripheral)]},
-      mosi_pin_{mosi_pin_conf},
-      miso_pin_(miso_pin_conf),
-      clk_pin_{clk_pin_conf} {
-  ss_pin_ = std::make_unique<internal::HwSsPin>(ss_pin_conf);
+      mosi_pin_{mosi_pinconf},
+      miso_pin_(miso_pinconf),
+      clk_pin_{clk_pinconf} {
+  ss_pin_ = std::make_unique<internal::HwSsPin>(ss_pinconf);
   enable_clk(peripheral);
   SPI_Config(regs_, const_cast<SPI_Config_T*>(&conf.hal_config));
   SPI_Enable(regs_);
 }
 
 Module::Module(Peripheral peripheral,
-               MosiPinConfig const& mosi_pin_conf,
-               MisoPinConfig const& miso_pin_conf,
-               ClkPinConfig const& clk_pin_conf,
-               std::initializer_list<SwSsPinConfig> ss_pin_confs,
+               MosiPinConfig const& mosi_pinconf,
+               MisoPinConfig const& miso_pinconf,
+               ClkPinConfig const& clk_pinconf,
+               std::initializer_list<SwSsPinConfig> ss_pinconfs,
                Config const& conf)
     : emb::singleton_array<Module, periph_num>(this,
                                                std::to_underlying(peripheral)),
       peripheral_(peripheral),
       regs_{spi::regs[std::to_underlying(peripheral)]},
-      mosi_pin_{mosi_pin_conf},
-      miso_pin_(miso_pin_conf),
-      clk_pin_{clk_pin_conf} {
-  if (ss_pin_confs.size() != 0 && conf.hal_config.mode != SPI_MODE_MASTER) {
+      mosi_pin_{mosi_pinconf},
+      miso_pin_(miso_pinconf),
+      clk_pin_{clk_pinconf} {
+  if (ss_pinconfs.size() != 0 && conf.hal_config.mode != SPI_MODE_MASTER) {
     fatal_error();
   }
 
-  for (auto ss_pin_conf : ss_pin_confs) {
-    ss_pins_.emplace_back(std::make_unique<internal::SwSsPin>(ss_pin_conf));
+  for (auto ss_pinconf : ss_pinconfs) {
+    ss_pins_.emplace_back(std::make_unique<internal::SwSsPin>(ss_pinconf));
     ss_pins_.back()->reset();
   }
 

@@ -24,15 +24,15 @@ internal::TxPin::TxPin(TxPinConfig const& conf)
                           .altfunc = conf.altfunc}} {}
 
 Module::Module(Peripheral peripheral,
-               RxPinConfig const& rx_pin_conf,
-               TxPinConfig const& tx_pin_conf,
+               RxPinConfig const& rx_pinconf,
+               TxPinConfig const& tx_pinconf,
                Config const& config)
     : emb::singleton_array<Module, periph_num>(this,
                                                std::to_underlying(peripheral)),
       peripheral_(peripheral),
       regs_{usart::regs[std::to_underlying(peripheral)]},
-      rx_pin_{rx_pin_conf},
-      tx_pin_{tx_pin_conf} {
+      rx_pin_{rx_pinconf},
+      tx_pin_{tx_pinconf} {
   enable_clk(peripheral);
   USART_Config(regs_, const_cast<USART_Config_T*>(&config.hal_config));
   USART_Enable(regs_);

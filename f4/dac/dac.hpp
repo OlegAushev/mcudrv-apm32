@@ -70,7 +70,7 @@ public:
   Module(Peripheral peripheral);
 
   [[nodiscard]] std::unique_ptr<gpio::AnalogPin> initialize_channel(
-      Channel channel, PinConfig const& pin_conf, ChannelConfig const& conf);
+      Channel channel, PinConfig const& pinconf, ChannelConfig const& conf);
 
   Peripheral peripheral() const { return peripheral_; }
 

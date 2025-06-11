@@ -24,15 +24,15 @@ internal::SclPin::SclPin(SclPinConfig const& conf)
                           .altfunc = conf.altfunc}} {}
 
 Module::Module(Peripheral peripheral,
-               SdaPinConfig const& sda_pin_conf,
-               SclPinConfig const& scl_pin_conf,
+               SdaPinConfig const& sda_pinconf,
+               SclPinConfig const& scl_pinconf,
                Config const& conf)
     : emb::singleton_array<Module, periph_num>(this,
                                                std::to_underlying(peripheral)),
       peripheral_(peripheral),
       regs_(i2c::regs[std::to_underlying(peripheral)]),
-      sda_pin_{sda_pin_conf},
-      scl_pin_{scl_pin_conf},
+      sda_pin_{sda_pinconf},
+      scl_pin_{scl_pinconf},
       conf_{conf} {
   enable_clk(peripheral);
   I2C_Config(regs_, const_cast<I2C_Config_T*>(&conf.hal_config));
