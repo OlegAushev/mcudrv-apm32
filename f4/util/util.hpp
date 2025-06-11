@@ -10,9 +10,10 @@ namespace util {
 
 class temperature_sensor {
 public:
-  static float get_value(uint32_t raw_value) {
-    float v{static_cast<float>(raw_value) / 4095.f * 3.3f};
-    return (v - 0.7782f) / 0.0024f + 28.0f;
+  static float get_value(uint32_t adc_data) {
+    float volt{static_cast<float>(adc_data) * mcu::apm32::adc::vref() /
+               mcu::apm32::adc::nmax<float>()};
+    return (volt - 0.7782f) / 0.0024f + 28.0f;
   }
 };
 
