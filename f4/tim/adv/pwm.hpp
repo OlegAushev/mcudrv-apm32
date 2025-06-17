@@ -57,6 +57,8 @@ public:
 
   bool active() const { return regs_->BDT_B.MOEN == 1; }
 
+  bool bad() const { return regs_->STS_B.BRKIFLG == 1; }
+
   void start() {
     if (brk_enabled_) {
       regs_->STS_B.BRKIFLG = 0;
