@@ -108,6 +108,17 @@ public:
     }
   }
 
+  void set_duty_cycle(std::array<emb::unsigned_pu, 3> const& duty_cycle) {
+    auto to_cmpval = [this](emb::unsigned_pu pu) -> uint32_t {
+      return static_cast<uint32_t>(pu.numval() *
+                                   static_cast<float>(this->regs_->AUTORLD));
+    };
+
+    write_reg(regs_->CC1, to_cmpval(duty_cycle[0]));
+    write_reg(regs_->CC2, to_cmpval(duty_cycle[1]));
+    write_reg(regs_->CC3, to_cmpval(duty_cycle[2]));
+  }
+
   float freq() const { return freq_; }
 
   void init_update_interrupts(IrqPriority priority);
