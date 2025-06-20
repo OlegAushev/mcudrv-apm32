@@ -183,7 +183,7 @@ public:
 
   static void disable_interrupts() { disable_irq(ADC_IRQn); }
 
-  bool check_interrupt(ADC_INT_T interrupt) const {
+  bool has_interrupt(ADC_INT_T interrupt) const {
     auto sts = regs_->STS_B;
     auto cr1 = regs_->CTRL1_B;
 
