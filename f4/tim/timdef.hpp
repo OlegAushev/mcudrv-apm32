@@ -48,7 +48,7 @@ public:
       : gpio::AlternatePin{{.port = conf.port,
                             .pin = conf.pin,
                             .pull = gpio::Pull::none,
-                            .output = gpio::Output::pushpull,
+                            .output_type = gpio::OutputType::pushpull,
                             .speed = gpio::Speed::fast,
                             .altfunc = conf.altfunc}} {}
 };
@@ -59,7 +59,7 @@ public:
       : gpio::AlternatePin{{.port = conf.port,
                             .pin = conf.pin,
                             .pull = conf.pull,
-                            .output = gpio::Output::pushpull,
+                            .output_type = gpio::OutputType::pushpull,
                             .speed = gpio::Speed::fast,
                             .altfunc = conf.altfunc}} {}
 };

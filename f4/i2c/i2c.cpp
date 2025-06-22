@@ -11,7 +11,7 @@ internal::SdaPin::SdaPin(SdaPinConfig const& conf)
     : gpio::AlternatePin{{.port = conf.port,
                           .pin = conf.pin,
                           .pull = gpio::Pull::none,
-                          .output = gpio::Output::opendrain,
+                          .output_type = gpio::OutputType::opendrain,
                           .speed = gpio::Speed::fast,
                           .altfunc = conf.altfunc}} {}
 
@@ -19,7 +19,7 @@ internal::SclPin::SclPin(SclPinConfig const& conf)
     : gpio::AlternatePin{{.port = conf.port,
                           .pin = conf.pin,
                           .pull = gpio::Pull::none,
-                          .output = gpio::Output::opendrain,
+                          .output_type = gpio::OutputType::opendrain,
                           .speed = gpio::Speed::fast,
                           .altfunc = conf.altfunc}} {}
 

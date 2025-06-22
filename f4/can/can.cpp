@@ -14,7 +14,7 @@ internal::RxPin::RxPin(RxPinConfig const& conf)
     : gpio::AlternatePin{{.port = conf.port,
                           .pin = conf.pin,
                           .pull = gpio::Pull::none,
-                          .output = gpio::Output::pushpull,
+                          .output_type = gpio::OutputType::pushpull,
                           .speed = gpio::Speed::fast,
                           .altfunc = conf.altfunc}} {}
 
@@ -22,7 +22,7 @@ internal::TxPin::TxPin(TxPinConfig const& conf)
     : gpio::AlternatePin{{.port = conf.port,
                           .pin = conf.pin,
                           .pull = gpio::Pull::none,
-                          .output = gpio::Output::pushpull,
+                          .output_type = gpio::OutputType::pushpull,
                           .speed = gpio::Speed::fast,
                           .altfunc = conf.altfunc}} {}
 

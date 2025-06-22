@@ -77,7 +77,7 @@ Module::Module(Peripheral peripheral, Config const& conf, dma::Stream* dma)
 std::unique_ptr<gpio::AnalogPin> Module::init_injected(
     PinConfig const& pinconf, InjectedChannelConfig const& chconf) {
   auto pin{std::make_unique<gpio::AnalogPin>(
-      gpio::AnalogPinConfig{.port = pinconf.port, .pin = pinconf.pin})};
+      gpio::AnalogConfig{.port = pinconf.port, .pin = pinconf.pin})};
 
   for (auto rank : chconf.ranks) {
     ADC_ConfigInjectedChannel(regs_,
@@ -94,7 +94,7 @@ std::unique_ptr<gpio::AnalogPin> Module::init_injected(
 std::unique_ptr<gpio::AnalogPin> Module::init_regular(
     PinConfig const& pinconf, RegularChannelConfig const& chconf) {
   auto pin{std::make_unique<gpio::AnalogPin>(
-      gpio::AnalogPinConfig{.port = pinconf.port, .pin = pinconf.pin})};
+      gpio::AnalogConfig{.port = pinconf.port, .pin = pinconf.pin})};
 
   for (auto rank : chconf.ranks) {
     ADC_ConfigRegularChannel(regs_, chconf.channel, rank, chconf.sampletime);

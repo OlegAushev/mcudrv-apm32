@@ -103,7 +103,7 @@ public:
   HwSsPin(HwSsPinConfig const& conf);
 };
 
-class SwSsPin : public gpio::DigitalOutput {
+class SwSsPin : public gpio::Output {
 public:
   SwSsPin(SwSsPinConfig const& conf);
 };

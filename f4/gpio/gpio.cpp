@@ -48,37 +48,39 @@ internal::Pin::~Pin() {
   assigned_[port_idx] &= ~uint16_t(pin_);
 }
 
-internal::Pin::Pin(DigitalInputConfig const& conf)
+internal::Pin::Pin(InputConfig const& conf)
     : Pin{conf.port,
           GPIO_Config_T{.pin = std::to_underlying(conf.pin),
                         .mode = GPIO_MODE_IN,
                         .speed = static_cast<GPIO_SPEED_T>(Speed::low),
-                        .otype = static_cast<GPIO_OTYPE_T>(Output::pushpull),
+                        .otype =
+                            static_cast<GPIO_OTYPE_T>(OutputType::pushpull),
                         .pupd = static_cast<GPIO_PUPD_T>(conf.pull)}} {}
 
-internal::Pin::Pin(DigitalOutputConfig const& conf)
+internal::Pin::Pin(OutputConfig const& conf)
     : Pin{conf.port,
           GPIO_Config_T{.pin = std::to_underlying(conf.pin),
                         .mode = GPIO_MODE_OUT,
                         .speed = static_cast<GPIO_SPEED_T>(conf.speed),
-                        .otype = static_cast<GPIO_OTYPE_T>(conf.output),
+                        .otype = static_cast<GPIO_OTYPE_T>(conf.output_type),
                         .pupd = static_cast<GPIO_PUPD_T>(conf.pull)}} {}
 
-internal::Pin::Pin(AlternatePinConfig const& conf)
+internal::Pin::Pin(AlternateConfig const& conf)
     : Pin{conf.port,
           GPIO_Config_T{.pin = std::to_underlying(conf.pin),
                         .mode = GPIO_MODE_AF,
                         .speed = static_cast<GPIO_SPEED_T>(conf.speed),
-                        .otype = static_cast<GPIO_OTYPE_T>(conf.output),
+                        .otype = static_cast<GPIO_OTYPE_T>(conf.output_type),
                         .pupd = static_cast<GPIO_PUPD_T>(conf.pull)},
           conf.altfunc} {}
 
-internal::Pin::Pin(AnalogPinConfig const& conf)
+internal::Pin::Pin(AnalogConfig const& conf)
     : Pin{conf.port,
           GPIO_Config_T{.pin = std::to_underlying(conf.pin),
                         .mode = GPIO_MODE_AN,
                         .speed = static_cast<GPIO_SPEED_T>(Speed::low),
-                        .otype = static_cast<GPIO_OTYPE_T>(Output::pushpull),
+                        .otype =
+                            static_cast<GPIO_OTYPE_T>(OutputType::pushpull),
                         .pupd = static_cast<GPIO_PUPD_T>(Pull::none)}} {}
 
 } // namespace gpio

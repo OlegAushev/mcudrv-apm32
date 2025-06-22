@@ -60,7 +60,7 @@ enum class Pin : uint16_t {
   pin15 = GPIO_PIN_15,
 };
 
-enum class Output : uint32_t {
+enum class OutputType : uint32_t {
   pushpull = GPIO_OTYPE_PP,
   opendrain = GPIO_OTYPE_OD
 };
@@ -79,32 +79,32 @@ enum class Pull : uint32_t {
 };
 ;
 
-struct DigitalInputConfig {
+struct InputConfig {
   Port port;
   Pin pin;
   Pull pull;
   mcu::gpio::active_state active_state;
 };
 
-struct DigitalOutputConfig {
+struct OutputConfig {
   Port port;
   Pin pin;
   Pull pull;
-  Output output;
+  OutputType output_type;
   Speed speed;
   mcu::gpio::active_state active_state;
 };
 
-struct AlternatePinConfig {
+struct AlternateConfig {
   Port port;
   Pin pin;
   Pull pull;
-  Output output;
+  OutputType output_type;
   Speed speed;
   GPIO_AF_T altfunc;
 };
 
-struct AnalogPinConfig {
+struct AnalogConfig {
   Port port;
   Pin pin;
 };
@@ -122,11 +122,14 @@ private:
       std::optional<GPIO_AF_T> altfunc = std::nullopt);
 protected:
   ~Pin();
-  Pin(DigitalInputConfig const& conf);
-  Pin(DigitalOutputConfig const& conf);
-  Pin(AlternatePinConfig const& conf);
-  Pin(AnalogPinConfig const& conf);
+  explicit Pin(InputConfig const& conf);
+  explicit Pin(OutputConfig const& conf);
+  explicit Pin(AlternateConfig const& conf);
+  explicit Pin(AnalogConfig const& conf);
 public:
+  Pin(Pin const& other) = delete;
+  Pin& operator=(Pin const& other) = delete;
+
   unsigned int pin_no() const { return __CLZ(__RBIT(pin_)); }
 
   uint16_t pin_bit() const { return static_cast<uint16_t>(pin_); }
@@ -140,7 +143,7 @@ private:
 
 } // namespace internal
 
-class DigitalInput : public mcu::gpio::input_pin, public internal::Pin {
+class Input : public mcu::gpio::input_pin, public internal::Pin {
   // friend void ::EXTI0_IRQHandler();
   // friend void ::EXTI1_IRQHandler();
   // friend void ::EXTI2_IRQHandler();
@@ -150,8 +153,11 @@ class DigitalInput : public mcu::gpio::input_pin, public internal::Pin {
 private:
   mcu::gpio::active_state const active_state_;
 public:
-  DigitalInput(DigitalInputConfig const& conf)
+  explicit Input(InputConfig const& conf)
       : internal::Pin(conf), active_state_(conf.active_state) {}
+
+  Input(Input const& other) = delete;
+  Input& operator=(Input const& other) = delete;
 
   mcu::gpio::active_state active_state() const { return active_state_; }
 
@@ -225,16 +231,19 @@ public:
   // clang-format on
 };
 
-class DigitalOutput : public mcu::gpio::output_pin, public internal::Pin {
+class Output : public mcu::gpio::output_pin, public internal::Pin {
 private:
   mcu::gpio::active_state const active_state_;
 public:
-  DigitalOutput(
-      DigitalOutputConfig const& conf,
+  explicit Output(
+      OutputConfig const& conf,
       mcu::gpio::pin_state init_state = mcu::gpio::pin_state::inactive)
       : internal::Pin(conf), active_state_(conf.active_state) {
     set(init_state);
   }
+
+  Output(Output const& other) = delete;
+  Output& operator=(Output const& other) = delete;
 
   mcu::gpio::active_state active_state() const { return active_state_; }
 
@@ -280,61 +289,69 @@ public:
 
 class AlternatePin : public internal::Pin {
 public:
-  AlternatePin(AlternatePinConfig const& conf) : internal::Pin(conf) {}
+  explicit AlternatePin(AlternateConfig const& conf) : internal::Pin(conf) {}
+
+  AlternatePin(AlternatePin const& other) = delete;
+  AlternatePin& operator=(AlternatePin const& other) = delete;
 };
 
 class AnalogPin : public internal::Pin {
 public:
-  AnalogPin(AnalogPinConfig const& conf) : internal::Pin(conf) {}
+  explicit AnalogPin(AnalogConfig const& conf) : internal::Pin(conf) {}
+
+  AnalogPin(AnalogPin const& other) = delete;
+  AnalogPin& operator=(AnalogPin const& other) = delete;
 };
 
-enum class DurationLoggerMode {
+namespace util {
+
+enum class LoggerMode {
   set_reset,
   toggle
 };
 
-enum class DurationLoggerChannel : unsigned int {
-  channel0,
-  channel1,
-  channel2,
-  channel3,
-  channel4,
-  channel5,
-  channel6,
-  channel7,
-  channel8,
-  channel9,
-  channel10,
-  channel11,
-  channel12,
-  channel13,
-  channel14,
-  channel15,
+enum class LoggerChannel : unsigned int {
+  ch0,
+  ch1,
+  ch2,
+  ch3,
+  ch4,
+  ch5,
+  ch6,
+  ch7,
+  ch8,
+  ch9,
+  ch10,
+  ch11,
+  ch12,
+  ch13,
+  ch14,
+  ch15,
 };
 
-class DurationLogger {
+class Logger {
 private:
-  static inline std::array<std::unique_ptr<DigitalOutput>, 16> pins_{};
-  DigitalOutput* const pin_;
-  DurationLoggerMode const mode_;
+  static inline std::array<std::unique_ptr<Output>, 16> pins_{};
+  Output* const pin_;
+  LoggerMode const mode_;
 public:
-  static void init_channel(DurationLoggerChannel channel, Port port, Pin pin) {
-    pins_[std::to_underlying(channel)] = std::make_unique<DigitalOutput>(
-        DigitalOutputConfig{.port = port,
-                            .pin = pin,
-                            .pull = Pull::none,
-                            .output = Output::pushpull,
-                            .speed = Speed::high,
-                            .active_state = mcu::gpio::active_state::high});
+  static void init_channel(LoggerChannel ch, Port port, Pin pin) {
+    pins_[std::to_underlying(ch)] = std::make_unique<Output>(
+        OutputConfig{.port = port,
+                     .pin = pin,
+                     .pull = Pull::none,
+                     .output_type = OutputType::pushpull,
+                     .speed = Speed::high,
+                     .active_state = mcu::gpio::active_state::high});
   }
 
-  DurationLogger(DurationLoggerChannel channel, DurationLoggerMode mode)
+  Logger(LoggerChannel channel, LoggerMode mode)
       : pin_(pins_[std::to_underlying(channel)].get()), mode_(mode) {
     if (!pin_) {
       return;
     }
 
-    if (mode_ == DurationLoggerMode::set_reset) {
+    if (mode_ == LoggerMode::set_reset) {
       pin_->set_level(1);
     } else {
       pin_->toggle();
@@ -342,18 +359,20 @@ public:
     }
   }
 
-  ~DurationLogger() {
+  ~Logger() {
     if (!pin_) {
       return;
     }
 
-    if (mode_ == DurationLoggerMode::set_reset) {
+    if (mode_ == LoggerMode::set_reset) {
       pin_->set_level(0);
     } else {
       pin_->toggle();
     }
   }
 };
+
+} // namespace util
 
 } // namespace gpio
 } // namespace apm32

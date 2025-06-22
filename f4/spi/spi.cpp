@@ -11,7 +11,7 @@ internal::MosiPin::MosiPin(MosiPinConfig const& conf)
     : gpio::AlternatePin{{.port = conf.port,
                           .pin = conf.pin,
                           .pull = gpio::Pull::none,
-                          .output = gpio::Output::pushpull,
+                          .output_type = gpio::OutputType::pushpull,
                           .speed = gpio::Speed::high,
                           .altfunc = conf.altfunc}} {}
 
@@ -19,7 +19,7 @@ internal::MisoPin::MisoPin(MisoPinConfig const& conf)
     : gpio::AlternatePin{{.port = conf.port,
                           .pin = conf.pin,
                           .pull = gpio::Pull::none,
-                          .output = gpio::Output::pushpull,
+                          .output_type = gpio::OutputType::pushpull,
                           .speed = gpio::Speed::high,
                           .altfunc = conf.altfunc}} {}
 
@@ -27,7 +27,7 @@ internal::ClkPin::ClkPin(ClkPinConfig const& conf)
     : gpio::AlternatePin{{.port = conf.port,
                           .pin = conf.pin,
                           .pull = gpio::Pull::none,
-                          .output = gpio::Output::pushpull,
+                          .output_type = gpio::OutputType::pushpull,
                           .speed = gpio::Speed::high,
                           .altfunc = conf.altfunc}} {}
 
@@ -35,17 +35,17 @@ internal::HwSsPin::HwSsPin(HwSsPinConfig const& conf)
     : gpio::AlternatePin{{.port = conf.port,
                           .pin = conf.pin,
                           .pull = gpio::Pull::none,
-                          .output = gpio::Output::pushpull,
+                          .output_type = gpio::OutputType::pushpull,
                           .speed = gpio::Speed::medium,
                           .altfunc = conf.altfunc}} {}
 
 internal::SwSsPin::SwSsPin(SwSsPinConfig const& conf)
-    : gpio::DigitalOutput{{.port = conf.port,
-                           .pin = conf.pin,
-                           .pull = gpio::Pull::up,
-                           .output = gpio::Output::pushpull,
-                           .speed = gpio::Speed::medium,
-                           .active_state = mcu::gpio::active_state::low}} {}
+    : gpio::Output{{.port = conf.port,
+                    .pin = conf.pin,
+                    .pull = gpio::Pull::up,
+                    .output_type = gpio::OutputType::pushpull,
+                    .speed = gpio::Speed::medium,
+                    .active_state = mcu::gpio::active_state::low}} {}
 
 Module::Module(Peripheral peripheral,
                MosiPinConfig const& mosi_pinconf,
