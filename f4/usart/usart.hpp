@@ -68,7 +68,7 @@ public:
 
 } // namespace internal
 
-class Module : public mcu::uart::tty,
+class Module : public emb::uart::tty,
                public emb::singleton_array<Module, periph_num>,
                private emb::noncopyable {
 private:

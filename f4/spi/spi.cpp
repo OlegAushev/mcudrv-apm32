@@ -45,7 +45,7 @@ internal::SwSsPin::SwSsPin(SwSsPinConfig const& conf)
                     .pull = gpio::Pull::up,
                     .output_type = gpio::OutputType::pushpull,
                     .speed = gpio::Speed::medium,
-                    .active_state = mcu::gpio::active_state::low}} {}
+                    .active_state = emb::gpio::active_state::low}} {}
 
 Module::Module(Peripheral peripheral,
                MosiPinConfig const& mosi_pinconf,

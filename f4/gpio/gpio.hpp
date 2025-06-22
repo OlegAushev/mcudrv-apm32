@@ -83,7 +83,7 @@ struct InputConfig {
   Port port;
   Pin pin;
   Pull pull;
-  mcu::gpio::active_state active_state;
+  emb::gpio::active_state active_state;
 };
 
 struct OutputConfig {
@@ -92,7 +92,7 @@ struct OutputConfig {
   Pull pull;
   OutputType output_type;
   Speed speed;
-  mcu::gpio::active_state active_state;
+  emb::gpio::active_state active_state;
 };
 
 struct AlternateConfig {
@@ -143,7 +143,7 @@ private:
 
 } // namespace internal
 
-class Input : public mcu::gpio::input_pin, public internal::Pin {
+class Input : public emb::gpio::input, public internal::Pin {
   // friend void ::EXTI0_IRQHandler();
   // friend void ::EXTI1_IRQHandler();
   // friend void ::EXTI2_IRQHandler();
@@ -151,7 +151,7 @@ class Input : public mcu::gpio::input_pin, public internal::Pin {
   // friend void ::EXTI4_IRQHandler();
   // friend void ::HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin);
 private:
-  mcu::gpio::active_state const active_state_;
+  emb::gpio::active_state const active_state_;
 public:
   explicit Input(InputConfig const& conf)
       : internal::Pin(conf), active_state_(conf.active_state) {}
@@ -159,7 +159,7 @@ public:
   Input(Input const& other) = delete;
   Input& operator=(Input const& other) = delete;
 
-  mcu::gpio::active_state active_state() const { return active_state_; }
+  emb::gpio::active_state active_state() const { return active_state_; }
 
   virtual unsigned int read_level() const override {
     if ((read_reg(regs_->IDATA) & pin_) != 0) {
@@ -168,11 +168,11 @@ public:
     return 0;
   }
 
-  virtual mcu::gpio::pin_state read() const override {
+  virtual emb::gpio::state read() const override {
     if (read_level() == std::to_underlying(active_state_)) {
-      return mcu::gpio::pin_state::active;
+      return emb::gpio::state::active;
     }
-    return mcu::gpio::pin_state::inactive;
+    return emb::gpio::state::inactive;
   }
 
   // clang-format off
@@ -231,13 +231,12 @@ public:
   // clang-format on
 };
 
-class Output : public mcu::gpio::output_pin, public internal::Pin {
+class Output : public emb::gpio::output, public internal::Pin {
 private:
-  mcu::gpio::active_state const active_state_;
+  emb::gpio::active_state const active_state_;
 public:
-  explicit Output(
-      OutputConfig const& conf,
-      mcu::gpio::pin_state init_state = mcu::gpio::pin_state::inactive)
+  explicit Output(OutputConfig const& conf,
+                  emb::gpio::state init_state = emb::gpio::state::inactive)
       : internal::Pin(conf), active_state_(conf.active_state) {
     set(init_state);
   }
@@ -245,7 +244,7 @@ public:
   Output(Output const& other) = delete;
   Output& operator=(Output const& other) = delete;
 
-  mcu::gpio::active_state active_state() const { return active_state_; }
+  emb::gpio::active_state active_state() const { return active_state_; }
 
   virtual unsigned int read_level() const override {
     if ((read_reg(regs_->IDATA) & pin_) != 0) {
@@ -262,23 +261,22 @@ public:
     }
   }
 
-  virtual mcu::gpio::pin_state read() const override {
+  virtual emb::gpio::state read() const override {
     if (read_level() == std::to_underlying(active_state_)) {
-      return mcu::gpio::pin_state::active;
+      return emb::gpio::state::active;
     }
-    return mcu::gpio::pin_state::inactive;
+    return emb::gpio::state::inactive;
   }
 
-  virtual void
-  set(mcu::gpio::pin_state s = mcu::gpio::pin_state::active) override {
-    if (s == mcu::gpio::pin_state::active) {
+  virtual void set(emb::gpio::state s = emb::gpio::state::active) override {
+    if (s == emb::gpio::state::active) {
       set_level(std::to_underlying(active_state_));
     } else {
       set_level(1 - std::to_underlying(active_state_));
     }
   }
 
-  virtual void reset() override { set(mcu::gpio::pin_state::inactive); }
+  virtual void reset() override { set(emb::gpio::state::inactive); }
 
   virtual void toggle() override {
     uint16_t const odr_reg{static_cast<uint16_t>(read_reg(regs_->ODATA))};
@@ -342,7 +340,7 @@ public:
                      .pull = Pull::none,
                      .output_type = OutputType::pushpull,
                      .speed = Speed::high,
-                     .active_state = mcu::gpio::active_state::high});
+                     .active_state = emb::gpio::active_state::high});
   }
 
   Logger(LoggerChannel channel, LoggerMode mode)
