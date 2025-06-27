@@ -83,7 +83,7 @@ struct InputConfig {
   Port port;
   Pin pin;
   Pull pull;
-  emb::gpio::active_state active_state;
+  emb::gpio::level active_level;
 };
 
 struct OutputConfig {
@@ -92,7 +92,7 @@ struct OutputConfig {
   Pull pull;
   OutputType output_type;
   Speed speed;
-  emb::gpio::active_state active_state;
+  emb::gpio::level active_level;
 };
 
 struct AlternateConfig {
@@ -151,25 +151,25 @@ class Input : public emb::gpio::input, public internal::Pin {
   // friend void ::EXTI4_IRQHandler();
   // friend void ::HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin);
 private:
-  emb::gpio::active_state const active_state_;
+  emb::gpio::level const active_level_;
 public:
   explicit Input(InputConfig const& conf)
-      : internal::Pin(conf), active_state_(conf.active_state) {}
+      : internal::Pin(conf), active_level_(conf.active_level) {}
 
   Input(Input const& other) = delete;
   Input& operator=(Input const& other) = delete;
 
-  emb::gpio::active_state active_state() const { return active_state_; }
+  emb::gpio::level active_level() const { return active_level_; }
 
-  virtual unsigned int read_level() const override {
+  virtual emb::gpio::level read_level() const override {
     if ((read_reg(regs_->IDATA) & pin_) != 0) {
-      return 1;
+      return emb::gpio::level::high;
     }
-    return 0;
+    return emb::gpio::level::low;
   }
 
   virtual emb::gpio::state read() const override {
-    if (read_level() == std::to_underlying(active_state_)) {
+    if (read_level() == active_level_) {
       return emb::gpio::state::active;
     }
     return emb::gpio::state::inactive;
@@ -233,28 +233,28 @@ public:
 
 class Output : public emb::gpio::output, public internal::Pin {
 private:
-  emb::gpio::active_state const active_state_;
+  emb::gpio::level const active_level_;
 public:
   explicit Output(OutputConfig const& conf,
                   emb::gpio::state init_state = emb::gpio::state::inactive)
-      : internal::Pin(conf), active_state_(conf.active_state) {
+      : internal::Pin(conf), active_level_(conf.active_level) {
     set(init_state);
   }
 
   Output(Output const& other) = delete;
   Output& operator=(Output const& other) = delete;
 
-  emb::gpio::active_state active_state() const { return active_state_; }
+  emb::gpio::level active_level() const { return active_level_; }
 
-  virtual unsigned int read_level() const override {
+  virtual emb::gpio::level read_level() const override {
     if ((read_reg(regs_->IDATA) & pin_) != 0) {
-      return 1;
+      return emb::gpio::level::high;
     }
-    return 0;
+    return emb::gpio::level::low;
   }
 
-  virtual void set_level(unsigned int level) override {
-    if (level != 0) {
+  virtual void set_level(emb::gpio::level lvl) override {
+    if (lvl == emb::gpio::level::high) {
       write_reg(regs_->BSCL, pin_);
     } else {
       write_reg(regs_->BSCH, pin_);
@@ -262,7 +262,7 @@ public:
   }
 
   virtual emb::gpio::state read() const override {
-    if (read_level() == std::to_underlying(active_state_)) {
+    if (read_level() == active_level_) {
       return emb::gpio::state::active;
     }
     return emb::gpio::state::inactive;
@@ -270,9 +270,9 @@ public:
 
   virtual void set(emb::gpio::state s = emb::gpio::state::active) override {
     if (s == emb::gpio::state::active) {
-      set_level(std::to_underlying(active_state_));
+      set_level(active_level_);
     } else {
-      set_level(1 - std::to_underlying(active_state_));
+      set_level(!active_level_);
     }
   }
 
@@ -340,7 +340,7 @@ public:
                      .pull = Pull::none,
                      .output_type = OutputType::pushpull,
                      .speed = Speed::high,
-                     .active_state = emb::gpio::active_state::high});
+                     .active_level = emb::gpio::level::high});
   }
 
   Logger(LoggerChannel channel, LoggerMode mode)
@@ -350,7 +350,7 @@ public:
     }
 
     if (mode_ == LoggerMode::set_reset) {
-      pin_->set_level(1);
+      pin_->set_level(emb::gpio::level::high);
     } else {
       pin_->toggle();
       pin_->toggle();
@@ -363,7 +363,7 @@ public:
     }
 
     if (mode_ == LoggerMode::set_reset) {
-      pin_->set_level(0);
+      pin_->set_level(emb::gpio::level::low);
     } else {
       pin_->toggle();
     }
