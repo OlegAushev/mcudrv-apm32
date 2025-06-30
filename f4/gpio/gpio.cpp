@@ -4,7 +4,7 @@
 #include <mcudrv-apm32/f4/gpio/gpio.hpp>
 
 namespace mcu {
-namespace apm32 {
+inline namespace apm32 {
 namespace gpio {
 
 std::array<void (*)(void), port_num> internal::Pin::enable_port_clk_{

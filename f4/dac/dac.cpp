@@ -4,7 +4,7 @@
 #include <mcudrv-apm32/f4/dac/dac.hpp>
 
 namespace mcu {
-namespace apm32 {
+inline namespace apm32 {
 namespace dac {
 
 Module::Module(Peripheral peripheral)

@@ -10,7 +10,7 @@
 #include <mcudrv-apm32/f4/system/system.hpp>
 
 namespace mcu {
-namespace apm32 {
+inline namespace apm32 {
 namespace tim {
 
 enum class OpMode {

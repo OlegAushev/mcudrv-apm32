@@ -4,7 +4,7 @@
 #include <mcudrv-apm32/f4/spi/spi.hpp>
 
 namespace mcu {
-namespace apm32 {
+inline namespace apm32 {
 namespace spi {
 
 internal::MosiPin::MosiPin(MosiPinConfig const& conf)

@@ -14,7 +14,7 @@
 extern "C" void SysTick_Handler();
 
 namespace mcu {
-namespace apm32 {
+inline namespace apm32 {
 namespace chrono {
 
 class steady_clock {

@@ -4,7 +4,7 @@
 #include <mcudrv-apm32/f4/dma/dma.hpp>
 
 namespace mcu {
-namespace apm32 {
+inline namespace apm32 {
 namespace dma {
 
 Stream::Stream(Config config)

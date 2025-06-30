@@ -13,7 +13,7 @@
 #include <emblib/singleton.hpp>
 
 namespace mcu {
-namespace apm32 {
+inline namespace apm32 {
 namespace i2c {
 
 using Regs = I2C_T;

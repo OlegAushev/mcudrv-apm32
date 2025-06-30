@@ -4,7 +4,7 @@
 #include <mcudrv-apm32/f4/usart/usart.hpp>
 
 namespace mcu {
-namespace apm32 {
+inline namespace apm32 {
 namespace usart {
 
 internal::RxPin::RxPin(RxPinConfig const& conf)

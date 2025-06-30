@@ -11,7 +11,7 @@
 #include <cstddef>
 
 namespace mcu {
-namespace apm32 {
+inline namespace apm32 {
 namespace crc {
 
 inline void init() { RCM_EnableAHB1PeriphClock(RCM_AHB1_PERIPH_CRC); }

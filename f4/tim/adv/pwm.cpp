@@ -4,7 +4,7 @@
 #include <mcudrv-apm32/f4/tim/adv/pwm.hpp>
 
 namespace mcu {
-namespace apm32 {
+inline namespace apm32 {
 namespace tim {
 namespace adv {
 

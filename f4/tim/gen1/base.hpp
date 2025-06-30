@@ -9,7 +9,7 @@
 #include <emblib/singleton.hpp>
 
 namespace mcu {
-namespace apm32 {
+inline namespace apm32 {
 namespace tim {
 namespace gen1 {
 

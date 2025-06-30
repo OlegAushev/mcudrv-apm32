@@ -19,7 +19,7 @@
 #include <utility>
 
 namespace mcu {
-namespace apm32 {
+inline namespace apm32 {
 namespace gpio {
 
 using PortRegs = GPIO_T;

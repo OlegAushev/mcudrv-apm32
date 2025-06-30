@@ -14,7 +14,7 @@
 #include <emblib/uart.hpp>
 
 namespace mcu {
-namespace apm32 {
+inline namespace apm32 {
 namespace usart {
 
 using Regs = USART_T;

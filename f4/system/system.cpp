@@ -4,7 +4,7 @@
 #include <mcudrv-apm32/f4/system/system.hpp>
 
 namespace mcu {
-namespace apm32 {
+inline namespace apm32 {
 
 __attribute__((weak)) void init_clk() {
   fatal_error("device init clock func not implemented");

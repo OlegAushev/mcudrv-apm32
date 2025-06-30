@@ -5,7 +5,7 @@
 #include <emblib/filter.hpp>
 
 namespace mcu {
-namespace apm32 {
+inline namespace apm32 {
 namespace util {
 
 class temperature_sensor {

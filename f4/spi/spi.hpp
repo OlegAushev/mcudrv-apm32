@@ -17,7 +17,7 @@
 #include <vector>
 
 namespace mcu {
-namespace apm32 {
+inline namespace apm32 {
 namespace spi {
 
 using Regs = SPI_T;

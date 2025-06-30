@@ -11,7 +11,7 @@
 #include <chrono>
 
 namespace mcu {
-namespace apm32 {
+inline namespace apm32 {
 
 void init_clk();
 

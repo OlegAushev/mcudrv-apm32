@@ -15,7 +15,7 @@
 #include <utility>
 
 namespace mcu {
-namespace apm32 {
+inline namespace apm32 {
 namespace dma {
 
 enum class StreamId : unsigned int {

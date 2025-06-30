@@ -4,7 +4,7 @@
 #include <mcudrv-apm32/f4/i2c/i2c.hpp>
 
 namespace mcu {
-namespace apm32 {
+inline namespace apm32 {
 namespace i2c {
 
 internal::SdaPin::SdaPin(SdaPinConfig const& conf)

@@ -7,7 +7,7 @@
 #include <emblib/chrono.hpp>
 
 namespace mcu {
-namespace apm32 {
+inline namespace apm32 {
 namespace can {
 
 internal::RxPin::RxPin(RxPinConfig const& conf)

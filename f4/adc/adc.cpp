@@ -4,7 +4,7 @@
 #include <mcudrv-apm32/f4/adc/adc.hpp>
 
 namespace mcu {
-namespace apm32 {
+inline namespace apm32 {
 namespace adc {
 
 Module::Module(Peripheral peripheral, Config const& conf, dma::Stream* dma)

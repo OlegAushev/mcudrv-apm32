@@ -4,7 +4,7 @@
 #include <mcudrv-apm32/f4/tim/gen1/timebase.hpp>
 
 namespace mcu {
-namespace apm32 {
+inline namespace apm32 {
 namespace tim {
 namespace gen1 {
 

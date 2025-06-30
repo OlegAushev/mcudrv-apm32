@@ -16,7 +16,7 @@
 #include <utility>
 
 namespace mcu {
-namespace apm32 {
+inline namespace apm32 {
 namespace adc {
 
 using CommonRegs = ADC_Common_T;

@@ -17,7 +17,7 @@ emb::chrono::steady_clock::now() {
 }
 
 namespace mcu {
-namespace apm32 {
+inline namespace apm32 {
 namespace chrono {
 
 void steady_clock::init() {
