@@ -101,6 +101,11 @@ public:
   }
 };
 
+inline uint32_t serial_number() {
+  uint32_t* uid_ptr{reinterpret_cast<uint32_t*>(0x1FFF7A10)};
+  return *uid_ptr;
+}
+
 } // namespace apm32
 } // namespace mcu
 
