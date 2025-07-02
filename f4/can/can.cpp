@@ -57,8 +57,8 @@ Module::register_rxmessage(CAN_FilterConfig_T const& filter) {
   filt.filterActivation = ENABLE;
   //filter.SlaveStartFilterBank = 14;
 
-  attr.filter_idx = filter.filterNumber;
-  attr.fifo = RxFifo(filter.filterFIFO);
+  attr.filter_idx = filt.filterNumber;
+  attr.fifo = RxFifo(filt.filterFIFO);
 
   CAN_ConfigFilter(&filt);
 
