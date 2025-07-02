@@ -55,14 +55,14 @@ static_assert(std::chrono::is_clock_v<steady_clock>);
 
 class high_resolution_clock {
 public:
-  using duration = std::chrono::microseconds;
+  using duration = std::chrono::nanoseconds;
   using rep = duration::rep;
   using period = duration::period;
   using time_point = std::chrono::time_point<high_resolution_clock, duration>;
   static constexpr bool is_steady = true;
 private:
   static inline bool initialized_{false};
-  static inline uint32_t ticks_per_usec_{1};
+  static inline float nsec_per_tick_{0.0f};
 public:
   high_resolution_clock() = delete;
   static void init();
@@ -70,14 +70,13 @@ public:
   static bool initialized() { return initialized_; }
 
   static std::chrono::time_point<high_resolution_clock> now() {
-    std::chrono::microseconds const since_epoch{
-        steady_clock::now().time_since_epoch()};
-    std::chrono::microseconds const usec{(SysTick->LOAD - SysTick->VAL) /
-                                         ticks_per_usec_};
-    return time_point{since_epoch + usec};
+    duration const since_epoch{steady_clock::now().time_since_epoch()};
+    duration const nsec{static_cast<rep>(
+        static_cast<float>(SysTick->LOAD - SysTick->VAL) * nsec_per_tick_)};
+    return time_point{since_epoch + nsec};
   }
 
-  static void delay(std::chrono::microseconds delay) {
+  static void delay(std::chrono::nanoseconds delay) {
     auto const start{now()};
     while ((now() - start) <= delay) {
       // wait

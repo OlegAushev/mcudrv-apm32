@@ -24,11 +24,11 @@ void steady_clock::init() {
   // init systick
   SysTick_ConfigCLKSource(SYSTICK_CLK_SOURCE_HCLK);
 
-  uint32_t const ticks_per_msec = core_clk_freq() / 1000;
+  uint32_t const ticks_per_msec{core_clk_freq() / 1000};
   SysTick->LOAD = ticks_per_msec - 1;
   // set to highest priority instead of (1UL << __NVIC_PRIO_BITS) - 1UL
   NVIC_SetPriority(SysTick_IRQn, 0);
-  SysTick->VAL = 0UL;
+  SysTick->VAL = 0;
   SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_TICKINT_Msk |
                   SysTick_CTRL_ENABLE_Msk;
 
@@ -39,8 +39,8 @@ void high_resolution_clock::init() {
   if (!steady_clock::initialized()) {
     fatal_error();
   }
-  ticks_per_usec_ = core_clk_freq() / 1000000;
 
+  nsec_per_tick_ = 1'000'000'000.0f / static_cast<float>(core_clk_freq());
   initialized_ = true;
 }
 
