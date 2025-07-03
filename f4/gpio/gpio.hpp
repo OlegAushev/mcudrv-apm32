@@ -353,6 +353,7 @@ public:
       pin_->set_level(emb::gpio::level::high);
     } else {
       pin_->toggle();
+      __NOP();
       pin_->toggle();
     }
   }
@@ -367,6 +368,16 @@ public:
     } else {
       pin_->toggle();
     }
+  }
+
+  void mark() {
+    if (!pin_) {
+      return;
+    }
+
+    pin_->toggle();
+    __NOP();
+    pin_->toggle();
   }
 };
 
