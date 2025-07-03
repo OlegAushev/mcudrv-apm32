@@ -32,21 +32,18 @@ void reset_device();
 class IrqPriority {
 private:
 #ifdef SILICON_REVISION_A
-  static inline uint8_t preempt_priorities_{8};
+  static constexpr uint8_t preempt_priorities_{8};
 #else
-  static inline uint8_t preempt_priorities_{16};
+  static constexpr uint8_t preempt_priorities_{16};
 #endif
-  static inline uint8_t sub_priorities_{0};
+  static constexpr uint8_t sub_priorities_{0};
 
   uint8_t preempt_pri_;
-  uint8_t sub_pri_;
+  uint8_t sub_pri_{0};
 public:
-  explicit IrqPriority(uint8_t preempt_pri, uint8_t sub_pri)
-      : preempt_pri_{std::clamp(preempt_pri, uint8_t{0}, preempt_priorities_)},
-        sub_pri_{std::clamp(sub_pri, uint8_t{0}, sub_priorities_)} {
-    assert(preempt_pri <= preempt_priorities_);
-    assert(sub_pri <= sub_priorities_);
-  }
+  explicit IrqPriority(uint8_t priority)
+      : preempt_pri_{std::clamp(
+            priority, uint8_t{0}, uint8_t{preempt_priorities_ - 1})} {}
 
   uint8_t preempt_pri() const { return preempt_pri_; }
 
@@ -55,13 +52,10 @@ public:
 
 inline void set_irq_priority(IRQn_Type irqn, IrqPriority priority) {
   uint32_t prioritygroup = NVIC_GetPriorityGrouping();
-  NVIC_EnableIRQRequest(irqn,
-                        priority.preempt_pri(),
-                        priority.sub_pri()); // FIXME remove after testing
-  NVIC_SetPriority(irqn,
-                   NVIC_EncodePriority(prioritygroup,
-                                       priority.preempt_pri(),
-                                       priority.sub_pri()));
+  NVIC_SetPriority(
+      irqn,
+      NVIC_EncodePriority(
+          prioritygroup, priority.preempt_pri(), priority.sub_pri()));
 }
 
 inline void enable_irq(IRQn_Type irqn) {
