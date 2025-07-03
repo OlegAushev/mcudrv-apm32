@@ -71,8 +71,15 @@ public:
 
   static std::chrono::time_point<high_resolution_clock> now() {
     duration const since_epoch{steady_clock::now().time_since_epoch()};
-    duration const nsec{static_cast<rep>(
-        static_cast<float>(SysTick->LOAD - SysTick->VAL) * nsec_per_tick_)};
+
+    // intermediate cast to int32 instead of immediate cast to rep (int64)
+    // to use FPU and avoid usage of __fixsfdi
+    int32_t nsec_count{
+        static_cast<int32_t>(
+            static_cast<float>(SysTick->LOAD - SysTick->VAL) * nsec_per_tick_)};
+
+    duration const nsec{static_cast<rep>(nsec_count)};
+
     return time_point{since_epoch + nsec};
   }
 
