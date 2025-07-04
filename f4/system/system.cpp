@@ -14,8 +14,10 @@ __attribute__((weak)) void update_clk() {
   fatal_error("device update clock func not implemented");
 }
 
-void init_core(CoreConfig const& config) {
-  NVIC_ConfigPriorityGroup(config.prigroup);
+void init_core() {
+  // assign all the interrupt priority bits to the group (preempt) priority
+  // s. PM0214
+  NVIC_SetPriorityGrouping(0);
 }
 
 void reset_device() {

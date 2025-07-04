@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <emblib/math.hpp>
 
 namespace mcu {
 inline namespace apm32 {
@@ -21,41 +22,36 @@ inline uint32_t core_clk_freq() {
   return SystemCoreClock;
 }
 
-struct CoreConfig {
-  NVIC_PRIORITY_GROUP_T prigroup;
-};
-
-void init_core(CoreConfig const& config);
+void init_core();
 
 void reset_device();
 
 class IrqPriority {
-private:
-#ifdef SILICON_REVISION_A
-  static constexpr uint8_t preempt_priorities_{8};
-#else
-  static constexpr uint8_t preempt_priorities_{16};
-#endif
-  static constexpr uint8_t sub_priorities_{0};
-
-  uint8_t preempt_pri_;
-  uint8_t sub_pri_{0};
+  static constexpr uint8_t group_max{15};
+  static constexpr uint8_t sub_max{0};
+  uint8_t group_;
+  uint8_t sub_;
 public:
-  explicit IrqPriority(uint8_t priority)
-      : preempt_pri_{std::clamp(
-            priority, uint8_t{0}, uint8_t{preempt_priorities_ - 1})} {}
+  explicit constexpr IrqPriority(uint8_t group, uint8_t sub = 0)
+      : group_{std::clamp(group, uint8_t{0}, group_max)},
+        sub_{std::clamp(sub, uint8_t{0}, sub_max)} {
+    assert(group <= group_max);
+    assert(sub <= sub_max);
+#ifdef SILICON_REVISION_A
+    assert(emb::iseven(group));
+#endif
+  }
 
-  uint8_t preempt_pri() const { return preempt_pri_; }
+  uint8_t group() const { return group_; }
 
-  uint8_t sub_pri() const { return sub_pri_; }
+  uint8_t sub() const { return sub_; }
 };
 
 inline void set_irq_priority(IRQn_Type irqn, IrqPriority priority) {
   uint32_t prioritygroup = NVIC_GetPriorityGrouping();
   NVIC_SetPriority(
       irqn,
-      NVIC_EncodePriority(
-          prioritygroup, priority.preempt_pri(), priority.sub_pri()));
+      NVIC_EncodePriority(prioritygroup, priority.group(), priority.sub()));
 }
 
 inline void enable_irq(IRQn_Type irqn) {
@@ -80,16 +76,21 @@ inline void disable_interrupts() {
 
 class critical_section {
 private:
-  bool const irq_enabled;
+  bool enable_irq_on_exit_;
 public:
-  bool a() const { return irq_enabled; }
+  critical_section() : enable_irq_on_exit_{__get_PRIMASK() == 0} {
+    __disable_irq();
+  }
 
-  bool b() const { return irq_enabled; }
-
-  critical_section() : irq_enabled{__get_PRIMASK() == 0} { __disable_irq(); }
+  void exit() {
+    if (enable_irq_on_exit_) {
+      __enable_irq();
+      enable_irq_on_exit_ = false;
+    }
+  }
 
   ~critical_section() {
-    if (irq_enabled) {
+    if (enable_irq_on_exit_) {
       __enable_irq();
     }
   }
