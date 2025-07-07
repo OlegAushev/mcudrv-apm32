@@ -6,6 +6,7 @@
 #include <apm32f4xx_misc.h>
 
 #include <mcudrv-apm32/f4/apm32f4.hpp>
+#include <mcudrv-apm32/f4/system/system.hpp>
 
 #include <array>
 #include <chrono>
@@ -70,6 +71,8 @@ public:
   static bool initialized() { return initialized_; }
 
   static std::chrono::time_point<high_resolution_clock> now() {
+    critical_section cs;
+
     duration const since_epoch{steady_clock::now().time_since_epoch()};
 
     // intermediate cast to int32 instead of immediate cast to rep (int64)
