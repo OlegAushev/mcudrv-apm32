@@ -82,6 +82,13 @@ void PwmTimer::init_bdt(PwmConfig const& conf, BkinPinConfig const* bkin_conf) {
     fatal_error();
   }
 
+  if ((conf.hal_bdt_config.BRKPolarity == TMR_BRK_POLARITY_LOW &&
+       bkin_conf->active_level != emb::gpio::level::low) ||
+      (conf.hal_bdt_config.BRKPolarity == TMR_BRK_POLARITY_HIGH &&
+       bkin_conf->active_level != emb::gpio::level::high)) {
+    fatal_error();
+  }
+
   if (bkin_conf != nullptr) {
     bkin_pin_ =
         std::make_unique<mcu::apm32::tim::internal::BkinPin>(*bkin_conf);
