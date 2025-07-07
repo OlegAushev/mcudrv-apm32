@@ -96,6 +96,12 @@ public:
 
 static_assert(std::chrono::is_clock_v<high_resolution_clock>);
 
+constexpr float to_float(high_resolution_clock::duration dur) {
+  // intermediate cast to int32 instead of immediate cast to float to use FPU
+  int32_t const dur_{static_cast<int32_t>(dur.count())};
+  return static_cast<float>(dur_);
+}
+
 } // namespace chrono
 } // namespace apm32
 } // namespace mcu
