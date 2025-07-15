@@ -343,8 +343,8 @@ public:
                      .active_level = emb::gpio::level::high});
   }
 
-  Logger(LoggerChannel channel, LoggerMode mode)
-      : pin_(pins_[std::to_underlying(channel)].get()), mode_(mode) {
+  Logger(LoggerChannel ch, LoggerMode mode)
+      : pin_(pins_[std::to_underlying(ch)].get()), mode_(mode) {
     if (!pin_) {
       return;
     }
@@ -378,6 +378,16 @@ public:
     pin_->toggle();
     __NOP();
     pin_->toggle();
+  }
+
+  static std::optional<emb::gpio::level> read(LoggerChannel ch) {
+    auto const pin{pins_[std::to_underlying(ch)].get()};
+
+    if (!pin) {
+      return std::nullopt;
+    }
+
+    return pin->read_level();
   }
 };
 
