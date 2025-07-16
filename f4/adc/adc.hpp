@@ -22,7 +22,7 @@ namespace adc {
 using CommonRegs = ADC_Common_T;
 using Regs = ADC_T;
 
-inline constexpr float vref() {
+constexpr float vref() {
   return 3.3f;
 }
 
