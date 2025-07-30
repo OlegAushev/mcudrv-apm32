@@ -3,7 +3,7 @@
 #ifdef MCUDRV_APM32
 #ifdef APM32F4xx
 
-#include <emblib/math.hpp>
+#include <emb/math.hpp>
 #include <mcudrv-apm32/f4/tim/adv/base.hpp>
 
 #include <memory>

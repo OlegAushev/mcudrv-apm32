@@ -4,7 +4,7 @@
 #include <mcudrv-apm32/f4/chrono/chrono.hpp>
 #include <mcudrv-apm32/f4/system/system.hpp>
 
-#include <emblib/chrono.hpp>
+#include <emb/chrono.hpp>
 
 extern "C" void SysTick_Handler() {
   mcu::apm32::chrono::steady_clock::on_interrupt();

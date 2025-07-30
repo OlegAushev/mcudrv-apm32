@@ -3,7 +3,7 @@
 #ifdef MCUDRV_APM32
 #ifdef APM32F4xx
 
-#include <emblib/core.hpp>
+#include <emb/core.hpp>
 #include <mcudrv-apm32/apm32.hpp>
 
 namespace mcu {

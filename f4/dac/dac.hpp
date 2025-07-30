@@ -8,8 +8,8 @@
 #include <mcudrv-apm32/f4/gpio/gpio.hpp>
 #include <mcudrv-apm32/f4/system/system.hpp>
 
-#include <emblib/noncopyable.hpp>
-#include <emblib/singleton.hpp>
+#include <emb/noncopyable.hpp>
+#include <emb/singleton.hpp>
 
 #include <utility>
 

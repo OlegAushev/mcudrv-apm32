@@ -4,7 +4,7 @@
 #include <mcudrv-apm32/f4/can/can.hpp>
 #include <mcudrv-apm32/f4/chrono/chrono.hpp>
 
-#include <emblib/chrono.hpp>
+#include <emb/chrono.hpp>
 
 namespace mcu {
 inline namespace apm32 {

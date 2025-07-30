@@ -10,7 +10,7 @@
 
 #include <array>
 #include <chrono>
-#include <emblib/static_vector.hpp>
+#include <emb/static_vector.hpp>
 
 extern "C" void SysTick_Handler();
 

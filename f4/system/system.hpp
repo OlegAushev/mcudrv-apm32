@@ -9,7 +9,7 @@
 
 #include <algorithm>
 #include <chrono>
-#include <emblib/math.hpp>
+#include <emb/math.hpp>
 
 namespace mcu {
 inline namespace apm32 {
