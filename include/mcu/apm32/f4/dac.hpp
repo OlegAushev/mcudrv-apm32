@@ -15,6 +15,7 @@
 
 namespace mcu {
 inline namespace apm32 {
+inline namespace f4 {
 namespace dac {
 
 using Regs = DAC_T;
@@ -97,6 +98,7 @@ protected:
 };
 
 } // namespace dac
+} // namespace f4
 } // namespace apm32
 } // namespace mcu
 

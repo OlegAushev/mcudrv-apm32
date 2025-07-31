@@ -5,6 +5,7 @@
 
 namespace mcu {
 inline namespace apm32 {
+inline namespace f4 {
 namespace exti {
 
 namespace {
@@ -32,6 +33,7 @@ void init(Line line, Mode mode, TriggerEdge edge) {
 }
 
 } // namespace exti
+} // namespace f4
 } // namespace apm32
 } // namespace mcu
 

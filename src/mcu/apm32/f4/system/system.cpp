@@ -5,6 +5,7 @@
 
 namespace mcu {
 inline namespace apm32 {
+inline namespace f4 {
 
 __attribute__((weak)) void init_clk() {
   fatal_error("device init clock func not implemented");
@@ -24,6 +25,7 @@ void reset_device() {
   NVIC_SystemReset();
 }
 
+} // namespace f4
 } // namespace apm32
 } // namespace mcu
 

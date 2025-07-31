@@ -5,6 +5,7 @@
 
 namespace mcu {
 inline namespace apm32 {
+inline namespace f4 {
 namespace usart {
 
 internal::RxPin::RxPin(RxPinConfig const& conf)
@@ -49,6 +50,7 @@ void Module::enable_clk(Peripheral peripheral) {
 }
 
 } // namespace usart
+} // namespace f4
 } // namespace apm32
 } // namespace mcu
 

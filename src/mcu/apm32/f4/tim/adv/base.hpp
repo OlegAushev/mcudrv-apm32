@@ -10,6 +10,7 @@
 
 namespace mcu {
 inline namespace apm32 {
+inline namespace f4 {
 namespace tim {
 namespace adv {
 
@@ -98,6 +99,7 @@ private:
 
 } // namespace adv
 } // namespace tim
+} // namespace f4
 } // namespace apm32
 } // namespace mcu
 

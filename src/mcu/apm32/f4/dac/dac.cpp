@@ -5,6 +5,7 @@
 
 namespace mcu {
 inline namespace apm32 {
+inline namespace f4 {
 namespace dac {
 
 Module::Module(Peripheral peripheral)
@@ -37,6 +38,7 @@ void Module::enable_clk(Peripheral peripheral) {
 }
 
 } // namespace dac
+} // namespace f4
 } // namespace apm32
 } // namespace mcu
 

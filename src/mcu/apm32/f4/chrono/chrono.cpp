@@ -18,6 +18,7 @@ emb::chrono::steady_clock::now() {
 
 namespace mcu {
 inline namespace apm32 {
+inline namespace f4 {
 namespace chrono {
 
 void steady_clock::init() {
@@ -45,6 +46,7 @@ void high_resolution_clock::init() {
 }
 
 } //namespace chrono
+} // namespace f4
 } // namespace apm32
 } // namespace mcu
 

@@ -10,6 +10,7 @@
 
 namespace mcu {
 inline namespace apm32 {
+inline namespace f4 {
 namespace tim {
 
 enum class OpMode {
@@ -88,6 +89,7 @@ public:
 } // namespace internal
 
 } // namespace tim
+} // namespace f4
 } // namespace apm32
 } // namespace mcu
 

@@ -6,6 +6,7 @@
 
 namespace mcu {
 inline namespace apm32 {
+inline namespace f4 {
 namespace util {
 
 class temperature_sensor {
@@ -19,5 +20,6 @@ public:
 };
 
 } // namespace util
+} // namespace f4
 } // namespace apm32
 } // namespace mcu

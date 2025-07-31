@@ -17,6 +17,7 @@
 
 namespace mcu {
 inline namespace apm32 {
+inline namespace f4 {
 namespace spi {
 
 using Regs = SPI_T;
@@ -217,6 +218,7 @@ private:
 };
 
 } // namespace spi
+} // namespace f4
 } // namespace apm32
 } // namespace mcu
 

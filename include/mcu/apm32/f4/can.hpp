@@ -25,6 +25,7 @@ void CAN2_TX_IRQHandler();
 
 namespace mcu {
 inline namespace apm32 {
+inline namespace f4 {
 namespace can {
 
 using Regs = CAN_T;
@@ -172,6 +173,7 @@ private:
 };
 
 } // namespace can
+} // namespace f4
 } // namespace apm32
 } // namespace mcu
 

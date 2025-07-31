@@ -5,6 +5,7 @@
 
 namespace mcu {
 inline namespace apm32 {
+inline namespace f4 {
 namespace spi {
 
 internal::MosiPin::MosiPin(MosiPinConfig const& conf)
@@ -122,6 +123,7 @@ void Module::enable_clk(Peripheral peripheral) {
 }
 
 } // namespace spi
+} // namespace f4
 } // namespace apm32
 } // namespace mcu
 

@@ -14,6 +14,7 @@
 
 namespace mcu {
 inline namespace apm32 {
+inline namespace f4 {
 namespace usart {
 
 using Regs = USART_T;
@@ -134,6 +135,7 @@ protected:
 };
 
 } // namespace usart
+} // namespace f4
 } // namespace apm32
 } // namespace mcu
 

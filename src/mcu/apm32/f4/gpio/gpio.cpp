@@ -5,6 +5,7 @@
 
 namespace mcu {
 inline namespace apm32 {
+inline namespace f4 {
 namespace gpio {
 
 std::array<void (*)(void), port_num> internal::Pin::enable_port_clk_{
@@ -84,6 +85,7 @@ internal::Pin::Pin(AnalogConfig const& conf)
                         .pupd = static_cast<GPIO_PUPD_T>(Pull::none)}} {}
 
 } // namespace gpio
+} // namespace f4
 } // namespace apm32
 } // namespace mcu
 

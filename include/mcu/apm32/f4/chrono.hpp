@@ -15,6 +15,7 @@ extern "C" void SysTick_Handler();
 
 namespace mcu {
 inline namespace apm32 {
+inline namespace f4 {
 namespace chrono {
 
 class steady_clock {
@@ -102,6 +103,7 @@ constexpr float to_float(high_resolution_clock::duration dur) {
 }
 
 } // namespace chrono
+} // namespace f4
 } // namespace apm32
 } // namespace mcu
 

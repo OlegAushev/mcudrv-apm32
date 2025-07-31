@@ -5,6 +5,7 @@
 
 namespace mcu {
 inline namespace apm32 {
+inline namespace f4 {
 namespace adc {
 
 Module::Module(Peripheral peripheral, Config const& conf, dma::Stream* dma)
@@ -144,6 +145,7 @@ void Module::enable_clk(Peripheral peripheral) {
 }
 
 } // namespace adc
+} // namespace f4
 } // namespace apm32
 } // namespace mcu
 

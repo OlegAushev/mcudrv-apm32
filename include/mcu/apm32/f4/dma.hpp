@@ -16,6 +16,7 @@
 
 namespace mcu {
 inline namespace apm32 {
+inline namespace f4 {
 namespace dma {
 
 enum class StreamId : unsigned int {
@@ -155,6 +156,7 @@ public:
 };
 
 } // namespace dma
+} // namespace f4
 } // namespace apm32
 } // namespace mcu
 

@@ -13,6 +13,7 @@
 
 namespace mcu {
 inline namespace apm32 {
+inline namespace f4 {
 
 void init_clk();
 
@@ -101,6 +102,7 @@ inline uint32_t serial_number() {
   return *uid_ptr;
 }
 
+} // namespace f4
 } // namespace apm32
 } // namespace mcu
 

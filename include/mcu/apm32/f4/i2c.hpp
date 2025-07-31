@@ -13,6 +13,7 @@
 
 namespace mcu {
 inline namespace apm32 {
+inline namespace f4 {
 namespace i2c {
 
 using Regs = I2C_T;
@@ -248,6 +249,7 @@ private:
 };
 
 } // namespace i2c
+} // namespace f4
 } // namespace apm32
 } // namespace mcu
 

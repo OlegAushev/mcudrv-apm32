@@ -19,6 +19,7 @@
 
 namespace mcu {
 inline namespace apm32 {
+inline namespace f4 {
 namespace gpio {
 
 using PortRegs = GPIO_T;
@@ -393,6 +394,7 @@ public:
 } // namespace util
 
 } // namespace gpio
+} // namespace f4
 } // namespace apm32
 } // namespace mcu
 

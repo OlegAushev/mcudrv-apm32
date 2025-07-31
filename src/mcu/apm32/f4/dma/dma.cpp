@@ -5,6 +5,7 @@
 
 namespace mcu {
 inline namespace apm32 {
+inline namespace f4 {
 namespace dma {
 
 Stream::Stream(Config config)
@@ -62,6 +63,7 @@ void Stream::init_interrupts(uint32_t interrupt_bitset, IrqPriority priority) {
 }
 
 } // namespace dma
+} // namespace f4
 } // namespace apm32
 } // namespace mcu
 

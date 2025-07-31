@@ -11,7 +11,8 @@
 
 namespace mcu {
 inline namespace apm32 {
-namespace exti{
+inline namespace f4 {
+namespace exti {
 
 enum class Line : uint32_t {
     line0 = EINT_LINE_0,
@@ -66,6 +67,7 @@ inline void ack_interrupt(Line line) {
 }
 
 } // namespace exti
+} // namespace f4
 } // namespace apm32
 } // namespace mcu
 

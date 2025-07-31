@@ -17,6 +17,7 @@
 
 namespace mcu {
 inline namespace apm32 {
+inline namespace f4 {
 namespace adc {
 
 using CommonRegs = ADC_Common_T;
@@ -213,6 +214,7 @@ private:
 };
 
 } // namespace adc
+} // namespace f4
 } // namespace apm32
 } // namespace mcu
 

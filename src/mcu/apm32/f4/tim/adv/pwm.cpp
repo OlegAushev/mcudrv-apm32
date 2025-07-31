@@ -5,6 +5,7 @@
 
 namespace mcu {
 inline namespace apm32 {
+inline namespace f4 {
 namespace tim {
 namespace adv {
 
@@ -218,6 +219,7 @@ void PwmTimer::init_break_interrupts(IrqPriority priority) {
 
 } // namespace adv
 } // namespace tim
+} // namespace f4
 } // namespace apm32
 } // namespace mcu
 
