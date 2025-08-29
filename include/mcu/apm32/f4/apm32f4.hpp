@@ -1,7 +1,6 @@
 #pragma once
 
-#ifdef MCUDRV_APM32
-#ifdef APM32F4xx
+#ifdef APM32F4XX
 
 #include <emb/core.hpp>
 #include <mcu/apm32/common/apm32.hpp>
@@ -27,5 +26,4 @@ inline void fatal_error(char const* hint, int code = 0) {
 
 } // namespace mcu
 
-#endif
 #endif

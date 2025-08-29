@@ -1,5 +1,4 @@
-#ifdef MCUDRV_APM32
-#ifdef APM32F4xx
+#ifdef APM32F4XX
 
 #include <mcu/apm32/f4/gpio.hpp>
 
@@ -89,5 +88,4 @@ internal::Pin::Pin(AnalogConfig const& conf)
 } // namespace apm32
 } // namespace mcu
 
-#endif
 #endif

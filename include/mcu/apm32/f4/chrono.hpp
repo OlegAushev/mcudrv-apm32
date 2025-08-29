@@ -1,7 +1,6 @@
 #pragma once
 
-#ifdef MCUDRV_APM32
-#ifdef APM32F4xx
+#ifdef APM32F4XX
 
 #include <apm32f4xx_misc.h>
 
@@ -107,5 +106,4 @@ constexpr float to_float(high_resolution_clock::duration dur) {
 } // namespace apm32
 } // namespace mcu
 
-#endif
 #endif

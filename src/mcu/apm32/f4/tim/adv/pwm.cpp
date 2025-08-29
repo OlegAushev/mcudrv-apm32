@@ -1,5 +1,4 @@
-#ifdef MCUDRV_APM32
-#ifdef APM32F4xx
+#ifdef APM32F4XX
 
 #include "pwm.hpp"
 
@@ -223,5 +222,4 @@ void PwmTimer::init_break_interrupts(IrqPriority priority) {
 } // namespace apm32
 } // namespace mcu
 
-#endif
 #endif

@@ -1,7 +1,6 @@
 #pragma once
 
-#ifdef MCUDRV_APM32
-#ifdef APM32F4xx
+#ifdef APM32F4XX
 
 #include <apm32f4xx_crc.h>
 #include <apm32f4xx_rcm.h>
@@ -30,5 +29,4 @@ inline uint32_t calc_crc32(const uint8_t* buf, size_t len) {
 } // namespace apm32
 } // namespace mcu
 
-#endif
 #endif

@@ -1,7 +1,6 @@
 #pragma once
 
-#ifdef MCUDRV_APM32
-#ifdef APM32F4xx
+#ifdef APM32F4XX
 
 #include <apm32f4xx_i2c.h>
 
@@ -253,5 +252,4 @@ private:
 } // namespace apm32
 } // namespace mcu
 
-#endif
 #endif

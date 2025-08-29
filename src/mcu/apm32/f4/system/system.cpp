@@ -1,5 +1,4 @@
-#ifdef MCUDRV_APM32
-#ifdef APM32F4xx
+#ifdef APM32F4XX
 
 #include <mcu/apm32/f4/system.hpp>
 
@@ -29,5 +28,4 @@ void reset_device() {
 } // namespace apm32
 } // namespace mcu
 
-#endif
 #endif

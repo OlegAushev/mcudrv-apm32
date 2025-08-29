@@ -1,5 +1,4 @@
-#ifdef MCUDRV_APM32
-#ifdef APM32F4xx
+#ifdef APM32F4XX
 
 #include <mcu/apm32/f4/dma.hpp>
 
@@ -67,5 +66,4 @@ void Stream::init_interrupts(uint32_t interrupt_bitset, IrqPriority priority) {
 } // namespace apm32
 } // namespace mcu
 
-#endif
 #endif

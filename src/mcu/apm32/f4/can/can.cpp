@@ -1,5 +1,4 @@
-#ifdef MCUDRV_APM32
-#ifdef APM32F4xx
+#ifdef APM32F4XX
 
 #include <mcu/apm32/f4/can.hpp>
 #include <mcu/apm32/f4/chrono.hpp>
@@ -237,5 +236,4 @@ void Module::enable_clk(Peripheral peripheral) {
 //     HAL_CAN_IRQHandler(Module::instance(Peripheral::can2)->handle());
 // }
 
-#endif
 #endif
