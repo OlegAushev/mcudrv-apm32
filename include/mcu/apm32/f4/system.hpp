@@ -96,6 +96,30 @@ public:
   }
 };
 
+class Mutex {
+private:
+  bool locked_ = false;
+  bool enable_irq_on_unlock = false;
+public:
+  void lock() {
+    assert(!locked_);
+    locked_ = true;
+    if (__get_PRIMASK() == 0) {
+      enable_irq_on_unlock = true;
+      __disable_irq();
+    }
+  }
+
+  void unlock() {
+    assert(locked_);
+    if (enable_irq_on_unlock) {
+      enable_irq_on_unlock = false;
+      __enable_irq();
+    }
+    locked_ = false;
+  }
+};
+
 inline uint32_t serial_number() {
   uint32_t* uid_ptr{reinterpret_cast<uint32_t*>(0x1FFF7A10)};
   return *uid_ptr;
