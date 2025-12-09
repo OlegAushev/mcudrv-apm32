@@ -1,31 +1,29 @@
 #pragma once
 
-#ifdef APM32F4XX
+#include <apm32/device.hpp>
+#include <apm32/utility.hpp>
+
+#include <apm32/f4/core.hpp>
 
 #include <apm32f4xx_gpio.h>
 #include <apm32f4xx_rcm.h>
 
 #include <emb/gpio.hpp>
-#include <mcu/apm32/f4/system.hpp>
 
-#include <algorithm>
 #include <array>
-#include <cstddef>
 #include <memory>
 #include <optional>
-#include <stdint.h>
 #include <utility>
 
-namespace mcu {
-inline namespace apm32 {
-inline namespace f4 {
+namespace apm32 {
+namespace f4 {
 namespace gpio {
 
-using PortRegs = GPIO_T;
+using port_registers = GPIO_T;
 
-constexpr size_t port_num{9};
+inline constexpr size_t port_count = 9;
 
-enum class Port : size_t {
+enum class port : uint32_t {
   gpioa,
   gpiob,
   gpioc,
@@ -37,10 +35,7 @@ enum class Port : size_t {
   gpioi
 };
 
-inline std::array<PortRegs*, port_num> const regs{
-    GPIOA, GPIOB, GPIOC, GPIOD, GPIOE, GPIOF, GPIOG, GPIOH, GPIOI};
-
-enum class Pin : uint16_t {
+enum class pin : uint16_t {
   pin0 = GPIO_PIN_0,
   pin1 = GPIO_PIN_1,
   pin2 = GPIO_PIN_2,
@@ -59,90 +54,101 @@ enum class Pin : uint16_t {
   pin15 = GPIO_PIN_15,
 };
 
-enum class OutputType : uint32_t {
+enum class output_type : uint32_t {
   pushpull = GPIO_OTYPE_PP,
   opendrain = GPIO_OTYPE_OD
 };
 
-enum class Speed : uint32_t {
+enum class speed : uint32_t {
   low = GPIO_SPEED_2MHz,
   medium = GPIO_SPEED_25MHz,
   fast = GPIO_SPEED_50MHz,
   high = GPIO_SPEED_100MHz
 };
 
-enum class Pull : uint32_t {
+enum class pull : uint32_t {
   none = GPIO_PUPD_NOPULL,
   up = GPIO_PUPD_UP,
   down = GPIO_PUPD_DOWN
 };
 ;
 
-struct InputConfig {
-  Port port;
-  Pin pin;
-  Pull pull;
+struct input_pin_config {
+  apm32::f4::gpio::port port;
+  apm32::f4::gpio::pin pin;
+  apm32::f4::gpio::pull pull;
   emb::gpio::level active_level;
 };
 
-struct OutputConfig {
-  Port port;
-  Pin pin;
-  Pull pull;
-  OutputType output_type;
-  Speed speed;
+struct output_pin_config {
+  apm32::f4::gpio::port port;
+  apm32::f4::gpio::pin pin;
+  apm32::f4::gpio::pull pull;
+  apm32::f4::gpio::output_type output_type;
+  apm32::f4::gpio::speed speed;
   emb::gpio::level active_level;
 };
 
-struct AlternateConfig {
-  Port port;
-  Pin pin;
-  Pull pull;
-  OutputType output_type;
-  Speed speed;
+struct alternate_pin_config {
+  apm32::f4::gpio::port port;
+  apm32::f4::gpio::pin pin;
+  apm32::f4::gpio::pull pull;
+  apm32::f4::gpio::output_type output_type;
+  apm32::f4::gpio::speed speed;
   GPIO_AF_T altfunc;
 };
 
-struct AnalogConfig {
-  Port port;
-  Pin pin;
+struct analog_pin_config {
+  apm32::f4::gpio::port port;
+  apm32::f4::gpio::pin pin;
 };
 
-namespace internal {
+namespace detail {
 
-class Pin {
+inline std::array<port_registers*, port_count> const ports =
+    {GPIOA, GPIOB, GPIOC, GPIOD, GPIOE, GPIOF, GPIOG, GPIOH, GPIOI};
+
+class pin_base {
 protected:
-  Port const port_;
+  port const port_;
   uint16_t const pin_;
-  PortRegs* const regs_;
+  port_registers* const reg_;
 private:
-  Pin(Port port,
-      GPIO_Config_T const& conf,
-      std::optional<GPIO_AF_T> altfunc = std::nullopt);
+  pin_base(
+      port p,
+      GPIO_Config_T conf,
+      std::optional<GPIO_AF_T> altfunc = std::nullopt
+  );
 protected:
-  ~Pin();
-  explicit Pin(InputConfig const& conf);
-  explicit Pin(OutputConfig const& conf);
-  explicit Pin(AlternateConfig const& conf);
-  explicit Pin(AnalogConfig const& conf);
+  ~pin_base();
+  explicit pin_base(input_pin_config const& conf);
+  explicit pin_base(output_pin_config const& conf);
+  explicit pin_base(alternate_pin_config const& conf);
+  explicit pin_base(analog_pin_config const& conf);
 public:
-  Pin(Pin const& other) = delete;
-  Pin& operator=(Pin const& other) = delete;
+  pin_base(pin_base const& other) = delete;
+  pin_base& operator=(pin_base const& other) = delete;
 
-  unsigned int pin_no() const { return __CLZ(__RBIT(pin_)); }
+  size_t pin_no() const {
+    return __CLZ(__RBIT(pin_));
+  }
 
-  uint16_t pin_bit() const { return static_cast<uint16_t>(pin_); }
+  uint16_t pin_bit() const {
+    return static_cast<uint16_t>(pin_);
+  }
 
-  PortRegs const* regs() const { return regs_; }
+  port_registers const* reg() const {
+    return reg_;
+  }
 private:
-  static inline std::array<uint16_t, port_num> assigned_{};
-  static inline std::array<bool, port_num> clk_enabled_{};
-  static std::array<void (*)(void), port_num> enable_port_clk_;
+  static inline std::array<uint16_t, port_count> is_assigned_{};
+  static inline std::array<bool, port_count> is_clock_enabled_{};
+  static std::array<void (*)(void), port_count> enable_port_clock_;
 };
 
-} // namespace internal
+} // namespace detail
 
-class Input : public emb::gpio::input, public internal::Pin {
+class input_pin : public detail::pin_base {
   // friend void ::EXTI0_IRQHandler();
   // friend void ::EXTI1_IRQHandler();
   // friend void ::EXTI2_IRQHandler();
@@ -152,22 +158,24 @@ class Input : public emb::gpio::input, public internal::Pin {
 private:
   emb::gpio::level const active_level_;
 public:
-  explicit Input(InputConfig const& conf)
-      : internal::Pin(conf), active_level_(conf.active_level) {}
+  explicit input_pin(input_pin_config const& conf)
+      : detail::pin_base(conf), active_level_(conf.active_level) {}
 
-  Input(Input const& other) = delete;
-  Input& operator=(Input const& other) = delete;
+  input_pin(input_pin const& other) = delete;
+  input_pin& operator=(input_pin const& other) = delete;
 
-  emb::gpio::level active_level() const { return active_level_; }
+  emb::gpio::level active_level() const {
+    return active_level_;
+  }
 
-  virtual emb::gpio::level read_level() const override {
-    if ((read_reg(regs_->IDATA) & pin_) != 0) {
+  emb::gpio::level read_level() const {
+    if ((read_reg(reg_->IDATA) & pin_) != 0) {
       return emb::gpio::level::high;
     }
     return emb::gpio::level::low;
   }
 
-  virtual emb::gpio::state read() const override {
+  emb::gpio::state read() const {
     if (read_level() == active_level_) {
       return emb::gpio::state::active;
     }
@@ -230,44 +238,50 @@ public:
   // clang-format on
 };
 
-class Output : public emb::gpio::output, public internal::Pin {
+static_assert(emb::gpio::input<input_pin>);
+
+class output_pin : public detail::pin_base {
 private:
   emb::gpio::level const active_level_;
 public:
-  explicit Output(OutputConfig const& conf,
-                  emb::gpio::state init_state = emb::gpio::state::inactive)
-      : internal::Pin(conf), active_level_(conf.active_level) {
+  explicit output_pin(
+      output_pin_config const& conf,
+      emb::gpio::state init_state = emb::gpio::state::inactive
+  )
+      : detail::pin_base(conf), active_level_(conf.active_level) {
     set(init_state);
   }
 
-  Output(Output const& other) = delete;
-  Output& operator=(Output const& other) = delete;
+  output_pin(output_pin const& other) = delete;
+  output_pin& operator=(output_pin const& other) = delete;
 
-  emb::gpio::level active_level() const { return active_level_; }
+  emb::gpio::level active_level() const {
+    return active_level_;
+  }
 
-  virtual emb::gpio::level read_level() const override {
-    if ((read_reg(regs_->IDATA) & pin_) != 0) {
+  emb::gpio::level read_level() const {
+    if ((read_reg(reg_->IDATA) & pin_) != 0) {
       return emb::gpio::level::high;
     }
     return emb::gpio::level::low;
   }
 
-  virtual void set_level(emb::gpio::level lvl) override {
+  void set_level(emb::gpio::level lvl) {
     if (lvl == emb::gpio::level::high) {
-      write_reg(regs_->BSCL, pin_);
+      write_reg(reg_->BSCL, pin_);
     } else {
-      write_reg(regs_->BSCH, pin_);
+      write_reg(reg_->BSCH, pin_);
     }
   }
 
-  virtual emb::gpio::state read() const override {
+  emb::gpio::state read() const {
     if (read_level() == active_level_) {
       return emb::gpio::state::active;
     }
     return emb::gpio::state::inactive;
   }
 
-  virtual void set(emb::gpio::state s = emb::gpio::state::active) override {
+  void set(emb::gpio::state s = emb::gpio::state::active) {
     if (s == emb::gpio::state::active) {
       set_level(active_level_);
     } else {
@@ -275,37 +289,37 @@ public:
     }
   }
 
-  virtual void reset() override { set(emb::gpio::state::inactive); }
+  void reset() {
+    set(emb::gpio::state::inactive);
+  }
 
-  virtual void toggle() override {
-    uint16_t const odr_reg{static_cast<uint16_t>(read_reg(regs_->ODATA))};
-    write_reg<uint16_t>(regs_->BSCL, ~odr_reg & pin_);
-    write_reg<uint16_t>(regs_->BSCH, odr_reg & pin_);
+  void toggle() {
+    uint16_t const out = static_cast<uint16_t>(read_reg(reg_->ODATA));
+    write_reg<uint16_t>(reg_->BSCL, ~out & pin_);
+    write_reg<uint16_t>(reg_->BSCH, out & pin_);
   }
 };
 
-class AlternatePin : public internal::Pin {
+class alternate_pin : public detail::pin_base {
 public:
-  explicit AlternatePin(AlternateConfig const& conf) : internal::Pin(conf) {}
+  explicit alternate_pin(alternate_pin_config const& conf)
+      : detail::pin_base(conf) {}
 
-  AlternatePin(AlternatePin const& other) = delete;
-  AlternatePin& operator=(AlternatePin const& other) = delete;
+  alternate_pin(alternate_pin const& other) = delete;
+  alternate_pin& operator=(alternate_pin const& other) = delete;
 };
 
-class AnalogPin : public internal::Pin {
+class analog_pin : public detail::pin_base {
 public:
-  explicit AnalogPin(AnalogConfig const& conf) : internal::Pin(conf) {}
+  explicit analog_pin(analog_pin_config const& conf) : detail::pin_base(conf) {}
 
-  AnalogPin(AnalogPin const& other) = delete;
-  AnalogPin& operator=(AnalogPin const& other) = delete;
+  analog_pin(analog_pin const& other) = delete;
+  analog_pin& operator=(analog_pin const& other) = delete;
 };
 
 namespace util {
 
-enum class LoggerMode {
-  set_reset,
-  toggle
-};
+enum class LoggerMode { set_reset, toggle };
 
 enum class LoggerChannel : unsigned int {
   ch0,
@@ -328,18 +342,21 @@ enum class LoggerChannel : unsigned int {
 
 class Logger {
 private:
-  static inline std::array<std::unique_ptr<Output>, 16> pins_{};
-  Output* const pin_;
+  static inline std::array<std::unique_ptr<output_pin>, 16> pins_{};
+  output_pin* const pin_;
   LoggerMode const mode_;
 public:
-  static void init_channel(LoggerChannel ch, Port port, Pin pin) {
-    pins_[std::to_underlying(ch)] = std::make_unique<Output>(
-        OutputConfig{.port = port,
-                     .pin = pin,
-                     .pull = Pull::none,
-                     .output_type = OutputType::pushpull,
-                     .speed = Speed::high,
-                     .active_level = emb::gpio::level::high});
+  static void init_channel(LoggerChannel ch, port port, pin pin) {
+    pins_[std::to_underlying(ch)] = std::make_unique<output_pin>(
+        output_pin_config{
+            .port = port,
+            .pin = pin,
+            .pull = pull::none,
+            .output_type = output_type::pushpull,
+            .speed = speed::high,
+            .active_level = emb::gpio::level::high
+        }
+    );
   }
 
   Logger(LoggerChannel ch, LoggerMode mode)
@@ -395,6 +412,3 @@ public:
 } // namespace gpio
 } // namespace f4
 } // namespace apm32
-} // namespace mcu
-
-#endif

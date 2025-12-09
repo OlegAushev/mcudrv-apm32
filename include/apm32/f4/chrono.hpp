@@ -1,20 +1,15 @@
 #pragma once
 
-#ifdef APM32F4XX
+#include <apm32/device.hpp>
 
-#include <apm32f4xx_misc.h>
+#include <apm32/f4/nvic.hpp>
 
-#include <mcu/apm32/f4/system.hpp>
-
-#include <array>
 #include <chrono>
-#include <emb/static_vector.hpp>
 
 extern "C" void SysTick_Handler();
 
-namespace mcu {
-inline namespace apm32 {
-inline namespace f4 {
+namespace apm32 {
+namespace f4 {
 namespace chrono {
 
 class steady_clock {
@@ -26,29 +21,35 @@ public:
   using time_point = std::chrono::time_point<steady_clock, duration>;
   static constexpr bool is_steady = true;
 private:
-  static inline bool initialized_{false};
-  static inline int64_t volatile time_{0};
-  static constexpr std::chrono::milliseconds time_step{1};
+  static inline bool initialized_ = false;
+  static inline int64_t volatile time_ = 0;
+  static constexpr std::chrono::milliseconds timestep_{1};
 public:
   steady_clock() = delete;
   static void init();
 
-  static bool initialized() { return initialized_; }
+  static bool initialized() {
+    return initialized_;
+  }
 
   static std::chrono::time_point<steady_clock> now() {
     return time_point{std::chrono::milliseconds{time_}};
   }
 
-  static std::chrono::milliseconds step() { return time_step; }
+  static std::chrono::milliseconds step() {
+    return timestep_;
+  }
 
   static void delay(std::chrono::milliseconds delay) {
-    auto const start{now()};
+    auto const start = now();
     while ((now() - start) <= delay) {
       // wait
     }
   }
 protected:
-  static void on_interrupt() { time_ = time_ + time_step.count(); }
+  static void on_interrupt() {
+    time_ = time_ + timestep_.count();
+  }
 };
 
 static_assert(std::chrono::is_clock_v<steady_clock>);
@@ -61,32 +62,34 @@ public:
   using time_point = std::chrono::time_point<high_resolution_clock, duration>;
   static constexpr bool is_steady = true;
 private:
-  static inline bool initialized_{false};
-  static inline float nsec_per_tick_{0.0f};
+  static inline bool initialized_ = false;
+  static inline float nsec_per_tick_ = 0.0f;
 public:
   high_resolution_clock() = delete;
   static void init();
 
-  static bool initialized() { return initialized_; }
+  static bool initialized() {
+    return initialized_;
+  }
 
   static std::chrono::time_point<high_resolution_clock> now() {
-    critical_section cs;
+    nvic::irq_guard lock;
 
-    duration const since_epoch{steady_clock::now().time_since_epoch()};
+    auto const since_epoch = steady_clock::now().time_since_epoch();
 
     // intermediate cast to int32 instead of immediate cast to rep (int64)
     // to use FPU and avoid usage of __fixsfdi
-    int32_t nsec_count{
-        static_cast<int32_t>(
-            static_cast<float>(SysTick->LOAD - SysTick->VAL) * nsec_per_tick_)};
+    auto const nsec_count = static_cast<int32_t>(
+        static_cast<float>(SysTick->LOAD - SysTick->VAL) * nsec_per_tick_
+    );
 
-    duration const nsec{static_cast<rep>(nsec_count)};
+    auto const nsec = duration{static_cast<rep>(nsec_count)};
 
-    return time_point{since_epoch + nsec};
+    return time_point(since_epoch + nsec);
   }
 
   static void delay(std::chrono::nanoseconds delay) {
-    auto const start{now()};
+    auto const start = now();
     while ((now() - start) <= delay) {
       // wait
     }
@@ -97,13 +100,10 @@ static_assert(std::chrono::is_clock_v<high_resolution_clock>);
 
 constexpr float to_float(high_resolution_clock::duration dur) {
   // intermediate cast to int32 instead of immediate cast to float to use FPU
-  int32_t const dur_{static_cast<int32_t>(dur.count())};
+  int32_t const dur_ = static_cast<int32_t>(dur.count());
   return static_cast<float>(dur_);
 }
 
 } // namespace chrono
 } // namespace f4
 } // namespace apm32
-} // namespace mcu
-
-#endif

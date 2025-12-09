@@ -1,30 +1,32 @@
-#ifdef APM32F4XX
+#include <apm32/f4/chrono.hpp>
 
-#include <mcu/apm32/f4/chrono.hpp>
-#include <mcu/apm32/f4/system.hpp>
+#include <apm32/f4/core.hpp>
 
 #include <emb/chrono.hpp>
 
 extern "C" void SysTick_Handler() {
-  mcu::apm32::chrono::steady_clock::on_interrupt();
+  apm32::f4::chrono::steady_clock::on_interrupt();
 }
 
+// emb::chrono::steady_clock::now() is intentionally defined here
+// since emblib doesn't provide it's definition.
 std::chrono::time_point<emb::chrono::steady_clock>
 emb::chrono::steady_clock::now() {
-  return std::chrono::time_point<emb::chrono::steady_clock>{
-      mcu::apm32::chrono::steady_clock::now().time_since_epoch()};
+  auto now = apm32::f4::chrono::steady_clock::now().time_since_epoch();
+  return std::chrono::time_point<emb::chrono::steady_clock>{now};
 }
 
-namespace mcu {
-inline namespace apm32 {
-inline namespace f4 {
+namespace apm32 {
+namespace f4 {
 namespace chrono {
 
 void steady_clock::init() {
+  assert(!initialized_);
+
   // init systick
   SysTick_ConfigCLKSource(SYSTICK_CLK_SOURCE_HCLK);
 
-  uint32_t const ticks_per_msec{core_clk_freq() / 1000};
+  uint32_t const ticks_per_msec = core::clock_freq() / 1000;
   SysTick->LOAD = ticks_per_msec - 1;
   // set to highest priority instead of (1UL << __NVIC_PRIO_BITS) - 1UL
   NVIC_SetPriority(SysTick_IRQn, 0);
@@ -36,17 +38,11 @@ void steady_clock::init() {
 }
 
 void high_resolution_clock::init() {
-  if (!steady_clock::initialized()) {
-    fatal_error();
-  }
-
-  nsec_per_tick_ = 1'000'000'000.0f / static_cast<float>(core_clk_freq());
+  assert(steady_clock::initialized() && !initialized_);
+  nsec_per_tick_ = 1'000'000'000.0f / static_cast<float>(core::clock_freq());
   initialized_ = true;
 }
 
 } //namespace chrono
 } // namespace f4
 } // namespace apm32
-} // namespace mcu
-
-#endif
