@@ -17,7 +17,7 @@ constexpr uint8_t get_deadtime_setup(
 ) {
   float const mul = static_cast<float>(1ul << std::to_underlying(clkdiv));
   float const t_dts_ns = mul * (static_cast<float>(prescaler) + 1.0f) * 1E9f /
-                         clk_freq.numval();
+                         clk_freq.value();
   float const dt = static_cast<float>(deadtime.count());
 
   core::ensure(dt <= (32 + 0x1F) * 16 * t_dts_ns);

@@ -195,7 +195,7 @@ public:
   void set_dutycycle(dutycycle_type const& dutycycle) {
     float const reload_val = static_cast<float>(regs_->AUTORLD);
     for (auto leg = 0uz; auto const& dc : dutycycle) {
-      *compare_regs_[leg++] = static_cast<uint32_t>(dc.numval() * reload_val);
+      *compare_regs_[leg++] = static_cast<uint32_t>(dc.value() * reload_val);
     }
   }
 public:

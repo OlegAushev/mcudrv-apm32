@@ -21,8 +21,8 @@ void reset_device();
 
 template<typename T>
 inline T clock_frequency() {
-  if constexpr (requires { typename T::underlying_type; }) {
-    return T{static_cast<typename T::underlying_type>(SystemCoreClock)};
+  if constexpr (requires { typename T::value_type; }) {
+    return T{static_cast<typename T::value_type>(SystemCoreClock)};
   } else {
     return static_cast<T>(SystemCoreClock);
   }
