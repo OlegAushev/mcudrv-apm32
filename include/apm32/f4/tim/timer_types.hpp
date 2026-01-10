@@ -166,7 +166,7 @@ struct tim14 {
 };
 
 template<typename Tim>
-struct is_timer : std::bool_constant<emb::one_of<
+struct is_timer : std::bool_constant<emb::same_as_any<
                       Tim,
                       tim1,
                       tim2,
@@ -187,13 +187,14 @@ template<typename Tim>
 concept timer = is_timer<Tim>::value;
 
 template<typename Tim>
-struct is_advanced_timer : std::bool_constant<emb::one_of<Tim, tim1, tim8>> {};
+struct is_advanced_timer
+    : std::bool_constant<emb::same_as_any<Tim, tim1, tim8>> {};
 
 template<typename Tim>
 concept advanced_timer = is_advanced_timer<Tim>::value;
 
 template<typename Tim>
-struct is_general_purpose_timer : std::bool_constant<emb::one_of<
+struct is_general_purpose_timer : std::bool_constant<emb::same_as_any<
                                       Tim,
                                       tim2,
                                       tim3,
@@ -210,21 +211,23 @@ template<typename Tim>
 concept general_purpose_timer = is_general_purpose_timer<Tim>::value;
 
 template<typename Tim>
-struct is_32bit_timer : std::bool_constant<emb::one_of<Tim, tim2, tim5>> {};
+struct is_32bit_timer : std::bool_constant<emb::same_as_any<Tim, tim2, tim5>> {
+};
 
 template<typename Tim>
 concept timer_32bit = is_32bit_timer<Tim>::value;
 
 template<typename Tim>
-struct is_basic_timer : std::bool_constant<emb::one_of<Tim, tim6, tim7>> {};
+struct is_basic_timer : std::bool_constant<emb::same_as_any<Tim, tim6, tim7>> {
+};
 
 template<typename Tim>
 concept basic_timer = is_basic_timer<Tim>::value;
 
 template<typename Tim>
 struct has_4_channels
-    : std::bool_constant<emb::one_of<Tim, tim1, tim2, tim3, tim4, tim5, tim8>> {
-};
+    : std::bool_constant<
+          emb::same_as_any<Tim, tim1, tim2, tim3, tim4, tim5, tim8>> {};
 
 template<typename Tim>
 concept timer_with_4_channels = has_4_channels<Tim>::value;
@@ -262,7 +265,8 @@ constexpr uint16_t calculate_prescaler(
 
   // constexpr replacement for std::div (must be constrexpr since c++23, but...)
   uint32_t total_ticks = clk_freq_u32 / tim_freq_u32 +
-                         (clk_freq_u32 % tim_freq_u32 != 0) - 1;
+                         (clk_freq_u32 % tim_freq_u32 != 0) -
+                         1;
   if (mode == counter_mode::updown) {
     total_ticks = (total_ticks + 1) / 2;
   }
