@@ -33,6 +33,8 @@ struct break_pin_config {
   emb::gpio::level active_level;
 };
 
+enum class trigger_output { none, update };
+
 struct base_config {
   emb::units::hz_f32 frequency;
   emb::chrono::nanoseconds_i32 deadtime;
@@ -40,6 +42,7 @@ struct base_config {
   std::optional<uint16_t> prescaler;
   nvic::irq_priority update_irq_priority;
   nvic::irq_priority break_irq_priority;
+  trigger_output trgo;
 };
 
 template<size_t LegCount = 1>
@@ -132,6 +135,15 @@ public:
       detail::configure_channel(regs_, static_cast<channel>(i));
       hi_pins_[i].emplace(detail::get_output_config(regs_, conf.hi_pins[i]));
       lo_pins_[i].emplace(detail::get_output_config(regs_, conf.lo_pins[i]));
+    }
+
+    // Trigger output
+    switch (conf.pwm.trgo) {
+    case trigger_output::none:
+      break;
+    case trigger_output::update:
+      regs_->CTRL2_B.MMSEL = 0b010u;
+      break;
     }
 
     // Interrupt configuration
