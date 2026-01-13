@@ -59,18 +59,32 @@ struct tim2 {
 
 struct tim3 {
   static inline peripheral_registers* regs = TMR3;
-  static void enable_clock() {
-    RCM_EnableAPB1PeriphClock(RCM_APB1_PERIPH_TMR3);
-  }
+
   using counter_type = uint16_t;
+
+  template<typename T>
+  static constexpr auto clock_frequency = core::apb1_timer_frequency<T>;
+
+  static constexpr auto enable_clock = []() {
+    RCM_EnableAPB1PeriphClock(RCM_APB1_PERIPH_TMR3);
+  };
+
+  static constexpr nvic::irq_number update_irqn = TMR3_IRQn;
 };
 
 struct tim4 {
   static inline peripheral_registers* regs = TMR4;
-  static void enable_clock() {
-    RCM_EnableAPB1PeriphClock(RCM_APB1_PERIPH_TMR4);
-  }
+
   using counter_type = uint16_t;
+
+  template<typename T>
+  static constexpr auto clock_frequency = core::apb1_timer_frequency<T>;
+
+  static constexpr auto enable_clock = []() {
+    RCM_EnableAPB1PeriphClock(RCM_APB1_PERIPH_TMR4);
+  };
+
+  static constexpr nvic::irq_number update_irqn = TMR4_IRQn;
 };
 
 struct tim5 {
