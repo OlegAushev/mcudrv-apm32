@@ -151,6 +151,10 @@ public:
     return freq_;
   }
 
+  emb::chrono::nanoseconds_i32 deadtime() const {
+    return deadtime_;
+  }
+
   bool active() const {
     return regs_->BDT_B.MOEN == 1;
   }
