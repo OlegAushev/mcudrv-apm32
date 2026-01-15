@@ -1,5 +1,9 @@
 #pragma once
 
+#include <apm32/f4/adc/basic_adc.hpp>
+
+// TODO delete all below
+#if 0
 #include <apm32/device.hpp>
 #include <apm32/utility.hpp>
 
@@ -237,3 +241,4 @@ inline constexpr T nmax = T{4095};
 } // namespace adc
 } // namespace f4
 } // namespace apm32
+#endif

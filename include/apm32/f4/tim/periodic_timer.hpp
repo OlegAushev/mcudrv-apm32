@@ -1,6 +1,8 @@
 #pragma once
 
+#include <apm32/f4/tim/timer_instances.hpp>
 #include <apm32/f4/tim/timer_types.hpp>
+#include <apm32/f4/tim/timer_utils.hpp>
 
 #include <emb/singleton.hpp>
 
@@ -8,7 +10,7 @@ namespace apm32 {
 namespace f4 {
 namespace tim {
 
-struct periodic_config {
+struct periodic_timer_config {
   emb::units::hz_f32 frequency;
   std::optional<uint16_t> prescaler;
   nvic::irq_priority irq_priority;
@@ -18,42 +20,46 @@ namespace detail {
 
 void configure_timebase(
     emb::units::hz_f32 clk_freq,
-    peripheral_registers* regs,
-    periodic_config const& conf
+    registers& regs,
+    periodic_timer_config const& conf
 );
 
 } // namespace detail
 
 template<general_purpose_timer Tim>
-class periodic : public emb::singleton<periodic<Tim>> {
+class periodic_timer : public emb::singleton<periodic_timer<Tim>> {
 public:
-  using timer = Tim;
+  using timer_instance = Tim;
 private:
-  static inline peripheral_registers* const regs_ = timer::regs;
-  static inline nvic::irq_number const update_irqn_ = timer::update_irqn;
+  static inline registers& regs_ = timer_instance::regs;
+  static inline nvic::irq_number const update_irqn_ =
+      timer_instance::update_irqn;
 
   emb::units::hz_f32 freq_;
 public:
-  periodic(periodic_config conf) {
+  periodic_timer(periodic_timer_config conf) {
     freq_ = conf.frequency;
     if (!conf.prescaler.has_value()) {
-      conf.prescaler = calculate_prescaler<timer>(freq_, counter_mode::up);
+      conf.prescaler = calculate_prescaler<timer_instance>(
+          freq_,
+          counter_mode::up
+      );
     }
 
-    timer::enable_clock();
+    timer_instance::enable_clock();
 
     detail::configure_timebase(
-        timer::template clock_frequency<emb::units::hz_f32>(),
+        timer_instance::template clock_frequency<emb::units::hz_f32>(),
         regs_,
         conf
     );
 
     // Interrupt configuration
-    regs_->DIEN_B.UIEN = 1;
+    regs_.DIEN_B.UIEN = 1;
     set_irq_priority(update_irqn_, conf.irq_priority);
   }
 
-  peripheral_registers* regs() {
+  registers& regs() {
     return regs_;
   }
 
@@ -69,15 +75,15 @@ public:
   }
 
   void ack_update_interrupt() {
-    regs_->STS_B.UIFLG = 0;
+    regs_.STS_B.UIFLG = 0;
   }
 private:
   void enable_counter() {
-    regs_->CTRL1_B.CNTEN = 1;
+    regs_.CTRL1_B.CNTEN = 1;
   }
 
   void disable_counter() {
-    regs_->CTRL1_B.CNTEN = 0;
+    regs_.CTRL1_B.CNTEN = 0;
   }
 };
 

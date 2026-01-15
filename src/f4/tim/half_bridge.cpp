@@ -1,4 +1,4 @@
-#include <apm32/f4/tim/pwm/half_bridge.hpp>
+#include <apm32/f4/tim/half_bridge.hpp>
 
 #include <apm32/f4/core.hpp>
 
@@ -16,7 +16,9 @@ constexpr uint8_t get_deadtime_setup(
     clock_division clkdiv
 ) {
   float const mul = static_cast<float>(1ul << std::to_underlying(clkdiv));
-  float const t_dts_ns = mul * (static_cast<float>(prescaler) + 1.0f) * 1E9f /
+  float const t_dts_ns = mul *
+                         (static_cast<float>(prescaler) + 1.0f) *
+                         1E9f /
                          clk_freq.value();
   float const dt = static_cast<float>(deadtime.count());
 
@@ -40,7 +42,7 @@ constexpr uint8_t get_deadtime_setup(
 
 void detail::configure_timebase(
     emb::units::hz_f32 clk_freq,
-    peripheral_registers* regs,
+    registers& regs,
     base_config const& conf
 ) {
   core::ensure(conf.prescaler.has_value());
@@ -58,12 +60,12 @@ void detail::configure_timebase(
   base_config.division = conf.prescaler.value();
   base_config.repetitionCounter = 0;
 
-  TMR_ConfigTimeBase(regs, &base_config);
-  regs->CTRL1_B.ARPEN = 1;
+  TMR_ConfigTimeBase(&regs, &base_config);
+  regs.CTRL1_B.ARPEN = 1;
 }
 
 [[nodiscard]] gpio::alternate_pin_config detail::get_break_input_config(
-    peripheral_registers* regs,
+    registers& regs,
     break_pin_config const& bk_pin
 ) {
   gpio::alternate_pin_config pinconf = {
@@ -72,14 +74,14 @@ void detail::configure_timebase(
       .pull = bk_pin.pull,
       .output_type = gpio::output_type::pushpull,
       .speed = gpio::speed::fast,
-      .altfunc = regs == TMR1 ? GPIO_AF_TMR1 : GPIO_AF_TMR8
+      .altfunc = &regs == TMR1 ? GPIO_AF_TMR1 : GPIO_AF_TMR8
   };
   return pinconf;
 }
 
 void detail::configure_bdt(
     emb::units::hz_f32 clk_freq,
-    peripheral_registers* regs,
+    registers& regs,
     base_config const& conf,
     std::optional<break_pin_config> const& bk_pin
 ) {
@@ -109,10 +111,10 @@ void detail::configure_bdt(
 
   bdt_config.automaticOutput = TMR_AUTOMATIC_OUTPUT_DISABLE;
 
-  TMR_ConfigBDT(regs, &bdt_config);
+  TMR_ConfigBDT(&regs, &bdt_config);
 }
 
-void detail::configure_channel(peripheral_registers* regs, channel ch) {
+void detail::configure_channel(registers& regs, channel ch) {
   core::ensure(ch != channel::ch4);
 
   TMR_OCConfig_T ch_config{};
@@ -127,16 +129,16 @@ void detail::configure_channel(peripheral_registers* regs, channel ch) {
 
   switch (ch) {
   case channel::ch1:
-    regs->CCM1_COMPARE_B.OC1PEN = 1;
-    TMR_ConfigOC1(regs, &ch_config);
+    regs.CCM1_COMPARE_B.OC1PEN = 1;
+    TMR_ConfigOC1(&regs, &ch_config);
     break;
   case channel::ch2:
-    regs->CCM1_COMPARE_B.OC2PEN = 1;
-    TMR_ConfigOC2(regs, &ch_config);
+    regs.CCM1_COMPARE_B.OC2PEN = 1;
+    TMR_ConfigOC2(&regs, &ch_config);
     break;
   case channel::ch3:
-    regs->CCM2_COMPARE_B.OC3PEN = 1;
-    TMR_ConfigOC3(regs, &ch_config);
+    regs.CCM2_COMPARE_B.OC3PEN = 1;
+    TMR_ConfigOC3(&regs, &ch_config);
     break;
   case channel::ch4:
     std::unreachable();
@@ -144,10 +146,8 @@ void detail::configure_channel(peripheral_registers* regs, channel ch) {
   }
 }
 
-gpio::alternate_pin_config detail::get_output_config(
-    peripheral_registers* regs,
-    output_pin_config const& pin
-) {
+gpio::alternate_pin_config
+detail::get_output_config(registers& regs, output_pin_config const& pin) {
   GPIO_AF_T const altfunc = TMR1 ? GPIO_AF_TMR1 : GPIO_AF_TMR8;
   gpio::alternate_pin_config pinconf = {
       .port = pin.port,

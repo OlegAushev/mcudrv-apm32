@@ -1,6 +1,8 @@
 #pragma once
 
+#include <apm32/f4/tim/timer_instances.hpp>
 #include <apm32/f4/tim/timer_types.hpp>
+#include <apm32/f4/tim/timer_utils.hpp>
 
 #include <apm32/f4/gpio.hpp>
 #include <apm32/f4/nvic.hpp>
@@ -33,7 +35,10 @@ struct break_pin_config {
   emb::gpio::level active_level;
 };
 
-enum class trigger_output { none, update };
+enum class trigger_output {
+  none,
+  update
+};
 
 struct base_config {
   emb::units::hz_f32 frequency;
@@ -57,40 +62,39 @@ namespace detail {
 
 void configure_timebase(
     emb::units::hz_f32 clk_freq,
-    peripheral_registers* regs,
+    registers& regs,
     base_config const& conf
 );
 
-[[nodiscard]] gpio::alternate_pin_config get_break_input_config(
-    peripheral_registers* regs,
-    break_pin_config const& bk_pin
-);
+[[nodiscard]] gpio::alternate_pin_config
+get_break_input_config(registers& regs, break_pin_config const& bk_pin);
 
 void configure_bdt(
     emb::units::hz_f32 clk_freq,
-    peripheral_registers* regs,
+    registers& regs,
     base_config const& conf,
     std::optional<break_pin_config> const& bk_pin
 );
 
-void configure_channel(peripheral_registers* regs, channel ch);
+void configure_channel(registers& regs, channel ch);
 
 [[nodiscard]] gpio::alternate_pin_config
-get_output_config(peripheral_registers* regs, output_pin_config const& pin);
+get_output_config(registers& regs, output_pin_config const& pin);
 
 } // namespace detail
 
 template<advanced_timer Tim, size_t LegCount = 1>
 class half_bridge : public emb::singleton<half_bridge<Tim, LegCount>> {
 public:
-  using timer = Tim;
+  using timer_instance = Tim;
   using dutycycle_type = std::array<emb::unsigned_pu, LegCount>;
 private:
-  static inline peripheral_registers* const regs_ = timer::regs;
-  static inline nvic::irq_number const update_irqn_ = timer::update_irqn;
-  static inline nvic::irq_number const break_irqn_ = timer::break_irqn;
+  static inline registers& regs_ = timer_instance::regs;
+  static inline nvic::irq_number const update_irqn_ =
+      timer_instance::update_irqn;
+  static inline nvic::irq_number const break_irqn_ = timer_instance::break_irqn;
   static inline std::array<uint32_t volatile*, 4> const compare_regs_ =
-      timer::ccr_regs;
+      timer_instance::ccr_regs;
 
   emb::units::hz_f32 freq_;
   emb::chrono::nanoseconds_i32 deadtime_;
@@ -105,16 +109,16 @@ public:
 
     // use prescaler from config or calculate it from required pwm frequency
     if (!conf.pwm.prescaler.has_value()) {
-      conf.pwm.prescaler = calculate_prescaler<timer>(
+      conf.pwm.prescaler = calculate_prescaler<timer_instance>(
           freq_,
           counter_mode::updown
       );
     }
 
-    timer::enable_clock();
+    timer_instance::enable_clock();
 
     detail::configure_timebase(
-        timer::template clock_frequency<emb::units::hz_f32>(),
+        timer_instance::template clock_frequency<emb::units::hz_f32>(),
         regs_,
         conf.pwm
     );
@@ -125,7 +129,7 @@ public:
       );
     }
     detail::configure_bdt(
-        timer::template clock_frequency<emb::units::hz_f32>(),
+        timer_instance::template clock_frequency<emb::units::hz_f32>(),
         regs_,
         conf.pwm,
         conf.bk_pin
@@ -142,20 +146,20 @@ public:
     case trigger_output::none:
       break;
     case trigger_output::update:
-      regs_->CTRL2_B.MMSEL = 0b010u;
+      regs_.CTRL2_B.MMSEL = 0b010u;
       break;
     }
 
     // Interrupt configuration
-    regs_->DIEN_B.UIEN = 1;
+    regs_.DIEN_B.UIEN = 1;
     set_irq_priority(update_irqn_, conf.pwm.update_irq_priority);
     if (bk_pin_) {
-      regs_->DIEN_B.BRKIEN = 1;
+      regs_.DIEN_B.BRKIEN = 1;
       set_irq_priority(break_irqn_, conf.pwm.break_irq_priority);
     }
   }
 
-  peripheral_registers* regs() {
+  registers& regs() {
     return regs_;
   }
 
@@ -168,40 +172,40 @@ public:
   }
 
   bool active() const {
-    return regs_->BDT_B.MOEN == 1;
+    return regs_.BDT_B.MOEN == 1;
   }
 
   bool bad() const {
     if (!bk_pin_) {
       return false;
     }
-    return std::to_underlying(bk_pin_->read_level()) == regs_->BDT_B.BRKPOL;
+    return std::to_underlying(bk_pin_->read_level()) == regs_.BDT_B.BRKPOL;
   }
 
   void start() {
     if (bk_pin_) {
       ack_break_interrupt();
-      regs_->DIEN_B.BRKIEN = 1;
+      regs_.DIEN_B.BRKIEN = 1;
     }
-    regs_->BDT_B.MOEN = 1;
+    regs_.BDT_B.MOEN = 1;
   }
 
   void stop() {
-    regs_->BDT_B.MOEN = 0;
+    regs_.BDT_B.MOEN = 0;
     if (bk_pin_) {
       // disable break interrupts to prevent instant call of BRK ISR
-      regs_->DIEN_B.BRKIEN = 0;
+      regs_.DIEN_B.BRKIEN = 0;
     }
   }
 
   count_direction timer_count_direction() const {
-    return regs_->CTRL1_B.CNTDIR == 0 ? count_direction::up :
-                                        count_direction::down;
+    return regs_.CTRL1_B.CNTDIR == 0 ? count_direction::up :
+                                       count_direction::down;
   }
 
   dutycycle_type dutycycle() const {
     dutycycle_type dutycycle;
-    float const reload_val = static_cast<float>(regs_->AUTORLD);
+    float const reload_val = static_cast<float>(regs_.AUTORLD);
     for (auto leg = 0uz; auto& dc : dutycycle) {
       dc = static_cast<float>(*compare_regs_[leg++]) / reload_val;
     }
@@ -209,7 +213,7 @@ public:
   }
 
   void set_dutycycle(dutycycle_type const& dutycycle) {
-    float const reload_val = static_cast<float>(regs_->AUTORLD);
+    float const reload_val = static_cast<float>(regs_.AUTORLD);
     for (auto leg = 0uz; auto const& dc : dutycycle) {
       *compare_regs_[leg++] = static_cast<uint32_t>(dc.value() * reload_val);
     }
@@ -228,19 +232,19 @@ public:
   }
 
   void ack_update_interrupt() {
-    regs_->STS_B.UIFLG = 0;
+    regs_.STS_B.UIFLG = 0;
   }
 
   void ack_break_interrupt() {
-    regs_->STS_B.BRKIFLG = 0;
+    regs_.STS_B.BRKIFLG = 0;
   }
 private:
   void enable_counter() {
-    regs_->CTRL1_B.CNTEN = 1;
+    regs_.CTRL1_B.CNTEN = 1;
   }
 
   void disable_counter() {
-    regs_->CTRL1_B.CNTEN = 0;
+    regs_.CTRL1_B.CNTEN = 0;
   }
 };
 

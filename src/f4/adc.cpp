@@ -1,3 +1,4 @@
+#if 0
 #include <apm32/f4/adc.hpp>
 
 namespace apm32 {
@@ -163,3 +164,4 @@ void peripheral::enable_clock(peripheral_id id) {
 } // namespace adc
 } // namespace f4
 } // namespace apm32
+#endif

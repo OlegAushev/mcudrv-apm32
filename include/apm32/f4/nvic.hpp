@@ -30,11 +30,11 @@ public:
 #endif
   }
 
-  uint8_t group() const {
+  constexpr uint8_t group() const {
     return group_;
   }
 
-  uint8_t sub() const {
+  constexpr uint8_t sub() const {
     return sub_;
   }
 };

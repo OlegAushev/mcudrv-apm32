@@ -1,5 +1,7 @@
 #pragma once
 
+#include <apm32/f4/gpio/gpio_types.hpp>
+
 #include <apm32/device.hpp>
 #include <apm32/utility.hpp>
 

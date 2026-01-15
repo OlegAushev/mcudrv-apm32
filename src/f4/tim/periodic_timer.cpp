@@ -1,4 +1,4 @@
-#include <apm32/f4/tim/periodic.hpp>
+#include <apm32/f4/tim/periodic_timer.hpp>
 
 #include <apm32/f4/core.hpp>
 
@@ -8,8 +8,8 @@ namespace tim {
 
 void detail::configure_timebase(
     emb::units::hz_f32 clk_freq,
-    peripheral_registers* regs,
-    periodic_config const& conf
+    registers& regs,
+    periodic_timer_config const& conf
 ) {
   core::ensure(conf.prescaler.has_value());
 
@@ -25,8 +25,8 @@ void detail::configure_timebase(
   base_config.division = conf.prescaler.value();
   base_config.repetitionCounter = 0;
 
-  TMR_ConfigTimeBase(regs, &base_config);
-  regs->CTRL1_B.ARPEN = 1;
+  TMR_ConfigTimeBase(&regs, &base_config);
+  regs.CTRL1_B.ARPEN = 1;
 }
 
 } // namespace tim
