@@ -1,5 +1,9 @@
 #pragma once
 
+#include <apm32/f4/adc/converter.hpp>
+
+// TODO delete all below
+
 #include <apm32/device.hpp>
 #include <apm32/utility.hpp>
 
