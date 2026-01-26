@@ -283,24 +283,6 @@ struct regular_channel {
   }
 };
 
-// template<typename T>
-// concept external_channel = is_external_channel<T>::value;
-
-// template<typename T>
-// concept internal_channel = is_internal_channel<T>::value;
-
-// template<typename T>
-// concept adc_channel = external_channel<T> || internal_channel<T>;
-
-// template<typename T>
-// struct is_adc_channel_list : std::false_type {};
-
-// template<adc_channel... Channels>
-// struct is_adc_channel_list<emb::typelist<Channels...>> : std::true_type {};
-
-// template<typename T>
-// concept adc_channel_list = is_adc_channel_list<T>::value;
-
 } // namespace v2
 } // namespace adc
 } // namespace f4
