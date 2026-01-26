@@ -4,6 +4,8 @@
 
 #include <apm32/f4/nvic.hpp>
 
+#include <emb/seqlock.hpp>
+
 #include <chrono>
 
 extern "C" void SysTick_Handler();
@@ -12,8 +14,11 @@ namespace apm32 {
 namespace f4 {
 namespace chrono {
 
+class high_resolution_clock;
+
 class steady_clock {
   friend void ::SysTick_Handler();
+  friend class high_resolution_clock;
 public:
   using duration = std::chrono::milliseconds;
   using rep = duration::rep;
@@ -22,8 +27,7 @@ public:
   static constexpr bool is_steady = true;
 private:
   static inline bool initialized_ = false;
-  static inline int64_t volatile time_ = 0;
-  static constexpr std::chrono::milliseconds timestep_{1};
+  static inline emb::seqlock<int64_t> time_{};
 public:
   steady_clock() = delete;
   static void init();
@@ -33,11 +37,7 @@ public:
   }
 
   static std::chrono::time_point<steady_clock> now() {
-    return time_point{std::chrono::milliseconds{time_}};
-  }
-
-  static std::chrono::milliseconds step() {
-    return timestep_;
+    return time_point{std::chrono::milliseconds{time_.load()}};
   }
 
   static void delay(std::chrono::milliseconds delay) {
@@ -48,7 +48,7 @@ public:
   }
 protected:
   static void on_interrupt() {
-    time_ = time_ + timestep_.count();
+    time_.update([](int64_t t) { return ++t; });
   }
 };
 
@@ -73,6 +73,45 @@ public:
   }
 
   static std::chrono::time_point<high_resolution_clock> now() {
+#if 1
+    int64_t ms;
+    uint32_t ticks;
+
+    // Read milliseconds and SysTick value until we get a consistent pair.
+    // If SysTick interrupt fires between the two reads of time_, the values
+    // won't match and we retry. This handles calls from normal code or from
+    // ISRs with priority lower than SysTick.
+    do {
+      ms = steady_clock::time_.load();
+      ticks = SysTick->LOAD - SysTick->VAL;
+    } while (ms != steady_clock::time_.load());
+
+    // Handle calls from ISRs with same or higher priority as SysTick.
+    // In this case, SysTick cannot preempt us, so the loop above always
+    // exits immediately. However, SysTick may have already fired and be
+    // pending — VAL has reset to LOAD but time_ hasn't been incremented yet.
+    // The pending flag tells us this happened, so we manually adjust.
+    if (SCB->ICSR & SCB_ICSR_PENDSTSET_Msk) {
+      ++ms;
+      // Re-read ticks since VAL is now counting down from LOAD in the new
+      // millisecond period, making our previous ticks reading stale.
+      ticks = SysTick->LOAD - SysTick->VAL;
+    }
+
+    // Convert ticks to nanoseconds using FPU. Intermediate cast to int32_t
+    // instead of direct cast to int64_t allows use of hardware FPU instruction
+    // and avoids software floating-point conversion routine __fixsfdi
+    // that would be needed for float-to-int64 conversion.
+    auto const nsec_count = static_cast<int32_t>(
+        static_cast<float>(ticks) * nsec_per_tick_
+    );
+
+    return time_point{
+        std::chrono::duration_cast<duration>(std::chrono::milliseconds{ms}) +
+        duration{nsec_count}
+    };
+#else
+    // TODO remove this after testing
     nvic::irq_guard lock;
 
     auto const since_epoch = steady_clock::now().time_since_epoch();
@@ -86,6 +125,7 @@ public:
     auto const nsec = duration{static_cast<rep>(nsec_count)};
 
     return time_point(since_epoch + nsec);
+#endif
   }
 
   static void delay(std::chrono::nanoseconds delay) {
