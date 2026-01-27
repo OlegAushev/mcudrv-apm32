@@ -26,7 +26,7 @@ using registers = TMR_T;
 inline constexpr size_t timer_count = 14;
 
 struct tim1 {
-  static constexpr uint32_t base_addr = TMR1_BASE;
+  static constexpr uintptr_t base_addr = TMR1_BASE;
   using reg_addr = detail::register_addresses<base_addr>;
 
   static inline registers& regs = *TMR1;
@@ -44,13 +44,10 @@ struct tim1 {
   static constexpr auto enable_clock = []() {
     RCM_EnableAPB2PeriphClock(RCM_APB2_PERIPH_TMR1);
   };
-
-  static inline std::array<uint32_t volatile*, 4> ccr_regs =
-      {&regs.CC1, &regs.CC2, &regs.CC3, &regs.CC4};
 };
 
 struct tim2 {
-  static constexpr uint32_t base_addr = TMR2_BASE;
+  static constexpr uintptr_t base_addr = TMR2_BASE;
   using reg_addr = detail::register_addresses<base_addr>;
 
   static inline registers& regs = *TMR2;
@@ -70,7 +67,7 @@ struct tim2 {
 };
 
 struct tim3 {
-  static constexpr uint32_t base_addr = TMR3_BASE;
+  static constexpr uintptr_t base_addr = TMR3_BASE;
   using reg_addr = detail::register_addresses<base_addr>;
 
   static inline registers& regs = *TMR3;
@@ -90,7 +87,7 @@ struct tim3 {
 };
 
 struct tim4 {
-  static constexpr uint32_t base_addr = TMR4_BASE;
+  static constexpr uintptr_t base_addr = TMR4_BASE;
   using reg_addr = detail::register_addresses<base_addr>;
 
   static inline registers& regs = *TMR4;
@@ -110,7 +107,7 @@ struct tim4 {
 };
 
 struct tim5 {
-  static constexpr uint32_t base_addr = TMR5_BASE;
+  static constexpr uintptr_t base_addr = TMR5_BASE;
   using reg_addr = detail::register_addresses<base_addr>;
 
   static inline registers& regs = *TMR5;
@@ -130,7 +127,7 @@ struct tim5 {
 };
 
 struct tim6 {
-  static constexpr uint32_t base_addr = TMR6_BASE;
+  static constexpr uintptr_t base_addr = TMR6_BASE;
   using reg_addr = detail::register_addresses<base_addr>;
 
   static inline registers& regs = *TMR6;
@@ -144,7 +141,7 @@ struct tim6 {
 };
 
 struct tim7 {
-  static constexpr uint32_t base_addr = TMR7_BASE;
+  static constexpr uintptr_t base_addr = TMR7_BASE;
   using reg_addr = detail::register_addresses<base_addr>;
 
   static inline registers& regs = *TMR7;
@@ -158,7 +155,7 @@ struct tim7 {
 };
 
 struct tim8 {
-  static constexpr uint32_t base_addr = TMR8_BASE;
+  static constexpr uintptr_t base_addr = TMR8_BASE;
   using reg_addr = detail::register_addresses<base_addr>;
 
   static inline registers& regs = *TMR8;
@@ -176,9 +173,6 @@ struct tim8 {
   static constexpr auto enable_clock = []() {
     RCM_EnableAPB2PeriphClock(RCM_APB2_PERIPH_TMR8);
   };
-
-  static inline std::array<uint32_t volatile*, 4> ccr_regs =
-      {&regs.CC1, &regs.CC2, &regs.CC3, &regs.CC4};
 };
 
 struct tim9 {

@@ -4,12 +4,25 @@
 #include <apm32/f4/tim/timer_types.hpp>
 #include <apm32/f4/tim/timer_utils.hpp>
 
+#include <apm32/f4/gpio.hpp>
+#include <apm32/f4/nvic.hpp>
+
 #include <apm32f4xx_tmr.h>
 
 namespace apm32 {
 namespace f4 {
 namespace tim {
 namespace hall {
+
+struct input_pin_config {
+  gpio::port port;
+  gpio::pin pin;
+};
+
+struct hall_interface_config {
+  nvic::irq_priority cc_irq_priority;
+  std::array<input_pin_config, 3> pins;
+};
 
 template<timer_instance Tim>
   requires(

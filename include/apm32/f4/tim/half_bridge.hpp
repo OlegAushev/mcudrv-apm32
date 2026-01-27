@@ -11,6 +11,7 @@
 
 #include <emb/chrono.hpp>
 #include <emb/math.hpp>
+#include <emb/mmio.hpp>
 #include <emb/singleton.hpp>
 #include <emb/units.hpp>
 
@@ -87,6 +88,7 @@ template<advanced_timer Tim, size_t LegCount = 1>
 class half_bridge : public emb::singleton<half_bridge<Tim, LegCount>> {
 public:
   using timer_instance = Tim;
+  using reg_addr = timer_instance::reg_addr;
   using dutycycle_type = std::array<emb::unsigned_pu, LegCount>;
 private:
   static inline registers& regs_ = timer_instance::regs;
@@ -206,17 +208,22 @@ public:
   dutycycle_type dutycycle() const {
     dutycycle_type dutycycle;
     float const reload_val = static_cast<float>(regs_.AUTORLD);
-    for (auto leg = 0uz; auto& dc : dutycycle) {
-      dc = static_cast<float>(*compare_regs_[leg++]) / reload_val;
-    }
+    [&]<size_t... I>(std::index_sequence<I...>) {
+        ((dutycycle[I] = emb::unsigned_pu{static_cast<float>(
+            emb::mmio::reg<reg_addr::ccrx[I]>::read()
+        ) / reload_val}), ...);
+      }(std::make_index_sequence<LegCount>{});
     return dutycycle;
   }
 
   void set_dutycycle(dutycycle_type const& dutycycle) {
     float const reload_val = static_cast<float>(regs_.AUTORLD);
-    for (auto leg = 0uz; auto const& dc : dutycycle) {
-      *compare_regs_[leg++] = static_cast<uint32_t>(dc.value() * reload_val);
-    }
+    [&]<size_t... I>(std::index_sequence<I...>) {
+      ((emb::mmio::reg<reg_addr::ccrx[I]>::write(
+           static_cast<uint32_t>(dutycycle[I].value() * reload_val)
+       )),
+       ...);
+    }(std::make_index_sequence<LegCount>{});
   }
 public:
   void enable() {

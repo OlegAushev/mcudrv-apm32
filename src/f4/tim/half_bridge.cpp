@@ -12,14 +12,10 @@ namespace {
 constexpr uint8_t get_deadtime_setup(
     emb::units::hz_f32 clk_freq,
     emb::chrono::nanoseconds_i32 const& deadtime,
-    uint16_t prescaler,
     clock_division clkdiv
 ) {
   float const mul = static_cast<float>(1ul << std::to_underlying(clkdiv));
-  float const t_dts_ns = mul *
-                         (static_cast<float>(prescaler) + 1.0f) *
-                         1E9f /
-                         clk_freq.value();
+  float const t_dts_ns = mul * 1E9f / clk_freq.value();
   float const dt = static_cast<float>(deadtime.count());
 
   core::ensure(dt <= (32 + 0x1F) * 16 * t_dts_ns);
@@ -92,12 +88,8 @@ void detail::configure_bdt(
   bdt_config.RMOS = TMR_RMOS_STATE_ENABLE;
   bdt_config.IMOS = TMR_IMOS_STATE_ENABLE;
   bdt_config.lockLevel = TMR_LOCK_LEVEL_OFF;
-  bdt_config.deadTime = get_deadtime_setup(
-      clk_freq,
-      conf.deadtime,
-      conf.prescaler.value(),
-      conf.clkdiv
-  );
+  bdt_config
+      .deadTime = get_deadtime_setup(clk_freq, conf.deadtime, conf.clkdiv);
 
   if (bk_pin.has_value()) {
     bdt_config.BRKState = TMR_BRK_STATE_ENABLE;
@@ -164,7 +156,6 @@ static_assert(
     get_deadtime_setup(
         emb::units::hz_f32{168000000},
         std::chrono::duration<int32_t, std::nano>{500},
-        0,
         clock_division::div1
     ) == 84
 );

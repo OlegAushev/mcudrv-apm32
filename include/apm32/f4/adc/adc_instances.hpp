@@ -31,7 +31,7 @@ template<typename T>
 inline constexpr T nmax = T{4095};
 
 struct adc1 {
-  static constexpr uint32_t base_addr = ADC1_BASE;
+  static constexpr uintptr_t base_addr = ADC1_BASE;
   using reg_addr = detail::register_addresses<base_addr>;
 
   static inline common_registers& common_regs = *ADC;
@@ -48,7 +48,7 @@ struct adc1 {
 };
 
 struct adc2 {
-  static constexpr uint32_t base_addr = ADC2_BASE;
+  static constexpr uintptr_t base_addr = ADC2_BASE;
   using reg_addr = detail::register_addresses<base_addr>;
 
   static inline common_registers& common_regs = *ADC;
@@ -65,7 +65,7 @@ struct adc2 {
 };
 
 struct adc3 {
-  static constexpr uint32_t base_addr = ADC3_BASE;
+  static constexpr uintptr_t base_addr = ADC3_BASE;
   using reg_addr = detail::register_addresses<base_addr>;
 
   static inline common_registers& common_regs = *ADC;
