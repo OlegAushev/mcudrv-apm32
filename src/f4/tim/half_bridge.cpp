@@ -1,4 +1,4 @@
-#include <apm32/f4/tim/half_bridge.hpp>
+#include <apm32/f4/tim/driver/half_bridge.hpp>
 
 #include <apm32/f4/core.hpp>
 

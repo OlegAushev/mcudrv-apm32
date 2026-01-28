@@ -1,4 +1,4 @@
-#include <apm32/f4/adc/basic_adc.hpp>
+#include <apm32/f4/adc/driver/basic_adc.hpp>
 #include <apm32/f4/chrono.hpp>
 
 namespace apm32 {

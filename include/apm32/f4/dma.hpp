@@ -1,6 +1,6 @@
 #pragma once
 
-#include <apm32/f4/dma/pm_stream.hpp>
+#include <apm32/f4/dma/driver/pm_stream.hpp>
 
 // TODO delete all below
 

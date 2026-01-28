@@ -9,6 +9,8 @@
 
 #include <apm32f4xx_tmr.h>
 
+#include <optional>
+
 namespace apm32 {
 namespace f4 {
 namespace tim {
@@ -32,10 +34,14 @@ template<timer_instance Tim>
 class hall_interface {
 public:
   using timer_instance = Tim;
+  using reg_addr = timer_instance::reg_addr;
 private:
   static inline registers& regs_ = timer_instance::regs;
   static inline nvic::irq_number const cc_irqn_ =
       timer_instance::capture_compare_irqn;
+
+  std::array<std::optional<gpio::alternate_pin>, 3> pins_;
+public:
 };
 
 }

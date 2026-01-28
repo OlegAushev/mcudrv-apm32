@@ -1,4 +1,4 @@
-#include <apm32/f4/tim/hall_interface.hpp>
+#include <apm32/f4/tim/driver/hall_interface.hpp>
 
 namespace apm32 {
 namespace f4 {
