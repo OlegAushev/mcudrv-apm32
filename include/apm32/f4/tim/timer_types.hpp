@@ -14,9 +14,9 @@ enum class channel : uint32_t {
 };
 
 enum class clock_division : uint32_t {
-  div1,
-  div2,
-  div4
+  div1 = 0b00u,
+  div2 = 0b01u,
+  div4 = 0b10u
 };
 
 enum class count_direction : uint32_t {

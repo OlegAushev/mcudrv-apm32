@@ -82,11 +82,11 @@ struct adc3 {
 };
 
 template<typename T>
-struct is_adc_module_instance
+struct is_adc_instance
     : std::bool_constant<emb::same_as_any<T, adc1, adc2, adc3>> {};
 
 template<typename T>
-concept adc_module_instance = is_adc_module_instance<T>::value;
+concept adc_instance = is_adc_instance<T>::value;
 
 } // namespace v2
 } // namespace adc

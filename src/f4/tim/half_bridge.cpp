@@ -60,21 +60,6 @@ void detail::configure_timebase(
   regs.CTRL1_B.ARPEN = 1;
 }
 
-[[nodiscard]] gpio::alternate_pin_config detail::get_break_input_config(
-    registers& regs,
-    break_pin_config const& bk_pin
-) {
-  gpio::alternate_pin_config pinconf = {
-      .port = bk_pin.port,
-      .pin = bk_pin.pin,
-      .pull = bk_pin.pull,
-      .output_type = gpio::output_type::pushpull,
-      .speed = gpio::speed::fast,
-      .altfunc = &regs == TMR1 ? GPIO_AF_TMR1 : GPIO_AF_TMR8
-  };
-  return pinconf;
-}
-
 void detail::configure_bdt(
     emb::units::hz_f32 clk_freq,
     registers& regs,
@@ -136,20 +121,6 @@ void detail::configure_channel(registers& regs, channel ch) {
     std::unreachable();
     break;
   }
-}
-
-gpio::alternate_pin_config
-detail::get_output_config(registers& regs, output_pin_config const& pin) {
-  GPIO_AF_T const altfunc = TMR1 ? GPIO_AF_TMR1 : GPIO_AF_TMR8;
-  gpio::alternate_pin_config pinconf = {
-      .port = pin.port,
-      .pin = pin.pin,
-      .pull = gpio::pull::none,
-      .output_type = gpio::output_type::pushpull,
-      .speed = gpio::speed::fast,
-      .altfunc = altfunc
-  };
-  return pinconf;
 }
 
 static_assert(

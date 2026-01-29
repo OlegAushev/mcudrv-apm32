@@ -11,41 +11,39 @@ namespace f4 {
 namespace adc {
 namespace v2 {
 
-template<adc_module_instance Instance>
+template<adc_instance Instance>
 void start_injected() {
   registers& regs = Instance::regs;
   regs.CTRL2_B.INJSWSC = 1;
 }
 
-template<adc_module_instance Instance>
+template<adc_instance Instance>
 void start_regular() {
   registers& regs = Instance::regs;
   regs.CTRL2_B.REGSWSC = 1;
 }
 
-template<adc_module_instance Instance>
+template<adc_instance Instance>
 bool jeoc_flag() {
   registers const& regs = Instance::regs;
   return regs.STS_B.INJEOCFLG == 1;
 }
 
-template<adc_module_instance Instance>
+template<adc_instance Instance>
 void acknowledge_jeoc() {
   registers& regs = Instance::regs;
-  // regs.STS_B.INJCSFLG = 0; // TODO
   regs.STS_B.INJEOCFLG = 0;
 }
 
-template<adc_module_instance Instance>
+template<adc_instance Instance>
 bool eoc_flag() {
   registers const& regs = Instance::regs;
   return regs.STS_B.EOCFLG == 1;
 }
 
-template<adc_module_instance Instance>
+template<adc_instance Instance>
 void acknowledge_eoc() {
   registers& regs = Instance::regs;
-  // regs.STS_B.REGCSFLG = 0; // TODO
   regs.STS_B.EOCFLG = 0;
 }
 

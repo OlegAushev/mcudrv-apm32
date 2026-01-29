@@ -67,9 +67,6 @@ void configure_timebase(
     base_config const& conf
 );
 
-[[nodiscard]] gpio::alternate_pin_config
-get_break_input_config(registers& regs, break_pin_config const& bk_pin);
-
 void configure_bdt(
     emb::units::hz_f32 clk_freq,
     registers& regs,
@@ -79,8 +76,31 @@ void configure_bdt(
 
 void configure_channel(registers& regs, channel ch);
 
+template<advanced_timer Tim>
 [[nodiscard]] gpio::alternate_pin_config
-get_output_config(registers& regs, output_pin_config const& pin);
+make_break_input_config(break_pin_config const& bk_pin) {
+  return gpio::alternate_pin_config{
+      .port = bk_pin.port,
+      .pin = bk_pin.pin,
+      .pull = bk_pin.pull,
+      .output_type = gpio::output_type::pushpull,
+      .speed = gpio::speed::low,
+      .altfunc = Tim::gpio_altfunc
+  };
+}
+
+template<advanced_timer Tim>
+[[nodiscard]] gpio::alternate_pin_config
+make_output_config(output_pin_config const& pin) {
+  return gpio::alternate_pin_config{
+      .port = pin.port,
+      .pin = pin.pin,
+      .pull = gpio::pull::none,
+      .output_type = gpio::output_type::pushpull,
+      .speed = gpio::speed::medium,
+      .altfunc = Tim::gpio_altfunc
+  };
+}
 
 } // namespace detail
 
@@ -127,7 +147,7 @@ public:
 
     if (conf.bk_pin.has_value()) {
       bk_pin_.emplace(
-          detail::get_break_input_config(regs_, conf.bk_pin.value())
+          detail::make_break_input_config<timer_instance>(conf.bk_pin.value())
       );
     }
     detail::configure_bdt(
@@ -139,8 +159,12 @@ public:
 
     for (auto i = 0uz; i < LegCount; ++i) {
       detail::configure_channel(regs_, static_cast<channel>(i));
-      hi_pins_[i].emplace(detail::get_output_config(regs_, conf.hi_pins[i]));
-      lo_pins_[i].emplace(detail::get_output_config(regs_, conf.lo_pins[i]));
+      hi_pins_[i].emplace(
+          detail::make_output_config<timer_instance>(conf.hi_pins[i])
+      );
+      lo_pins_[i].emplace(
+          detail::make_output_config<timer_instance>(conf.lo_pins[i])
+      );
     }
 
     // Trigger output
@@ -186,7 +210,7 @@ public:
 
   void start() {
     if (bk_pin_) {
-      ack_break_interrupt();
+      acknowledge_break<timer_instance>();
       regs_.DIEN_B.BRKIEN = 1;
     }
     regs_.BDT_B.MOEN = 1;
@@ -209,10 +233,13 @@ public:
     dutycycle_type dutycycle;
     float const reload_val = static_cast<float>(regs_.AUTORLD);
     [&]<size_t... I>(std::index_sequence<I...>) {
-        ((dutycycle[I] = emb::unsigned_pu{static_cast<float>(
-            emb::mmio::reg<reg_addr::ccrx[I]>::read()
-        ) / reload_val}), ...);
-      }(std::make_index_sequence<LegCount>{});
+      ((dutycycle[I] =
+            emb::unsigned_pu{
+                static_cast<float>(emb::mmio::reg<reg_addr::ccrx[I]>::read()) /
+                reload_val
+            }),
+       ...);
+    }(std::make_index_sequence<LegCount>{});
     return dutycycle;
   }
 
@@ -227,31 +254,15 @@ public:
   }
 public:
   void enable() {
-    ack_update_interrupt();
+    acknowledge_update<timer_instance>();
     nvic::clear_pending_irq(update_irqn_);
     nvic::enable_irq(update_irqn_);
     if (bk_pin_) {
-      ack_break_interrupt();
+      acknowledge_break<timer_instance>();
       nvic::clear_pending_irq(break_irqn_);
       nvic::enable_irq(break_irqn_);
     }
-    enable_counter();
-  }
-
-  void ack_update_interrupt() {
-    regs_.STS_B.UIFLG = 0;
-  }
-
-  void ack_break_interrupt() {
-    regs_.STS_B.BRKIFLG = 0;
-  }
-private:
-  void enable_counter() {
-    regs_.CTRL1_B.CNTEN = 1;
-  }
-
-  void disable_counter() {
-    regs_.CTRL1_B.CNTEN = 0;
+    enable_counter<timer_instance>();
   }
 };
 

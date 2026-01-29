@@ -8,6 +8,7 @@
 #include <apm32/f4/core.hpp>
 #include <apm32/f4/nvic.hpp>
 
+#include <apm32f4xx_gpio.h>
 #include <apm32f4xx_rcm.h>
 #include <apm32f4xx_tmr.h>
 
@@ -44,6 +45,8 @@ struct tim1 {
   static constexpr auto enable_clock = []() {
     RCM_EnableAPB2PeriphClock(RCM_APB2_PERIPH_TMR1);
   };
+
+  static constexpr auto gpio_altfunc = GPIO_AF_TMR1;
 };
 
 struct tim2 {
@@ -64,6 +67,8 @@ struct tim2 {
   static constexpr auto enable_clock = []() {
     RCM_EnableAPB1PeriphClock(RCM_APB1_PERIPH_TMR2);
   };
+
+  static constexpr auto gpio_altfunc = GPIO_AF_TMR2;
 };
 
 struct tim3 {
@@ -84,6 +89,8 @@ struct tim3 {
   static constexpr auto enable_clock = []() {
     RCM_EnableAPB1PeriphClock(RCM_APB1_PERIPH_TMR3);
   };
+
+  static constexpr auto gpio_altfunc = GPIO_AF_TMR3;
 };
 
 struct tim4 {
@@ -104,6 +111,8 @@ struct tim4 {
   static constexpr auto enable_clock = []() {
     RCM_EnableAPB1PeriphClock(RCM_APB1_PERIPH_TMR4);
   };
+
+  static constexpr auto gpio_altfunc = GPIO_AF_TMR4;
 };
 
 struct tim5 {
@@ -124,6 +133,8 @@ struct tim5 {
   static constexpr auto enable_clock = []() {
     RCM_EnableAPB1PeriphClock(RCM_APB1_PERIPH_TMR5);
   };
+
+  static constexpr auto gpio_altfunc = GPIO_AF_TMR5;
 };
 
 struct tim6 {
@@ -173,6 +184,8 @@ struct tim8 {
   static constexpr auto enable_clock = []() {
     RCM_EnableAPB2PeriphClock(RCM_APB2_PERIPH_TMR8);
   };
+
+  static constexpr auto gpio_altfunc = GPIO_AF_TMR8;
 };
 
 struct tim9 {

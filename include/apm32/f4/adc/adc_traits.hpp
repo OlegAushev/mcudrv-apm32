@@ -13,7 +13,7 @@ namespace traits {
 
 namespace detail {
 
-template<adc_module_instance Instance, typename T>
+template<adc_instance Instance, typename T>
 consteval bool check_dma_stream() {
   if constexpr (dma::v2::dma_stream_instance<T>) {
     return emb::typelist_contains_v<typename Instance::dma_streams, T>;
@@ -24,7 +24,7 @@ consteval bool check_dma_stream() {
   }
 }
 
-template<adc_module_instance Instance, typename T>
+template<adc_instance Instance, typename T>
 consteval bool check_dma_channel() {
   if constexpr (dma::v2::dma_channel_instance<T>) {
     return std::same_as<T, typename Instance::dma_channel>;
@@ -59,7 +59,7 @@ consteval bool check_dma_irq_priority() {
 
 template<typename T>
 concept basic_traits = requires {
-  requires adc_module_instance<typename T::adc_instance>;
+  requires adc_instance<typename T::adc_instance>;
 
   { T::injected_count } -> std::convertible_to<unsigned>;
   { T::regular_count } -> std::convertible_to<unsigned>;
