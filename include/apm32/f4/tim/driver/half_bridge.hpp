@@ -189,16 +189,15 @@ public:
         conf.bk_pin
     );
 
-    [&]<size_t... I>(std::index_sequence<I...>) {
-      ((detail::configure_channel<timer_instance, tim::channel_at<I>>(),
-        hi_pins_[I].emplace(
-            detail::make_output_config<timer_instance>(conf.hi_pins[I])
-        ),
-        lo_pins_[I].emplace(
-            detail::make_output_config<timer_instance>(conf.lo_pins[I])
-        )),
-       ...);
-    }(std::make_index_sequence<LegCount>{});
+    emb::unroll<LegCount>([&]<size_t I>() {
+      detail::configure_channel<timer_instance, tim::channel_at<I>>();
+      hi_pins_[I].emplace(
+          detail::make_output_config<timer_instance>(conf.hi_pins[I])
+      );
+      lo_pins_[I].emplace(
+          detail::make_output_config<timer_instance>(conf.lo_pins[I])
+      );
+    });
 
     // Trigger output
     switch (conf.pwm.trgo) {
@@ -265,25 +264,22 @@ public:
   dutycycle_type dutycycle() const {
     dutycycle_type dutycycle;
     float const reload_val = static_cast<float>(regs_.AUTORLD);
-    [&]<size_t... I>(std::index_sequence<I...>) {
-      ((dutycycle[I] =
-            emb::unsigned_pu{
-                static_cast<float>(emb::mmio::reg<reg_addr::ccrx[I]>::read()) /
-                reload_val
-            }),
-       ...);
-    }(std::make_index_sequence<LegCount>{});
+    emb::unroll<LegCount>([&]<size_t I>() {
+      dutycycle[I] = emb::unsigned_pu{
+          static_cast<float>(emb::mmio::reg<reg_addr::ccrx[I]>::read()) /
+          reload_val
+      };
+    });
     return dutycycle;
   }
 
   void set_dutycycle(dutycycle_type const& dutycycle) {
     float const reload_val = static_cast<float>(regs_.AUTORLD);
-    [&]<size_t... I>(std::index_sequence<I...>) {
-      ((emb::mmio::reg<reg_addr::ccrx[I]>::write(
-           static_cast<uint32_t>(dutycycle[I].value() * reload_val)
-       )),
-       ...);
-    }(std::make_index_sequence<LegCount>{});
+    emb::unroll<LegCount>([&]<size_t I>() {
+      emb::mmio::reg<reg_addr::ccrx[I]>::write(
+          static_cast<uint32_t>(dutycycle[I].value() * reload_val)
+      );
+    });
   }
 public:
   void enable() {

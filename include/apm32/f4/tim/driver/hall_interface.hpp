@@ -9,6 +9,8 @@
 
 #include <apm32f4xx_tmr.h>
 
+#include <emb/mmio.hpp>
+
 #include <limits>
 #include <optional>
 
@@ -103,6 +105,25 @@ public:
     nvic::clear_pending_irq(irqn_);
     nvic::enable_irq(irqn_);
     enable_counter<timer_instance>();
+  }
+
+  typename timer_instance::counter_type capture_value() const {
+    return emb::mmio::reg<reg_addr::ccrx[0]>::read();
+  }
+
+  std::array<emb::gpio::level, 3> input_levels() const {
+    return {
+        pins_[0]->read_level(),
+        pins_[1]->read_level(),
+        pins_[2]->read_level()
+    };
+  }
+
+  uint8_t input_state() const {
+    uint8_t state = std::to_underlying(pins_[0]->read_level()) |
+                    std::to_underlying(pins_[1]->read_level()) << 1 |
+                    std::to_underlying(pins_[2]->read_level()) << 2;
+    return state;
   }
 };
 
