@@ -91,38 +91,6 @@ void detail::configure_bdt(
   TMR_ConfigBDT(&regs, &bdt_config);
 }
 
-void detail::configure_channel(registers& regs, channel ch) {
-  core::ensure(ch != channel::ch4);
-
-  TMR_OCConfig_T ch_config{};
-  ch_config.mode = TMR_OC_MODE_PWM1;
-  ch_config.outputState = TMR_OC_STATE_ENABLE;
-  ch_config.outputNState = TMR_OC_NSTATE_ENABLE;
-  ch_config.polarity = TMR_OC_POLARITY_HIGH;
-  ch_config.nPolarity = TMR_OC_NPOLARITY_HIGH;
-  ch_config.idleState = TMR_OC_IDLE_STATE_RESET;
-  ch_config.nIdleState = TMR_OC_NIDLE_STATE_RESET;
-  ch_config.pulse = 0;
-
-  switch (ch) {
-  case channel::ch1:
-    regs.CCM1_COMPARE_B.OC1PEN = 1;
-    TMR_ConfigOC1(&regs, &ch_config);
-    break;
-  case channel::ch2:
-    regs.CCM1_COMPARE_B.OC2PEN = 1;
-    TMR_ConfigOC2(&regs, &ch_config);
-    break;
-  case channel::ch3:
-    regs.CCM2_COMPARE_B.OC3PEN = 1;
-    TMR_ConfigOC3(&regs, &ch_config);
-    break;
-  case channel::ch4:
-    std::unreachable();
-    break;
-  }
-}
-
 static_assert(
     get_deadtime_setup(
         emb::units::hz_f32{168000000},

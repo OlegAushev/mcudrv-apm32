@@ -74,7 +74,39 @@ void configure_bdt(
     std::optional<break_pin_config> const& bk_pin
 );
 
-void configure_channel(registers& regs, channel ch);
+template<advanced_timer Tim, timer_channel_instance Ch>
+  requires(!std::same_as<Ch, channel4>)
+void configure_channel() {
+  registers& regs = Tim::regs;
+
+  TMR_OCConfig_T ch_config{};
+  ch_config.mode = TMR_OC_MODE_PWM1;
+  ch_config.outputState = TMR_OC_STATE_ENABLE;
+  ch_config.outputNState = TMR_OC_NSTATE_ENABLE;
+  ch_config.polarity = TMR_OC_POLARITY_HIGH;
+  ch_config.nPolarity = TMR_OC_NPOLARITY_HIGH;
+  ch_config.idleState = TMR_OC_IDLE_STATE_RESET;
+  ch_config.nIdleState = TMR_OC_NIDLE_STATE_RESET;
+  ch_config.pulse = 0;
+
+  switch (Ch::idx) {
+  case channel_idx::ch1:
+    regs.CCM1_COMPARE_B.OC1PEN = 1;
+    TMR_ConfigOC1(&regs, &ch_config);
+    break;
+  case channel_idx::ch2:
+    regs.CCM1_COMPARE_B.OC2PEN = 1;
+    TMR_ConfigOC2(&regs, &ch_config);
+    break;
+  case channel_idx::ch3:
+    regs.CCM2_COMPARE_B.OC3PEN = 1;
+    TMR_ConfigOC3(&regs, &ch_config);
+    break;
+  case channel_idx::ch4:
+    std::unreachable();
+    break;
+  }
+}
 
 template<advanced_timer Tim>
 [[nodiscard]] gpio::alternate_pin_config
@@ -157,15 +189,16 @@ public:
         conf.bk_pin
     );
 
-    for (auto i = 0uz; i < LegCount; ++i) {
-      detail::configure_channel(regs_, static_cast<channel>(i));
-      hi_pins_[i].emplace(
-          detail::make_output_config<timer_instance>(conf.hi_pins[i])
-      );
-      lo_pins_[i].emplace(
-          detail::make_output_config<timer_instance>(conf.lo_pins[i])
-      );
-    }
+    [&]<size_t... I>(std::index_sequence<I...>) {
+      ((detail::configure_channel<timer_instance, tim::channel_at<I>>(),
+        hi_pins_[I].emplace(
+            detail::make_output_config<timer_instance>(conf.hi_pins[I])
+        ),
+        lo_pins_[I].emplace(
+            detail::make_output_config<timer_instance>(conf.lo_pins[I])
+        )),
+       ...);
+    }(std::make_index_sequence<LegCount>{});
 
     // Trigger output
     switch (conf.pwm.trgo) {

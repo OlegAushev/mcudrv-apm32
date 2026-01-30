@@ -12,12 +12,14 @@ namespace tim {
 
 template<timer_instance Tim>
 void enable_counter() {
-  Tim::regs.CTRL1_B.CNTEN = 1;
+  registers& regs = Tim::regs;
+  regs.CTRL1_B.CNTEN = 1;
 }
 
 template<timer_instance Tim>
 void disable_counter() {
-  Tim::regs.CTRL1_B.CNTEN = 0;
+  registers& regs = Tim::regs;
+  regs.CTRL1_B.CNTEN = 0;
 }
 
 template<timer_instance Tim>

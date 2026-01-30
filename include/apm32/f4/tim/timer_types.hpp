@@ -6,13 +6,6 @@ namespace apm32 {
 namespace f4 {
 namespace tim {
 
-enum class channel : uint32_t {
-  ch1,
-  ch2,
-  ch3,
-  ch4
-};
-
 enum class clock_division : uint32_t {
   div1 = 0b00u,
   div2 = 0b01u,
