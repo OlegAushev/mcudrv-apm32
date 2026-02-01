@@ -55,10 +55,7 @@ make_input_config(input_pin_config const& pin) {
 }
 
 template<timer_instance Tim>
-  requires(
-      std::same_as<typename Tim::counter_type, uint32_t> &&
-      Tim::io_channel_count >= 3
-  )
+  requires(Tim::io_channel_count >= 3)
 class hall_interface {
 public:
   using timer_instance = Tim;
@@ -69,6 +66,7 @@ private:
       timer_instance::capture_compare_irqn;
 
   std::array<std::optional<gpio::alternate_pin>, 3> pins_;
+  emb::units::hz_f32 counter_freq_;
 public:
   hall_interface(hall_interface_config conf) {
     timer_instance::enable_clock();
@@ -78,9 +76,18 @@ public:
     }
 
     if (!conf.prescaler.has_value()) {
-      conf.prescaler = timer_instance::template clock_frequency<uint32_t>() /
-                       1'000'0000;
+      if constexpr (std::same_as<typename Tim::counter_type, uint32_t>) {
+        conf.prescaler = 0;
+      } else {
+        auto const clk_freq =
+            timer_instance::template clock_frequency<uint32_t>();
+        conf.prescaler = (clk_freq / 1'000u) - 1;
+      }
     }
+
+    counter_freq_ =
+        timer_instance::template clock_frequency<emb::units::hz_f32>() /
+        static_cast<float>(conf.prescaler.value() + 1);
 
     if (!conf.period.has_value()) {
       conf.period =
@@ -107,8 +114,17 @@ public:
     enable_counter<timer_instance>();
   }
 
-  typename timer_instance::counter_type capture_value() const {
+  typename timer_instance::counter_type captured_counter() const {
     return emb::mmio::reg<reg_addr::ccrx[0]>::read();
+  }
+
+  emb::units::sec_f32 captured_time() const {
+    return static_cast<float>(captured_counter()) / counter_freq_;
+  }
+
+  emb::units::sec_f32 time_since_capture() const {
+    return static_cast<float>(emb::mmio::reg<reg_addr::cnt>::read()) /
+           counter_freq_;
   }
 
   std::array<emb::gpio::level, 3> input_levels() const {
