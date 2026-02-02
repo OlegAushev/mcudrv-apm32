@@ -136,9 +136,9 @@ public:
   }
 
   uint8_t input_state() const {
-    uint8_t state = std::to_underlying(pins_[0]->read_level()) |
-                    std::to_underlying(pins_[1]->read_level()) << 1 |
-                    std::to_underlying(pins_[2]->read_level()) << 2;
+    uint8_t state = uint8_t(pins_[0]->read_level()) |
+                    uint8_t(pins_[1]->read_level()) << 1 |
+                    uint8_t(pins_[2]->read_level()) << 2;
     return state;
   }
 };

@@ -24,7 +24,7 @@ void detail::configure_timebase(
 #pragma GCC diagnostic pop
 }
 
-void configure_channel(registers& regs) {
+void detail::configure_channel(registers& regs) {
   TMR_ICConfig_T ch_config{
       .channel = TMR_CHANNEL_1,
       .polarity = TMR_IC_POLARITY_BOTHEDGE,
