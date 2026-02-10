@@ -28,7 +28,7 @@ struct input_pin_config {
 struct hall_interface_config {
   clock_division clkdiv;
   std::optional<uint16_t> prescaler;
-  std::optional<uint16_t> period;
+  std::optional<uint32_t> period;
   nvic::irq_priority irq_priority;
   std::array<input_pin_config, 3> pins;
 };
