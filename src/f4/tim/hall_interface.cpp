@@ -21,6 +21,9 @@ void detail::configure_timebase(
   regs.CEG_B.UEG = 1;
 
   regs.CTRL2_B.TI1SEL = 1;
+
+  regs.SMCTRL_B.TRGSEL = 0b100u; // TI1 Edge Detector (TI1F_ED)
+  regs.SMCTRL_B.SMFSEL = 0b100u; // Reset Mode
 #pragma GCC diagnostic pop
 }
 
