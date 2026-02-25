@@ -7,16 +7,15 @@ namespace hall {
 
 void detail::configure_timebase(
     registers& regs,
-    hall_interface_config const& conf
+    detail::timebase_config const& conf
 ) {
-  core::ensure(conf.prescaler.has_value() && conf.period.has_value());
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wconversion"
   regs.CTRL1_B.CNTDIR = 0;
   regs.CTRL1_B.CAMSEL = 0;
   regs.CTRL1_B.CLKDIV = std::to_underlying(conf.clkdiv);
-  regs.AUTORLD = conf.period.value();
-  regs.PSC = conf.prescaler.value();
+  regs.AUTORLD = conf.period;
+  regs.PSC = conf.prescaler;
 
   regs.CEG_B.UEG = 1;
 
