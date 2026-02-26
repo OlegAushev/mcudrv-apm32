@@ -7,15 +7,15 @@ namespace hall {
 
 void detail::configure_timebase(
     registers& regs,
-    detail::timebase_config const& conf
+    detail::timebase_config const& cfg
 ) {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wconversion"
   regs.CTRL1_B.CNTDIR = 0;
   regs.CTRL1_B.CAMSEL = 0;
-  regs.CTRL1_B.CLKDIV = std::to_underlying(conf.clkdiv);
-  regs.AUTORLD = conf.period;
-  regs.PSC = conf.prescaler;
+  regs.CTRL1_B.CLKDIV = std::to_underlying(cfg.filter_clock_division);
+  regs.AUTORLD = cfg.counter_max;
+  regs.PSC = cfg.counter_prescaler;
 
   regs.CEG_B.UEG = 1;
 
@@ -26,15 +26,15 @@ void detail::configure_timebase(
 #pragma GCC diagnostic pop
 }
 
-void detail::configure_channel(registers& regs) {
-  TMR_ICConfig_T ch_config{
+void detail::configure_channel(registers& regs, capture_filter filter) {
+  TMR_ICConfig_T channel_cfg{
       .channel = TMR_CHANNEL_1,
       .polarity = TMR_IC_POLARITY_BOTHEDGE,
       .selection = TMR_IC_SELECTION_DIRECT_TI,
       .prescaler = TMR_IC_PSC_1,
-      .filter = 0
+      .filter = static_cast<uint16_t>(filter)
   };
-  TMR_ConfigIC(&regs, &ch_config);
+  TMR_ConfigIC(&regs, &channel_cfg);
 }
 
 } // namespace hall

@@ -23,6 +23,25 @@ enum class counter_mode : uint32_t {
   updown
 };
 
+enum class capture_filter : uint32_t {
+  disabled,
+  div1_n2,
+  div1_n4,
+  div1_n8,
+  div2_n6,
+  div2_n8,
+  div4_n6,
+  div4_n8,
+  div8_n6,
+  div8_n8,
+  div16_n5,
+  div16_n6,
+  div16_n8,
+  div32_n5,
+  div32_n6,
+  div32_n8,
+};
+
 } // namespace tim
 } // namespace f4
 } // namespace apm32

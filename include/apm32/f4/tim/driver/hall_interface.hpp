@@ -26,8 +26,9 @@ struct input_pin_config {
 };
 
 struct hall_interface_config {
-  clock_division clkdiv;
-  std::optional<uint16_t> prescaler;
+  clock_division filter_clock_division;
+  capture_filter filter;
+  std::optional<uint16_t> counter_prescaler;
   std::optional<emb::units::sec_f32> timeout;
   nvic::irq_priority irq_priority;
   std::array<input_pin_config, 3> pins;
@@ -36,14 +37,14 @@ struct hall_interface_config {
 namespace detail {
 
 struct timebase_config {
-  clock_division clkdiv;
-  uint16_t prescaler;
-  uint32_t period;
+  clock_division filter_clock_division;
+  uint16_t counter_prescaler;
+  uint32_t counter_max;
 };
 
-void configure_timebase(registers& regs, timebase_config const& conf);
+void configure_timebase(registers& regs, timebase_config const& cfg);
 
-void configure_channel(registers& regs);
+void configure_channel(registers& regs, capture_filter filter);
 
 template<timer_instance Tim>
 [[nodiscard]] gpio::alternate_pin_config
@@ -75,49 +76,49 @@ private:
   std::array<std::optional<gpio::alternate_pin>, 3> pins_;
   emb::units::sec_f32 counter_period_;
 public:
-  hall_interface(hall_interface_config conf) {
+  hall_interface(hall_interface_config cfg) {
     timer_instance::enable_clock();
 
     for (size_t i = 0; i < 3; ++i) {
-      pins_[i].emplace(detail::make_input_config<timer_instance>(conf.pins[i]));
+      pins_[i].emplace(detail::make_input_config<timer_instance>(cfg.pins[i]));
     }
 
-    if (!conf.prescaler.has_value()) {
+    if (!cfg.counter_prescaler.has_value()) {
       if constexpr (std::same_as<counter_type, uint32_t>) {
-        conf.prescaler = 0;
+        cfg.counter_prescaler = 0;
       } else {
         auto const clk_freq =
             timer_instance::template clock_frequency<uint32_t>();
-        conf.prescaler = (clk_freq / 1'000u) - 1;
+        cfg.counter_prescaler = (clk_freq / 1'000u) - 1;
       }
     }
 
     counter_period_ =
-        static_cast<float>(conf.prescaler.value() + 1)
+        static_cast<float>(cfg.counter_prescaler.value() + 1)
         / timer_instance::template clock_frequency<emb::units::hz_f32>();
 
     detail::timebase_config timebase_cfg{};
-    timebase_cfg.clkdiv = conf.clkdiv;
-    timebase_cfg.prescaler = *conf.prescaler;
+    timebase_cfg.filter_clock_division = cfg.filter_clock_division;
+    timebase_cfg.counter_prescaler = *cfg.counter_prescaler;
 
-    if (!conf.timeout.has_value()) {
-      timebase_cfg.period =
+    if (!cfg.timeout.has_value()) {
+      timebase_cfg.counter_max =
           std::numeric_limits<counter_type>::max();
     } else {
-      timebase_cfg.period = std::clamp(
-          static_cast<counter_type>(*conf.timeout / counter_period_),
+      timebase_cfg.counter_max = std::clamp(
+          static_cast<counter_type>(*cfg.timeout / counter_period_),
           counter_type{0},
           std::numeric_limits<counter_type>::max()
       );
     }
 
     detail::configure_timebase(regs_, timebase_cfg);
-    detail::configure_channel(regs_);
+    detail::configure_channel(regs_, cfg.filter);
 
     // Interrupt configuration
     regs_.DIEN_B.CC1IEN = 1;
     regs_.DIEN_B.UIEN = 1;
-    set_irq_priority(irqn_, conf.irq_priority);
+    set_irq_priority(irqn_, cfg.irq_priority);
   }
 
   registers& regs() {
