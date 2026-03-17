@@ -150,21 +150,21 @@ private:
   static inline std::array<uint32_t volatile*, 4> const compare_regs_ =
       timer_instance::ccr_regs;
 
-  emb::units::hz_f32 freq_;
-  emb::chrono::nanoseconds_i32 deadtime_;
+  emb::units::sec_f32 period_;
+  emb::units::sec_f32 deadtime_;
 
   std::array<std::optional<gpio::alternate_pin>, LegCount> hi_pins_;
   std::array<std::optional<gpio::alternate_pin>, LegCount> lo_pins_;
   std::optional<gpio::alternate_pin> bk_pin_;
 public:
   half_bridge(half_bridge_config<LegCount> conf) {
-    freq_ = conf.pwm.frequency;
-    deadtime_ = conf.pwm.deadtime;
+    period_ = 1.f / conf.pwm.frequency;
+    deadtime_ = emb::units::sec_f32{float(conf.pwm.deadtime.count()) / 1E9f};
 
     // use prescaler from config or calculate it from required pwm frequency
     if (!conf.pwm.prescaler.has_value()) {
       conf.pwm.prescaler = calculate_prescaler<timer_instance>(
-          freq_,
+          conf.pwm.frequency,
           counter_mode::updown
       );
     }
@@ -221,11 +221,11 @@ public:
     return regs_;
   }
 
-  emb::units::hz_f32 frequency() const {
-    return freq_;
+  emb::units::sec_f32 period() const {
+    return period_;
   }
 
-  emb::chrono::nanoseconds_i32 deadtime() const {
+  emb::units::sec_f32 deadtime() const {
     return deadtime_;
   }
 

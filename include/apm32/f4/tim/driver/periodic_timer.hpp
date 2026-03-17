@@ -35,13 +35,13 @@ private:
   static inline nvic::irq_number const update_irqn_ =
       timer_instance::update_irqn;
 
-  emb::units::hz_f32 freq_;
+  emb::units::sec_f32 period_;
 public:
   periodic_timer(periodic_timer_config conf) {
-    freq_ = conf.frequency;
+    period_ = 1.f / conf.frequency;
     if (!conf.prescaler.has_value()) {
       conf.prescaler = calculate_prescaler<timer_instance>(
-          freq_,
+          conf.frequency,
           counter_mode::up
       );
     }
@@ -63,8 +63,8 @@ public:
     return regs_;
   }
 
-  emb::units::hz_f32 frequency() const {
-    return freq_;
+  emb::units::sec_f32 period() const {
+    return period_;
   }
 
   void enable() {
