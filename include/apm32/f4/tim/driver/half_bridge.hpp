@@ -150,6 +150,7 @@ private:
   static inline std::array<uint32_t volatile*, 4> const compare_regs_ =
       timer_instance::ccr_regs;
 
+  emb::units::hz_f32 timebase_freq_;
   emb::units::sec_f32 period_;
   emb::units::sec_f32 deadtime_;
 
@@ -168,6 +169,10 @@ public:
           counter_mode::updown
       );
     }
+
+    timebase_freq_ =
+        timer_instance::template clock_frequency<emb::units::hz_f32>() /
+        static_cast<float>(conf.pwm.prescaler.value() + 1);
 
     timer_instance::enable_clock();
 
@@ -227,6 +232,11 @@ public:
 
   emb::units::sec_f32 deadtime() const {
     return deadtime_;
+  }
+
+  void set_frequency(emb::units::hz_f32 freq) {
+    regs_.AUTORLD = static_cast<uint32_t>((timebase_freq_ / freq) / 2);
+    period_ = 1.f / freq;
   }
 
   bool active() const {
