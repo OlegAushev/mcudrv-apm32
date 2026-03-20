@@ -15,7 +15,9 @@
 #include <emb/singleton.hpp>
 #include <emb/units.hpp>
 
+#include <cassert>
 #include <chrono>
+#include <limits>
 #include <optional>
 #include <utility>
 
@@ -140,6 +142,7 @@ template<advanced_timer Tim, size_t LegCount = 1>
 class half_bridge : public emb::singleton<half_bridge<Tim, LegCount>> {
 public:
   using timer_instance = Tim;
+  using counter_type = Tim::counter_type;
   using reg_addr = timer_instance::reg_addr;
   using dutycycle_type = std::array<emb::unsigned_pu, LegCount>;
 private:
@@ -151,6 +154,9 @@ private:
       timer_instance::ccr_regs;
 
   emb::units::hz_f32 timebase_freq_;
+  emb::units::hz_f32 min_freq_;
+  emb::units::hz_f32 max_freq_;
+
   emb::units::sec_f32 period_;
   emb::units::sec_f32 deadtime_;
 
@@ -173,6 +179,10 @@ public:
     timebase_freq_ =
         timer_instance::template clock_frequency<emb::units::hz_f32>() /
         static_cast<float>(conf.pwm.prescaler.value() + 1);
+
+    min_freq_ = timebase_freq_
+              / (2.f * std::numeric_limits<counter_type>::max());
+    max_freq_ = timebase_freq_ / 2.f;
 
     timer_instance::enable_clock();
 
@@ -230,11 +240,25 @@ public:
     return period_;
   }
 
+  emb::units::hz_f32 frequency() const {
+    return 1.f / period_;
+  }
+
   emb::units::sec_f32 deadtime() const {
     return deadtime_;
   }
 
+  emb::units::hz_f32 min_frequency() const {
+    return min_freq_;
+  }
+
+  emb::units::hz_f32 max_frequency() const {
+    return max_freq_;
+  }
+
   void set_frequency(emb::units::hz_f32 freq) {
+    assert(freq >= min_freq_);
+    assert(freq <= max_freq_);
     regs_.AUTORLD = static_cast<uint32_t>((timebase_freq_ / freq) / 2);
     period_ = 1.f / freq;
   }
