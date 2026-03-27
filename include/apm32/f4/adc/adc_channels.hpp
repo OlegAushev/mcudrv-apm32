@@ -8,7 +8,6 @@
 namespace apm32 {
 namespace f4 {
 namespace adc {
-namespace v2 {
 
 enum class channel_type {
   external,
@@ -283,7 +282,6 @@ struct regular_channel {
   }
 };
 
-} // namespace v2
 } // namespace adc
 } // namespace f4
 } // namespace apm32

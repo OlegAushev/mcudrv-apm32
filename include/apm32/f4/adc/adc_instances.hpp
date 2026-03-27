@@ -16,7 +16,6 @@
 namespace apm32 {
 namespace f4 {
 namespace adc {
-namespace v2 {
 
 using common_registers = ADC_Common_T;
 using registers = ADC_T;
@@ -42,9 +41,8 @@ struct adc1 {
     RCM_EnableAPB2PeriphClock(RCM_APB2_PERIPH_ADC1);
   };
 
-  using dma_streams =
-      emb::typelist<dma::v2::dma2_stream0, dma::v2::dma2_stream4>;
-  using dma_channel = dma::v2::channel0;
+  using dma_streams = emb::typelist<dma::dma2_stream0, dma::dma2_stream4>;
+  using dma_channel = dma::channel0;
 };
 
 struct adc2 {
@@ -59,9 +57,8 @@ struct adc2 {
     RCM_EnableAPB2PeriphClock(RCM_APB2_PERIPH_ADC2);
   };
 
-  using dma_streams =
-      emb::typelist<dma::v2::dma2_stream2, dma::v2::dma2_stream3>;
-  using dma_channel = dma::v2::channel1;
+  using dma_streams = emb::typelist<dma::dma2_stream2, dma::dma2_stream3>;
+  using dma_channel = dma::channel1;
 };
 
 struct adc3 {
@@ -76,9 +73,8 @@ struct adc3 {
     RCM_EnableAPB2PeriphClock(RCM_APB2_PERIPH_ADC3);
   };
 
-  using dma_streams =
-      emb::typelist<dma::v2::dma2_stream0, dma::v2::dma2_stream1>;
-  using dma_channel = dma::v2::channel2;
+  using dma_streams = emb::typelist<dma::dma2_stream0, dma::dma2_stream1>;
+  using dma_channel = dma::channel2;
 };
 
 template<typename T>
@@ -88,7 +84,6 @@ struct is_adc_instance
 template<typename T>
 concept adc_instance = is_adc_instance<T>::value;
 
-} // namespace v2
 } // namespace adc
 } // namespace f4
 } // namespace apm32

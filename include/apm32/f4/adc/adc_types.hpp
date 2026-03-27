@@ -5,7 +5,6 @@
 namespace apm32 {
 namespace f4 {
 namespace adc {
-namespace v2 {
 
 enum class trigger_edge : uint8_t {
   rising = 0b01,
@@ -72,7 +71,6 @@ enum class sampletime {
   cycles_480
 };
 
-} // namespace v2
 } // namespace adc
 } // namespace f4
 } // namespace apm32

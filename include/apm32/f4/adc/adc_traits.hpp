@@ -7,7 +7,6 @@
 namespace apm32 {
 namespace f4 {
 namespace adc {
-namespace v2 {
 
 namespace traits {
 
@@ -15,7 +14,7 @@ namespace detail {
 
 template<adc_instance Instance, typename T>
 consteval bool check_dma_stream() {
-  if constexpr (dma::v2::dma_stream_instance<T>) {
+  if constexpr (dma::dma_stream_instance<T>) {
     return emb::typelist_contains_v<typename Instance::dma_streams, T>;
   } else if constexpr (std::is_void_v<T>) {
     return true;
@@ -26,7 +25,7 @@ consteval bool check_dma_stream() {
 
 template<adc_instance Instance, typename T>
 consteval bool check_dma_channel() {
-  if constexpr (dma::v2::dma_channel_instance<T>) {
+  if constexpr (dma::dma_channel_instance<T>) {
     return std::same_as<T, typename Instance::dma_channel>;
   } else if constexpr (std::is_void_v<T>) {
     return true;
@@ -66,13 +65,11 @@ concept basic_traits = requires {
   { T::dma_enabled } -> std::convertible_to<bool>;
 
   requires(
-      T::dma_enabled ? dma::v2::dma_stream_instance<typename T::dma_stream> :
-                       true
+      T::dma_enabled ? dma::dma_stream_instance<typename T::dma_stream> : true
   );
 
   requires(
-      T::dma_enabled ? dma::v2::dma_channel_instance<typename T::dma_channel> :
-                       true
+      T::dma_enabled ? dma::dma_channel_instance<typename T::dma_channel> : true
   );
 
   requires detail::check_dma_stream<
@@ -92,7 +89,6 @@ concept basic_traits = requires {
 
 } // namespace traits
 
-} // namespace v2
 } // namespace adc
 } // namespace f4
 } // namespace apm32

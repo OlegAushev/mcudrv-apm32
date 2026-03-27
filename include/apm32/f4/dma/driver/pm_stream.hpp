@@ -8,7 +8,6 @@
 namespace apm32 {
 namespace f4 {
 namespace dma {
-namespace v2 {
 
 struct peripheral_to_memory_stream_config {
   nvic::irq_priority irq_priority;
@@ -90,7 +89,6 @@ private:
   }
 };
 
-} // namespace v2
 } // namespace dma
 } // namespace f4
 } // namespace apm32

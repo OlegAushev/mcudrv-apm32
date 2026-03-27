@@ -4,7 +4,6 @@
 namespace apm32 {
 namespace f4 {
 namespace adc {
-namespace v2 {
 namespace detail {
 
 void init_common() {
@@ -16,7 +15,7 @@ void init_common() {
 
   ADC_CommonConfig_T config{};
   config.mode = ADC_MODE_INDEPENDENT;
-  config.prescaler = detail::to_sdk(apm32::f4::adc::v2::calculate_prescaler());
+  config.prescaler = detail::to_sdk(apm32::f4::adc::calculate_prescaler());
   config.accessMode = ADC_ACCESS_MODE_DISABLED;
   config.twoSampling = ADC_TWO_SAMPLING_5CYCLES;
 
@@ -24,7 +23,6 @@ void init_common() {
 }
 
 } // namespace detail
-} // namespace v2
 } // namespace adc
 } // namespace f4
 } // namespace apm32

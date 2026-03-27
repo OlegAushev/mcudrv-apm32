@@ -3,7 +3,6 @@
 namespace apm32 {
 namespace f4 {
 namespace dma {
-namespace v2 {
 
 void detail::init_pm_stream(stream_registers& regs, uint32_t ch) {
   DMA_Config_T dma_config{};
@@ -26,7 +25,6 @@ void detail::init_pm_stream(stream_registers& regs, uint32_t ch) {
   DMA_Config(&regs, &dma_config);
 }
 
-} // namespace v2
 } // namespace dma
 } // namespace f4
 } // namespace apm32

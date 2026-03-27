@@ -1,7 +1,7 @@
 #include <apm32/f4/adc.hpp>
 
 using namespace apm32::f4;
-using namespace apm32::f4::adc::v2;
+using namespace apm32::f4::adc;
 
 namespace {
 
@@ -22,12 +22,12 @@ struct adc_traits_1 {
   static constexpr unsigned injected_count = 2;
   static constexpr unsigned regular_count = 4;
   static constexpr bool dma_enabled = true;
-  using dma_stream = dma::v2::dma2_stream0;
-  using dma_channel = dma::v2::channel0;
-  using stream_type = dma::v2::peripheral_to_memory_stream<
+  using dma_stream = dma::dma2_stream0;
+  using dma_channel = dma::channel0;
+  using stream_type = dma::peripheral_to_memory_stream<
       dma_stream,
       dma_channel,
-      dma::v2::memory_buffer<uint32_t, regular_count>>;
+      dma::memory_buffer<uint32_t, regular_count>>;
   static constexpr nvic::irq_priority dma_irq_priority{4};
   static constexpr auto injected_trigger = inj_trigger{
       .edge = trigger_edge::rising,

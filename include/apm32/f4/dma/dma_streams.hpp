@@ -7,7 +7,6 @@
 namespace apm32 {
 namespace f4 {
 namespace dma {
-namespace v2 {
 
 using stream_registers = DMA_Stream_T;
 
@@ -148,7 +147,6 @@ struct is_dma_stream_instance : std::bool_constant<emb::same_as_any<
 template<typename T>
 concept dma_stream_instance = is_dma_stream_instance<T>::value;
 
-} // namespace v2
 } // namespace dma
 } // namespace f4
 } // namespace apm32

@@ -12,7 +12,6 @@
 namespace apm32 {
 namespace f4 {
 namespace adc {
-namespace v2 {
 
 namespace detail {
 
@@ -63,7 +62,7 @@ public:
   basic_adc()
     requires(dma_enabled)
       : dma_stream_(
-            dma::v2::peripheral_to_memory_stream_config{
+            dma::peripheral_to_memory_stream_config{
                 .irq_priority = dma_irq_priority
             },
             &regs_.REGDATA
@@ -140,7 +139,6 @@ private:
   }
 };
 
-} // namespace v2
 } // namespace adc
 } // namespace f4
 } // namespace apm32

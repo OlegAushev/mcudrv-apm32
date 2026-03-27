@@ -11,7 +11,6 @@
 namespace apm32 {
 namespace f4 {
 namespace dma {
-namespace v2 {
 
 using controller_registers = DMA_T;
 
@@ -40,7 +39,6 @@ struct is_dma_controller_instance
 template<typename T>
 concept dma_controller_instance = is_dma_controller_instance<T>::value;
 
-} // namespace v2
 } // namespace dma
 } // namespace f4
 } // namespace apm32

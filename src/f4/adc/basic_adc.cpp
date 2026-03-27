@@ -4,7 +4,6 @@
 namespace apm32 {
 namespace f4 {
 namespace adc {
-namespace v2 {
 namespace detail {
 
 void init_basic_adc(
@@ -106,7 +105,6 @@ void init_basic_adc(
 }
 
 } // namespace detail
-} // namespace v2
 } // namespace adc
 } // namespace f4
 } // namespace apm32
