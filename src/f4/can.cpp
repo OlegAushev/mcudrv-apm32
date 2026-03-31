@@ -64,9 +64,9 @@ rxmessage_attr peripheral::register_rxmessage(CAN_FilterConfig_T filter) {
 
 void peripheral::start() {
   regs_->MCTRL_B.INITREQ = 0;
-  emb::chrono::watchdog start_wd(std::chrono::milliseconds(2));
+  emb::chrono::timeout start_t(std::chrono::milliseconds(2));
   while (regs_->MSTS_B.INITFLG == 1) {
-    if (!start_wd.good()) {
+    if (start_t.expired()) {
       while (true) {
         // TODO
       }
@@ -76,9 +76,9 @@ void peripheral::start() {
 
 void peripheral::stop() {
   regs_->MCTRL_B.INITREQ = 1;
-  emb::chrono::watchdog stop_wd(std::chrono::milliseconds(2));
+  emb::chrono::timeout stop_t(std::chrono::milliseconds(2));
   while (regs_->MSTS_B.INITFLG == 0) {
-    if (!stop_wd.good()) {
+    if (stop_t.expired()) {
       while (true) {
         // TODO
       }
