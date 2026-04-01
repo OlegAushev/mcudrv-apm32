@@ -1,5 +1,6 @@
 #pragma once
 
+#include <apm32/f4/tim/driver/pwm.hpp>
 #include <apm32/f4/tim/timer_instances.hpp>
 #include <apm32/f4/tim/timer_types.hpp>
 #include <apm32/f4/tim/timer_utils.hpp>
@@ -26,24 +27,7 @@ namespace f4 {
 namespace tim {
 namespace pwm {
 
-struct output_pin_config {
-  gpio::port port;
-  gpio::pin pin;
-};
-
-struct break_pin_config {
-  gpio::port port;
-  gpio::pin pin;
-  gpio::pull pull;
-  emb::gpio::level active_level;
-};
-
-enum class trigger_output {
-  none,
-  update
-};
-
-struct base_config {
+struct half_bridge_pwm_config {
   emb::units::hz_f32 frequency;
   emb::chrono::nanoseconds_i32 deadtime;
   clock_division clkdiv;
@@ -55,7 +39,7 @@ struct base_config {
 
 template<size_t LegCount = 1>
 struct half_bridge_config {
-  base_config pwm;
+  half_bridge_pwm_config pwm;
   std::array<output_pin_config, LegCount> hi_pins;
   std::array<output_pin_config, LegCount> lo_pins;
   std::optional<break_pin_config> bk_pin;
@@ -63,22 +47,15 @@ struct half_bridge_config {
 
 namespace detail {
 
-void configure_timebase(
-    emb::units::hz_f32 clk_freq,
+void configure_half_bridge_timebase(
     registers& regs,
-    base_config const& conf
-);
-
-void configure_bdt(
     emb::units::hz_f32 clk_freq,
-    registers& regs,
-    base_config const& conf,
-    std::optional<break_pin_config> const& bk_pin
+    half_bridge_pwm_config const& conf
 );
 
 template<advanced_timer Tim, timer_channel_instance Ch>
   requires(!std::same_as<Ch, channel4>)
-void configure_channel() {
+void configure_half_bridge_channel() {
   registers& regs = Tim::regs;
 
   TMR_OCConfig_T ch_config{};
@@ -108,32 +85,6 @@ void configure_channel() {
     std::unreachable();
     break;
   }
-}
-
-template<advanced_timer Tim>
-[[nodiscard]] gpio::alternate_pin_config
-make_break_input_config(break_pin_config const& bk_pin) {
-  return gpio::alternate_pin_config{
-      .port = bk_pin.port,
-      .pin = bk_pin.pin,
-      .pull = bk_pin.pull,
-      .output_type = gpio::output_type::pushpull,
-      .speed = gpio::speed::low,
-      .altfunc = Tim::gpio_altfunc
-  };
-}
-
-template<advanced_timer Tim>
-[[nodiscard]] gpio::alternate_pin_config
-make_output_config(output_pin_config const& pin) {
-  return gpio::alternate_pin_config{
-      .port = pin.port,
-      .pin = pin.pin,
-      .pull = gpio::pull::none,
-      .output_type = gpio::output_type::pushpull,
-      .speed = gpio::speed::medium,
-      .altfunc = Tim::gpio_altfunc
-  };
 }
 
 } // namespace detail
@@ -177,8 +128,8 @@ public:
     }
 
     timebase_freq_ =
-        timer_instance::template clock_frequency<emb::units::hz_f32>() /
-        static_cast<float>(conf.pwm.prescaler.value() + 1);
+        timer_instance::template clock_frequency<emb::units::hz_f32>()
+        / static_cast<float>(conf.pwm.prescaler.value() + 1);
 
     min_freq_ = timebase_freq_
               / (2.f * std::numeric_limits<counter_type>::max());
@@ -186,31 +137,36 @@ public:
 
     timer_instance::enable_clock();
 
-    detail::configure_timebase(
-        timer_instance::template clock_frequency<emb::units::hz_f32>(),
+    detail::configure_half_bridge_timebase(
         regs_,
+        timer_instance::template clock_frequency<emb::units::hz_f32>(),
         conf.pwm
     );
 
     if (conf.bk_pin.has_value()) {
       bk_pin_.emplace(
-          detail::make_break_input_config<timer_instance>(conf.bk_pin.value())
+          detail::make_break_input_gpio_config<timer_instance>(
+              conf.bk_pin.value()
+          )
       );
     }
     detail::configure_bdt(
-        timer_instance::template clock_frequency<emb::units::hz_f32>(),
         regs_,
-        conf.pwm,
+        timer_instance::template clock_frequency<emb::units::hz_f32>(),
+        conf.pwm.deadtime,
+        conf.pwm.clkdiv,
         conf.bk_pin
     );
 
     emb::unroll<LegCount>([&]<size_t I>() {
-      detail::configure_channel<timer_instance, tim::channel_at<I>>();
+      detail::configure_half_bridge_channel<
+          timer_instance,
+          tim::channel_at<I>>();
       hi_pins_[I].emplace(
-          detail::make_output_config<timer_instance>(conf.hi_pins[I])
+          detail::make_output_gpio_config<timer_instance>(conf.hi_pins[I])
       );
       lo_pins_[I].emplace(
-          detail::make_output_config<timer_instance>(conf.lo_pins[I])
+          detail::make_output_gpio_config<timer_instance>(conf.lo_pins[I])
       );
     });
 
@@ -291,8 +247,8 @@ public:
   }
 
   count_direction timer_count_direction() const {
-    return regs_.CTRL1_B.CNTDIR == 0 ? count_direction::up :
-                                       count_direction::down;
+    return regs_.CTRL1_B.CNTDIR == 0 ? count_direction::up
+                                     : count_direction::down;
   }
 
   dutycycle_type dutycycle() const {
@@ -300,8 +256,8 @@ public:
     float const reload_val = static_cast<float>(regs_.AUTORLD);
     emb::unroll<LegCount>([&]<size_t I>() {
       dutycycle[I] = emb::unsigned_pu{
-          static_cast<float>(emb::mmio::reg<reg_addr::ccrx[I]>::read()) /
-          reload_val
+          static_cast<float>(emb::mmio::reg<reg_addr::ccrx[I]>::read())
+          / reload_val
       };
     });
     return dutycycle;
