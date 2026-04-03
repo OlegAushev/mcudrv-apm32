@@ -9,8 +9,6 @@
 
 #include <apm32f4xx_tmr.h>
 
-#include <emb/mmio.hpp>
-
 #include <limits>
 #include <optional>
 
@@ -67,7 +65,6 @@ class hall_interface {
 public:
   using timer_instance = Tim;
   using counter_type = Tim::counter_type;
-  using reg_addr = timer_instance::reg_addr;
 private:
   static inline registers& regs_ = timer_instance::regs;
   static inline nvic::irq_number const irqn_ =
@@ -133,7 +130,7 @@ public:
   }
 
   typename timer_instance::counter_type captured_counter() const {
-    return emb::mmio::reg<reg_addr::ccrx[0]>::read();
+    return regs_.CC1;
   }
 
   emb::units::sec_f32 captured_time() const {
@@ -141,8 +138,7 @@ public:
   }
 
   emb::units::sec_f32 time_since_capture() const {
-    return static_cast<float>(emb::mmio::reg<reg_addr::cnt>::read())
-         * counter_period_;
+    return float(regs_.CNT) * counter_period_;
   }
 
   std::array<emb::gpio::level, 3> input_levels() const {

@@ -12,7 +12,6 @@
 
 #include <emb/chrono.hpp>
 #include <emb/math.hpp>
-#include <emb/mmio.hpp>
 #include <emb/singleton.hpp>
 #include <emb/units.hpp>
 
@@ -94,7 +93,6 @@ class psfb : public emb::singleton<psfb<Tim>> {
 public:
   using timer_instance = Tim;
   using counter_type = Tim::counter_type;
-  using reg_addr = timer_instance::reg_addr;
   static constexpr size_t LegCount = 2;
   using dutycycle_type = std::array<emb::unsigned_pu, LegCount>;
 private:
@@ -102,8 +100,9 @@ private:
   static inline nvic::irq_number const update_irqn_ =
       timer_instance::update_irqn;
   static inline nvic::irq_number const break_irqn_ = timer_instance::break_irqn;
-  static inline std::array<uint32_t volatile*, 4> const compare_regs_ =
-      timer_instance::ccr_regs;
+  static inline std::array<uint32_t volatile*, 4> const compare_regs_ = {
+      &regs_.CC1, &regs_.CC2, &regs_.CC3, &regs_.CC4
+  };
 
   emb::units::hz_f32 timebase_freq_;
   emb::units::hz_f32 min_freq_;
@@ -217,9 +216,7 @@ public:
   void set_frequency(emb::units::hz_f32 freq) {
     assert(freq >= min_freq_);
     assert(freq <= max_freq_);
-    emb::mmio::reg<reg_addr::arr>::write(
-        uint32_t(timebase_freq_ / (2 * freq)) - 1
-    );
+    regs_.AUTORLD = uint32_t(timebase_freq_ / (2 * freq)) - 1;
     set_overlap(overlap_);
     period_ = 1.f / freq;
   }
@@ -256,8 +253,7 @@ public:
     float const reload_val = static_cast<float>(regs_.AUTORLD);
     emb::unroll<LegCount>([&]<size_t I>() {
       dutycycle[I] = emb::unsigned_pu{
-          static_cast<float>(emb::mmio::reg<reg_addr::ccrx[I]>::read())
-          / reload_val
+          static_cast<float>(*compare_regs_[I]) / reload_val
       };
     });
     return dutycycle;
@@ -266,14 +262,13 @@ public:
   void set_dutycycle(dutycycle_type const& dutycycle) {
     float const reload_val = static_cast<float>(regs_.AUTORLD);
     emb::unroll<LegCount>([&]<size_t I>() {
-      emb::mmio::reg<reg_addr::ccrx[I]>::write(
-          static_cast<uint32_t>(dutycycle[I].value() * reload_val)
-      );
+      *compare_regs_[I] =
+          static_cast<uint32_t>(dutycycle[I].value() * reload_val);
     });
   }
 
   void set_overlap(emb::unsigned_pu overlap) {
-    auto arr_v = emb::mmio::reg<reg_addr::arr>::read();
+    auto arr_v = regs_.AUTORLD;
     auto mn = min_ccr_v();
     auto mx = max_ccr_v(arr_v);
 
@@ -283,8 +278,8 @@ public:
         mx
     );
 
-    emb::mmio::reg<reg_addr::ccr1>::write(mx);
-    emb::mmio::reg<reg_addr::ccr2>::write(ccr2_v);
+    regs_.CC1 = mx;
+    regs_.CC2 = ccr2_v;
     overlap_ = overlap;
   }
 
@@ -300,9 +295,9 @@ public:
     }
 
     overlap_ = emb::unsigned_pu{0};
-    auto arr_v = emb::mmio::reg<reg_addr::arr>::read();
-    emb::mmio::reg<reg_addr::ccr1>::write(max_ccr_v(arr_v));
-    emb::mmio::reg<reg_addr::ccr2>::write(max_ccr_v(arr_v));
+    auto arr_v = regs_.AUTORLD;
+    regs_.CC1 = max_ccr_v(arr_v);
+    regs_.CC2 = max_ccr_v(arr_v);
 
     enable_counter<timer_instance>();
   }
