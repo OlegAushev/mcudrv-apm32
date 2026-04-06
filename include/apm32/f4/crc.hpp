@@ -1,10 +1,8 @@
 #pragma once
 
 #include <apm32/device.hpp>
-#include <apm32/utility.hpp>
 
-#include <apm32f4xx_crc.h>
-#include <apm32f4xx_rcm.h>
+#include <emb/mmio.hpp>
 
 #include <cstddef>
 
@@ -12,10 +10,10 @@ namespace apm32 {
 namespace f4 {
 namespace crc {
 
-inline void init() { RCM_EnableAHB1PeriphClock(RCM_AHB1_PERIPH_CRC); }
+inline void init() { emb::mmio::set(RCM->AHB1CLKEN, RCM_AHB1CLKEN_CRCEN); }
 
 inline uint32_t calc_crc32(const uint8_t* buf, size_t len) {
-    CRC->CTRL_B.RST = BIT_SET;
+    emb::mmio::set(CRC->CTRL, CRC_CTRL_RST);
     for (auto i = 0uz; i < len; ++i) {
         CRC->DATA = buf[i];
     }

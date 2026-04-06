@@ -8,10 +8,9 @@
 #include <apm32/f4/gpio.hpp>
 #include <apm32/f4/nvic.hpp>
 
-#include <apm32f4xx_tmr.h>
-
 #include <emb/chrono.hpp>
 #include <emb/math.hpp>
+#include <emb/mmio.hpp>
 #include <emb/singleton.hpp>
 #include <emb/units.hpp>
 
@@ -51,31 +50,56 @@ void configure_psfb_timebase(
     psfb_pwm_config const& conf
 );
 
+// Force inactive level = 0b100, Toggle mode = 0b011
+inline constexpr uint32_t oc_mode_force_inactive = 0b100u;
+inline constexpr uint32_t oc_mode_toggle = 0b011u;
+
 template<advanced_timer Tim, timer_channel_instance Ch>
   requires(emb::same_as_any<Ch, channel1, channel2>)
 void configure_psfb_channel() {
   registers& regs = Tim::regs;
 
-  TMR_OCConfig_T ch_config{};
-  ch_config.mode = TMR_OC_MODE_TOGGLE;
-  ch_config.outputState = TMR_OC_STATE_ENABLE;
-  ch_config.outputNState = TMR_OC_NSTATE_ENABLE;
-  ch_config.polarity = TMR_OC_POLARITY_HIGH;
-  ch_config.nPolarity = TMR_OC_NPOLARITY_HIGH;
-  ch_config.idleState = TMR_OC_IDLE_STATE_RESET;
-  ch_config.nIdleState = TMR_OC_NIDLE_STATE_RESET;
-  ch_config.pulse = 0;
-
   switch (Ch::idx) {
   case channel_idx::ch1:
-    regs.CCM1_COMPARE_B.OC1PEN = 1;
-    regs.CCM1_COMPARE_B.OC1MOD = 0b100u; // TODO test!!!
-    TMR_ConfigOC1(&regs, &ch_config);
+    // force inactive level before configuration
+    emb::mmio::modify(regs.CCM1,
+        emb::mmio::bits<TMR_CCM1_OC1PEN>(1u),
+        emb::mmio::bits<TMR_CCM1_OC1MOD>(oc_mode_force_inactive)
+    );
+    emb::mmio::modify(regs.CCM1,
+        emb::mmio::bits<TMR_CCM1_OC1MOD>(oc_mode_toggle)
+    );
+    emb::mmio::modify(regs.CCEN,
+        emb::mmio::bits<TMR_CCEN_CC1EN>(1u),
+        emb::mmio::bits<TMR_CCEN_CC1NEN>(1u),
+        emb::mmio::bits<TMR_CCEN_CC1POL>(0u),
+        emb::mmio::bits<TMR_CCEN_CC1NPOL>(0u)
+    );
+    emb::mmio::modify(regs.CTRL2,
+        emb::mmio::bits<TMR_CTRL2_OC1OIS>(0u),
+        emb::mmio::bits<TMR_CTRL2_OC1NOIS>(0u)
+    );
+    regs.CC1 = 0;
     break;
   case channel_idx::ch2:
-    regs.CCM1_COMPARE_B.OC2PEN = 1;
-    regs.CCM1_COMPARE_B.OC2MOD = 0b100u; // TODO test!!!
-    TMR_ConfigOC2(&regs, &ch_config);
+    emb::mmio::modify(regs.CCM1,
+        emb::mmio::bits<TMR_CCM1_OC2PEN>(1u),
+        emb::mmio::bits<TMR_CCM1_OC2MOD>(oc_mode_force_inactive)
+    );
+    emb::mmio::modify(regs.CCM1,
+        emb::mmio::bits<TMR_CCM1_OC2MOD>(oc_mode_toggle)
+    );
+    emb::mmio::modify(regs.CCEN,
+        emb::mmio::bits<TMR_CCEN_CC2EN>(1u),
+        emb::mmio::bits<TMR_CCEN_CC2NEN>(1u),
+        emb::mmio::bits<TMR_CCEN_CC2POL>(0u),
+        emb::mmio::bits<TMR_CCEN_CC2NPOL>(0u)
+    );
+    emb::mmio::modify(regs.CTRL2,
+        emb::mmio::bits<TMR_CTRL2_OC2OIS>(0u),
+        emb::mmio::bits<TMR_CTRL2_OC2NOIS>(0u)
+    );
+    regs.CC2 = 0;
     break;
   case channel_idx::ch3:
     std::unreachable();
@@ -120,7 +144,6 @@ public:
     period_ = 1.f / cfg.pwm.frequency;
     deadtime_ = emb::units::sec_f32{float(cfg.pwm.deadtime.count()) / 1E9f};
 
-    // use prescaler from config or calculate it from required pwm frequency
     if (!cfg.pwm.prescaler.has_value()) {
       cfg.pwm.prescaler = calculate_prescaler<timer_instance>(
           cfg.pwm.frequency,
@@ -176,15 +199,15 @@ public:
     case trigger_output::none:
       break;
     case trigger_output::update:
-      regs_.CTRL2_B.MMSEL = 0b010u;
+      emb::mmio::write(regs_.CTRL2, TMR_CTRL2_MMSEL, 0b010u);
       break;
     }
 
     // Interrupt configuration
-    regs_.DIEN_B.UIEN = 1;
+    emb::mmio::set(regs_.DIEN, TMR_DIEN_UIEN);
     set_irq_priority(update_irqn_, cfg.pwm.update_irq_priority);
     if (bk_pin_) {
-      regs_.DIEN_B.BRKIEN = 1;
+      emb::mmio::set(regs_.DIEN, TMR_DIEN_BRKIEN);
       set_irq_priority(break_irqn_, cfg.pwm.break_irq_priority);
     }
   }
@@ -222,29 +245,29 @@ public:
   }
 
   bool active() const {
-    return regs_.BDT_B.MOEN == 1;
+    return emb::mmio::test_any(regs_.BDT, TMR_BDT_MOEN);
   }
 
   bool bad() const {
     if (!bk_pin_) {
       return false;
     }
-    return std::to_underlying(bk_pin_->read_level()) == regs_.BDT_B.BRKPOL;
+    return uint32_t(std::to_underlying(bk_pin_->read_level())) ==
+           emb::mmio::read(regs_.BDT, TMR_BDT_BRKPOL);
   }
 
   void start() {
     if (bk_pin_) {
       acknowledge_break<timer_instance>();
-      regs_.DIEN_B.BRKIEN = 1;
+      emb::mmio::set(regs_.DIEN, TMR_DIEN_BRKIEN);
     }
-    regs_.BDT_B.MOEN = 1;
+    emb::mmio::set(regs_.BDT, TMR_BDT_MOEN);
   }
 
   void stop() {
-    regs_.BDT_B.MOEN = 0;
+    emb::mmio::clear(regs_.BDT, TMR_BDT_MOEN);
     if (bk_pin_) {
-      // disable break interrupts to prevent instant call of BRK ISR
-      regs_.DIEN_B.BRKIEN = 0;
+      emb::mmio::clear(regs_.DIEN, TMR_DIEN_BRKIEN);
     }
   }
 

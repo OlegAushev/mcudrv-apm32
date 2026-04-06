@@ -1,6 +1,8 @@
 #include <apm32/f4/adc/driver/basic_adc.hpp>
 #include <apm32/f4/chrono.hpp>
 
+#include <emb/mmio.hpp>
+
 namespace apm32 {
 namespace f4 {
 namespace adc {
@@ -10,98 +12,70 @@ void init_basic_adc(
     registers& regs,
     basic_adc_config const& conf
 ) {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wconversion"
   detail::init_common();
 
-  // Resolution = 00: 12-bit (minimum 15 ADCCLK cycles)
-  regs.CTRL1_B.RESSEL = 0;
-
-  // Scan mode = 0: Scan mode disabled
-  regs.CTRL1_B.SCANEN = 1;
+  // Resolution = 00: 12-bit
+  // Scan mode enabled
+  emb::mmio::modify(regs.CTRL1,
+      emb::mmio::bits<ADC_CTRL1_RESSEL>(0u),
+      emb::mmio::bits<ADC_CTRL1_SCANEN>(1u),
+      emb::mmio::bits<ADC_CTRL1_INJGACEN>(conf.auto_injected_conversion ? 1u : 0u),
+      emb::mmio::bits<ADC_CTRL1_INJDISCEN>(0u)
+  );
 
   // External trigger for regular channels
+  uint32_t reg_ext_trgen = 0;
+  uint32_t reg_ext_trgsel = 0;
   if (conf.regular_trigger.has_value()) {
-    regs.CTRL2_B.REGEXTTRGEN = std::to_underlying(conf.regular_trigger->edge);
-    regs.CTRL2_B.REGEXTTRGSEL = std::to_underlying(conf.regular_trigger->event);
-  } else {
-    regs.CTRL2_B.REGEXTTRGEN = 0;
-    regs.CTRL2_B.REGEXTTRGSEL = 0;
+    reg_ext_trgen = std::to_underlying(conf.regular_trigger->edge);
+    reg_ext_trgsel = std::to_underlying(conf.regular_trigger->event);
   }
 
-  // Data alignment = 0: Right alignment
-  regs.CTRL2_B.DALIGNCFG = 0;
+  // External trigger for injected channels
+  uint32_t inj_ext_trgen = 0;
+  uint32_t inj_ext_trgsel = 0;
+  if (conf.injected_trigger.has_value()) {
+    inj_ext_trgen = std::to_underlying(conf.injected_trigger->edge);
+    inj_ext_trgsel = std::to_underlying(conf.injected_trigger->event);
+  }
 
-  // Continuous conversion = 0: Single conversion mode
-  regs.CTRL2_B.CONTCEN = 0;
+  emb::mmio::modify(regs.CTRL2,
+      emb::mmio::bits<ADC_CTRL2_REGEXTTRGEN>(reg_ext_trgen),
+      emb::mmio::bits<ADC_CTRL2_REGEXTTRGSEL>(reg_ext_trgsel),
+      emb::mmio::bits<ADC_CTRL2_DALIGNCFG>(0u),     // right alignment
+      emb::mmio::bits<ADC_CTRL2_CONTCEN>(0u),        // single conversion
+      emb::mmio::bits<ADC_CTRL2_EOCSEL>(conf.eoc_on_each_conversion ? 1u : 0u),
+      emb::mmio::bits<ADC_CTRL2_DMAEN>(conf.dma_enabled ? 1u : 0u),
+      emb::mmio::bits<ADC_CTRL2_DMADISSEL>(conf.dma_enabled ? 1u : 0u),
+      emb::mmio::bits<ADC_CTRL2_INJEXTTRGEN>(inj_ext_trgen),
+      emb::mmio::bits<ADC_CTRL2_INJGEXTTRGSEL>(inj_ext_trgsel)
+  );
 
   // Regular channel sequence length
   if (conf.regular_count > 0) {
-    regs.REGSEQ1_B.REGSEQLEN = conf.regular_count - 1;
+    emb::mmio::write(regs.REGSEQ1, ADC_REGSEQ1_REGSEQLEN, conf.regular_count - 1);
   } else {
-    regs.REGSEQ1_B.REGSEQLEN = 0;
-  }
-
-  if (conf.eoc_on_each_conversion) {
-    // End of conversion selection = 1:
-    // The EOC bit is set at the end of each regular conversion
-    regs.CTRL2_B.EOCSEL = 1;
-  }
-
-  // DMA
-  if (conf.dma_enabled) {
-    // DMA mode enabled
-    // Direct memory access mode (for single ADC mode) = 1: DMA mode enabled
-    regs.CTRL2_B.DMAEN = 1;
-
-    // DMA disable selection (for single ADC mode) = 1:
-    // DMA requests are issued as long as data are converted and DMA=1
-    regs.CTRL2_B.DMADISSEL = 1;
+    emb::mmio::write(regs.REGSEQ1, ADC_REGSEQ1_REGSEQLEN, 0u);
   }
 
   // Injected sequence length
-  regs.INJSEQ_B.INJSEQLEN = conf.injected_count;
-
-  // Used to enable automatic conversion of injected channels after the
-  // conversion of regular channel group is completed.
-  regs.CTRL1_B.INJGACEN = conf.auto_injected_conversion;
-
-  // Discontinuous mode on injected channels = 0: disabled
-  regs.CTRL1_B.INJDISCEN = 0;
-
-  // External trigger for injected channels
-  if (conf.injected_trigger.has_value()) {
-    regs.CTRL2_B.INJEXTTRGEN = std::to_underlying(conf.injected_trigger->edge);
-    regs.CTRL2_B.INJGEXTTRGSEL = std::to_underlying(
-        conf.injected_trigger->event
-    );
-  } else {
-    regs.CTRL2_B.INJEXTTRGEN = 0;
-    regs.CTRL2_B.INJGEXTTRGSEL = 0;
-  }
+  emb::mmio::write(regs.INJSEQ, ADC_INJSEQ_INJSEQLEN, conf.injected_count);
 
   // Enable ADC
-  regs.CTRL2_B.ADCEN = 1;
+  emb::mmio::set(regs.CTRL2, ADC_CTRL2_ADCEN);
   chrono::high_resolution_clock::delay(powerup_time);
 
-  // Interrupts configuration
-  regs.STS_B.AWDFLG = 0;
-  regs.STS_B.EOCFLG = 0;
-  regs.STS_B.INJEOCFLG = 0;
-  regs.STS_B.INJCSFLG = 0;
-  regs.STS_B.REGCSFLG = 0;
-  regs.STS_B.OVREFLG = 0;
+  // Clear status flags
+  regs.STS = 0;
 
+  // Interrupts configuration
   if (conf.injected_count > 0) {
-    // Interrupt enable for injected channels
-    regs.CTRL1_B.INJEOCIEN = 1;
+    emb::mmio::set(regs.CTRL1, ADC_CTRL1_INJEOCIEN);
   }
 
   if (conf.regular_count > 0 && conf.eoc_on_each_conversion) {
-    // Interrupt enable for EOC
-    regs.CTRL1_B.EOCIEN = 1;
+    emb::mmio::set(regs.CTRL1, ADC_CTRL1_EOCIEN);
   }
-#pragma GCC diagnostic pop
 }
 
 } // namespace detail

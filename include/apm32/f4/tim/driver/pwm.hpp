@@ -7,6 +7,7 @@
 #include <apm32/f4/gpio.hpp>
 
 #include <emb/chrono.hpp>
+#include <emb/mmio.hpp>
 #include <emb/units.hpp>
 
 namespace apm32 {

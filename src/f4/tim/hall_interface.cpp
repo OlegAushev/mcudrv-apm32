@@ -1,5 +1,7 @@
 #include <apm32/f4/tim/driver/hall_interface.hpp>
 
+#include <emb/mmio.hpp>
+
 namespace apm32 {
 namespace f4 {
 namespace tim {
@@ -9,32 +11,38 @@ void detail::configure_timebase(
     registers& regs,
     detail::timebase_config const& cfg
 ) {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wconversion"
-  regs.CTRL1_B.CNTDIR = 0;
-  regs.CTRL1_B.CAMSEL = 0;
-  regs.CTRL1_B.CLKDIV = std::to_underlying(cfg.filter_clock_division);
+  emb::mmio::modify(regs.CTRL1,
+      emb::mmio::bits<TMR_CTRL1_CNTDIR>(0u),
+      emb::mmio::bits<TMR_CTRL1_CAMSEL>(0u),
+      emb::mmio::bits<TMR_CTRL1_CLKDIV>(std::to_underlying(cfg.filter_clock_division))
+  );
   regs.AUTORLD = cfg.counter_max;
   regs.PSC = cfg.counter_prescaler;
 
-  regs.CEG_B.UEG = 1;
+  emb::mmio::set(regs.CEG, TMR_CEG_UEG);
 
-  regs.CTRL2_B.TI1SEL = 1;
+  // TI1SEL = 1: XOR of CH1, CH2, CH3 inputs
+  emb::mmio::set(regs.CTRL2, TMR_CTRL2_TI1SEL);
 
-  regs.SMCTRL_B.TRGSEL = 0b100u; // TI1 Edge Detector (TI1F_ED)
-  regs.SMCTRL_B.SMFSEL = 0b100u; // Reset Mode
-#pragma GCC diagnostic pop
+  // Slave mode: trigger = TI1 Edge Detector, mode = Reset
+  emb::mmio::modify(regs.SMCTRL,
+      emb::mmio::bits<TMR_SMCTRL_TRGSEL>(0b100u),   // TI1F_ED
+      emb::mmio::bits<TMR_SMCTRL_SMFSEL>(0b100u)    // Reset Mode
+  );
 }
 
 void detail::configure_channel(registers& regs, capture_filter filter) {
-  TMR_ICConfig_T channel_cfg{
-      .channel = TMR_CHANNEL_1,
-      .polarity = TMR_IC_POLARITY_BOTHEDGE,
-      .selection = TMR_IC_SELECTION_DIRECT_TI,
-      .prescaler = TMR_IC_PSC_1,
-      .filter = static_cast<uint16_t>(filter)
-  };
-  TMR_ConfigIC(&regs, &channel_cfg);
+  // IC1: both edges, direct TI, prescaler = 1
+  emb::mmio::modify(regs.CCM1,
+      emb::mmio::bits<TMR_CCM1_CC1SEL>(0b01u),      // direct TI
+      emb::mmio::bits<TMR_CCM1_IC1F>(std::to_underlying(filter))
+  );
+  // polarity = both edges: CC1POL=1, CC1NPOL=1
+  emb::mmio::modify(regs.CCEN,
+      emb::mmio::bits<TMR_CCEN_CC1EN>(1u),
+      emb::mmio::bits<TMR_CCEN_CC1POL>(1u),
+      emb::mmio::bits<TMR_CCEN_CC1NPOL>(1u)
+  );
 }
 
 } // namespace hall

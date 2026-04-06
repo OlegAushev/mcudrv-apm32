@@ -1,5 +1,7 @@
 #include <apm32/f4/spi.hpp>
 
+#include <emb/mmio.hpp>
+
 namespace apm32 {
 namespace f4 {
 namespace spi {
@@ -70,8 +72,8 @@ peripheral::peripheral(
       clk_pin_(clk_pinconf) {
   ss_pin_ = std::make_unique<detail::hardware_ss_pin>(ss_pinconf);
   enable_clock(id_);
-  SPI_Config(regs_, &conf.hal_config);
-  SPI_Enable(regs_);
+  regs_->CTRL1 = conf.ctrl1;
+  emb::mmio::set(regs_->CTRL1, SPI_CTRL1_SPIEN);
 }
 
 peripheral::peripheral(
@@ -89,7 +91,7 @@ peripheral::peripheral(
       miso_pin_(miso_pinconf),
       clk_pin_(clk_pinconf) {
   core::ensure(
-      ss_pinconfs.size() != 0 || conf.hal_config.mode != SPI_MODE_MASTER
+      ss_pinconfs.size() != 0 || !emb::mmio::test_any(conf.ctrl1, SPI_CTRL1_MSMCFG)
   );
 
   for (auto ss_pinconf : ss_pinconfs) {
@@ -100,8 +102,8 @@ peripheral::peripheral(
   }
 
   enable_clock(id_);
-  SPI_Config(regs_, &conf.hal_config);
-  SPI_Enable(regs_);
+  regs_->CTRL1 = conf.ctrl1;
+  emb::mmio::set(regs_->CTRL1, SPI_CTRL1_SPIEN);
 }
 
 void peripheral::configure_interrupts(
@@ -111,13 +113,13 @@ void peripheral::configure_interrupts(
   for (auto event : events) {
     switch (event) {
     case interrupt_event::txe:
-      regs_->CTRL2_B.TXBEIEN = 1;
+      emb::mmio::set(regs_->CTRL2, SPI_CTRL2_TXBEIEN);
       break;
     case interrupt_event::rxne:
-      regs_->CTRL2_B.RXBNEIEN = 1;
+      emb::mmio::set(regs_->CTRL2, SPI_CTRL2_RXBNEIEN);
       break;
     case interrupt_event::err:
-      regs_->CTRL2_B.ERRIEN = 1;
+      emb::mmio::set(regs_->CTRL2, SPI_CTRL2_ERRIEN);
       break;
     }
   }
@@ -130,7 +132,12 @@ void peripheral::enable_clock(peripheral_id id) {
     return;
   }
 
-  detail::enable_clock[spi_idx]();
+  // SPI1 is on APB2, SPI2/SPI3 are on APB1
+  if (id == peripheral_id::spi1) {
+    emb::mmio::set(RCM->APB2CLKEN, detail::clock_bits[spi_idx]);
+  } else {
+    emb::mmio::set(RCM->APB1CLKEN, detail::clock_bits[spi_idx]);
+  }
   is_clock_enabled_[spi_idx] = true;
 }
 

@@ -5,6 +5,8 @@
 #include <apm32/f4/dma/dma_controllers.hpp>
 #include <apm32/f4/dma/dma_streams.hpp>
 
+#include <emb/mmio.hpp>
+
 namespace apm32 {
 namespace f4 {
 namespace dma {
@@ -44,11 +46,11 @@ public:
     detail::init_pm_stream(stream_regs_, channel_instance::idx);
 
     if constexpr (!memory_buffer_type::double_buffer_mode) {
-      stream_regs_.SCFG_B.DBM = 0;
+      emb::mmio::clear(stream_regs_.SCFG, DMA_SCFGx_DBM);
       stream_regs_.NDATA = memory_buffer_type::size;
       stream_regs_.M0ADDR = reinterpret_cast<uint32_t>(dest_.data.data());
     } else {
-      stream_regs_.SCFG_B.DBM = 1;
+      emb::mmio::set(stream_regs_.SCFG, DMA_SCFGx_DBM);
       stream_regs_.NDATA = memory_buffer_type::size;
       stream_regs_.M0ADDR = reinterpret_cast<uint32_t>(dest_.data1.data());
       stream_regs_.M1ADDR = reinterpret_cast<uint32_t>(dest_.data2.data());
@@ -57,9 +59,8 @@ public:
     stream_regs_.PADDR = reinterpret_cast<uint32_t>(periph_addr);
 
     // Interrupts configuration
-    stream_regs_.SCFG_B.DMEIEN = 1;
-    stream_regs_.SCFG_B.TXEIEN = 1;
-    stream_regs_.SCFG_B.TXCIEN = 1;
+    emb::mmio::set(stream_regs_.SCFG,
+        DMA_SCFGx_DMEIEN | DMA_SCFGx_TXEIEN | DMA_SCFGx_TXCIEN);
     set_irq_priority(stream_instance::irqn, conf.irq_priority);
   }
 
@@ -69,7 +70,7 @@ public:
 
   void enable() {
     nvic::enable_irq(stream_instance::irqn);
-    stream_regs_.SCFG_B.EN = 1;
+    emb::mmio::set(stream_regs_.SCFG, DMA_SCFGx_EN);
   }
 
   void ack_interrupt() {

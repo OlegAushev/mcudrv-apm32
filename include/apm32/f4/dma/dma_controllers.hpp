@@ -3,16 +3,14 @@
 #include <apm32/device.hpp>
 #include <apm32/utility.hpp>
 
-#include <apm32f4xx_dma.h>
-#include <apm32f4xx_rcm.h>
-
 #include <emb/meta.hpp>
+#include <emb/mmio.hpp>
 
 namespace apm32 {
 namespace f4 {
 namespace dma {
 
-using controller_registers = DMA_T;
+using controller_registers = DMA_TypeDef;
 
 inline constexpr size_t controller_count = 2;
 
@@ -20,7 +18,7 @@ struct dma1 {
   static inline controller_registers& regs = *DMA1;
 
   static constexpr auto enable_clock = []() {
-    RCM_EnableAHB1PeriphClock(RCM_AHB1_PERIPH_DMA1);
+    emb::mmio::set(RCM->AHB1CLKEN, RCM_AHB1CLKEN_DMA1EN);
   };
 };
 
@@ -28,7 +26,7 @@ struct dma2 {
   static inline controller_registers& regs = *DMA2;
 
   static constexpr auto enable_clock = []() {
-    RCM_EnableAHB1PeriphClock(RCM_AHB1_PERIPH_DMA2);
+    emb::mmio::set(RCM->AHB1CLKEN, RCM_AHB1CLKEN_DMA2EN);
   };
 };
 

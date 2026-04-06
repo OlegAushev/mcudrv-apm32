@@ -6,13 +6,11 @@
 #include <apm32/f4/tim/timer_registers.hpp>
 
 #include <apm32/f4/core.hpp>
+#include <apm32/f4/gpio.hpp>
 #include <apm32/f4/nvic.hpp>
 
-#include <apm32f4xx_gpio.h>
-#include <apm32f4xx_rcm.h>
-#include <apm32f4xx_tmr.h>
-
 #include <emb/meta.hpp>
+#include <emb/mmio.hpp>
 
 #include <array>
 #include <cstddef>
@@ -22,7 +20,7 @@ namespace apm32 {
 namespace f4 {
 namespace tim {
 
-using registers = TMR_T;
+using registers = TMR_TypeDef;
 
 inline constexpr size_t timer_count = 14;
 
@@ -43,10 +41,10 @@ struct tim1 {
   static constexpr auto clock_frequency = core::apb2_timer_frequency<T>;
 
   static constexpr auto enable_clock = []() {
-    RCM_EnableAPB2PeriphClock(RCM_APB2_PERIPH_TMR1);
+    emb::mmio::set(RCM->APB2CLKEN, RCM_APB2CLKEN_TMR1EN);
   };
 
-  static constexpr auto gpio_altfunc = GPIO_AF_TMR1;
+  static constexpr uint32_t gpio_altfunc = gpio::altfunc::tmr1;
 };
 
 struct tim2 {
@@ -65,10 +63,10 @@ struct tim2 {
   static constexpr auto clock_frequency = core::apb1_timer_frequency<T>;
 
   static constexpr auto enable_clock = []() {
-    RCM_EnableAPB1PeriphClock(RCM_APB1_PERIPH_TMR2);
+    emb::mmio::set(RCM->APB1CLKEN, RCM_APB1CLKEN_TMR2EN);
   };
 
-  static constexpr auto gpio_altfunc = GPIO_AF_TMR2;
+  static constexpr uint32_t gpio_altfunc = gpio::altfunc::tmr2;
 };
 
 struct tim3 {
@@ -87,10 +85,10 @@ struct tim3 {
   static constexpr auto clock_frequency = core::apb1_timer_frequency<T>;
 
   static constexpr auto enable_clock = []() {
-    RCM_EnableAPB1PeriphClock(RCM_APB1_PERIPH_TMR3);
+    emb::mmio::set(RCM->APB1CLKEN, RCM_APB1CLKEN_TMR3EN);
   };
 
-  static constexpr auto gpio_altfunc = GPIO_AF_TMR3;
+  static constexpr uint32_t gpio_altfunc = gpio::altfunc::tmr3;
 };
 
 struct tim4 {
@@ -109,10 +107,10 @@ struct tim4 {
   static constexpr auto clock_frequency = core::apb1_timer_frequency<T>;
 
   static constexpr auto enable_clock = []() {
-    RCM_EnableAPB1PeriphClock(RCM_APB1_PERIPH_TMR4);
+    emb::mmio::set(RCM->APB1CLKEN, RCM_APB1CLKEN_TMR4EN);
   };
 
-  static constexpr auto gpio_altfunc = GPIO_AF_TMR4;
+  static constexpr uint32_t gpio_altfunc = gpio::altfunc::tmr4;
 };
 
 struct tim5 {
@@ -131,10 +129,10 @@ struct tim5 {
   static constexpr auto clock_frequency = core::apb1_timer_frequency<T>;
 
   static constexpr auto enable_clock = []() {
-    RCM_EnableAPB1PeriphClock(RCM_APB1_PERIPH_TMR5);
+    emb::mmio::set(RCM->APB1CLKEN, RCM_APB1CLKEN_TMR5EN);
   };
 
-  static constexpr auto gpio_altfunc = GPIO_AF_TMR5;
+  static constexpr uint32_t gpio_altfunc = gpio::altfunc::tmr5;
 };
 
 struct tim6 {
@@ -147,7 +145,7 @@ struct tim6 {
   static constexpr unsigned io_channel_count = 0;
 
   static void enable_clock() {
-    RCM_EnableAPB1PeriphClock(RCM_APB1_PERIPH_TMR6);
+    emb::mmio::set(RCM->APB1CLKEN, RCM_APB1CLKEN_TMR6EN);
   }
 };
 
@@ -161,7 +159,7 @@ struct tim7 {
   static constexpr unsigned io_channel_count = 0;
 
   static void enable_clock() {
-    RCM_EnableAPB1PeriphClock(RCM_APB1_PERIPH_TMR7);
+    emb::mmio::set(RCM->APB1CLKEN, RCM_APB1CLKEN_TMR7EN);
   }
 };
 
@@ -182,10 +180,10 @@ struct tim8 {
   static constexpr auto clock_frequency = core::apb2_timer_frequency<T>;
 
   static constexpr auto enable_clock = []() {
-    RCM_EnableAPB2PeriphClock(RCM_APB2_PERIPH_TMR8);
+    emb::mmio::set(RCM->APB2CLKEN, RCM_APB2CLKEN_TMR8EN);
   };
 
-  static constexpr auto gpio_altfunc = GPIO_AF_TMR8;
+  static constexpr uint32_t gpio_altfunc = gpio::altfunc::tmr8;
 };
 
 struct tim9 {
@@ -195,7 +193,7 @@ struct tim9 {
   static constexpr unsigned io_channel_count = 2;
 
   static void enable_clock() {
-    RCM_EnableAPB2PeriphClock(RCM_APB2_PERIPH_TMR9);
+    emb::mmio::set(RCM->APB2CLKEN, RCM_APB2CLKEN_TMR9EN);
   }
 };
 
@@ -206,7 +204,7 @@ struct tim10 {
   static constexpr unsigned io_channel_count = 1;
 
   static void enable_clock() {
-    RCM_EnableAPB2PeriphClock(RCM_APB2_PERIPH_TMR10);
+    emb::mmio::set(RCM->APB2CLKEN, RCM_APB2CLKEN_TMR10EN);
   }
 };
 
@@ -217,7 +215,7 @@ struct tim11 {
   static constexpr unsigned io_channel_count = 1;
 
   static void enable_clock() {
-    RCM_EnableAPB2PeriphClock(RCM_APB2_PERIPH_TMR11);
+    emb::mmio::set(RCM->APB2CLKEN, RCM_APB2CLKEN_TMR11EN);
   }
 };
 
@@ -228,7 +226,7 @@ struct tim12 {
   static constexpr unsigned io_channel_count = 2;
 
   static void enable_clock() {
-    RCM_EnableAPB1PeriphClock(RCM_APB1_PERIPH_TMR12);
+    emb::mmio::set(RCM->APB1CLKEN, RCM_APB1CLKEN_TMR12EN);
   }
 };
 
@@ -239,7 +237,7 @@ struct tim13 {
   static constexpr unsigned io_channel_count = 1;
 
   static void enable_clock() {
-    RCM_EnableAPB1PeriphClock(RCM_APB1_PERIPH_TMR13);
+    emb::mmio::set(RCM->APB1CLKEN, RCM_APB1CLKEN_TMR13EN);
   }
 };
 
@@ -250,7 +248,7 @@ struct tim14 {
   static constexpr unsigned io_channel_count = 1;
 
   static void enable_clock() {
-    RCM_EnableAPB1PeriphClock(RCM_APB1_PERIPH_TMR14);
+    emb::mmio::set(RCM->APB1CLKEN, RCM_APB1CLKEN_TMR14EN);
   }
 };
 

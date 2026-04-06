@@ -5,10 +5,8 @@
 #include <apm32/device.hpp>
 #include <apm32/utility.hpp>
 
-#include <apm32f4xx_gpio.h>
-#include <apm32f4xx_rcm.h>
-
 #include <emb/gpio.hpp>
+#include <emb/mmio.hpp>
 
 #include <array>
 #include <memory>
@@ -19,7 +17,7 @@ namespace apm32 {
 namespace f4 {
 namespace gpio {
 
-using port_registers = GPIO_T;
+using port_registers = GPIO_TypeDef;
 
 inline constexpr size_t port_count = 9;
 
@@ -39,42 +37,77 @@ enum class port : uint32_t {
 };
 
 enum class pin : uint16_t {
-  pin0 = GPIO_PIN_0,
-  pin1 = GPIO_PIN_1,
-  pin2 = GPIO_PIN_2,
-  pin3 = GPIO_PIN_3,
-  pin4 = GPIO_PIN_4,
-  pin5 = GPIO_PIN_5,
-  pin6 = GPIO_PIN_6,
-  pin7 = GPIO_PIN_7,
-  pin8 = GPIO_PIN_8,
-  pin9 = GPIO_PIN_9,
-  pin10 = GPIO_PIN_10,
-  pin11 = GPIO_PIN_11,
-  pin12 = GPIO_PIN_12,
-  pin13 = GPIO_PIN_13,
-  pin14 = GPIO_PIN_14,
-  pin15 = GPIO_PIN_15,
+  pin0 = (1u << 0),
+  pin1 = (1u << 1),
+  pin2 = (1u << 2),
+  pin3 = (1u << 3),
+  pin4 = (1u << 4),
+  pin5 = (1u << 5),
+  pin6 = (1u << 6),
+  pin7 = (1u << 7),
+  pin8 = (1u << 8),
+  pin9 = (1u << 9),
+  pin10 = (1u << 10),
+  pin11 = (1u << 11),
+  pin12 = (1u << 12),
+  pin13 = (1u << 13),
+  pin14 = (1u << 14),
+  pin15 = (1u << 15),
 };
 
 enum class output_type : uint32_t {
-  pushpull = GPIO_OTYPE_PP,
-  opendrain = GPIO_OTYPE_OD
+  pushpull = 0b0,
+  opendrain = 0b1
 };
 
 enum class speed : uint32_t {
-  low = GPIO_SPEED_2MHz,
-  medium = GPIO_SPEED_25MHz,
-  fast = GPIO_SPEED_50MHz,
-  high = GPIO_SPEED_100MHz
+  low = 0b00,
+  medium = 0b01,
+  fast = 0b10,
+  high = 0b11
 };
 
 enum class pull : uint32_t {
-  none = GPIO_PUPD_NOPULL,
-  up = GPIO_PUPD_UP,
-  down = GPIO_PUPD_DOWN
+  none = 0b00,
+  up = 0b01,
+  down = 0b10
 };
-;
+
+namespace mode {
+inline constexpr uint32_t input = 0b00;
+inline constexpr uint32_t output = 0b01;
+inline constexpr uint32_t alternate = 0b10;
+inline constexpr uint32_t analog = 0b11;
+} // namespace mode
+
+namespace altfunc {
+inline constexpr uint32_t tmr1 = 1;
+inline constexpr uint32_t tmr2 = 1;
+inline constexpr uint32_t tmr3 = 2;
+inline constexpr uint32_t tmr4 = 2;
+inline constexpr uint32_t tmr5 = 2;
+inline constexpr uint32_t tmr8 = 3;
+inline constexpr uint32_t tmr9 = 3;
+inline constexpr uint32_t tmr10 = 3;
+inline constexpr uint32_t tmr11 = 3;
+inline constexpr uint32_t i2c1 = 4;
+inline constexpr uint32_t i2c2 = 4;
+inline constexpr uint32_t i2c3 = 4;
+inline constexpr uint32_t spi1 = 5;
+inline constexpr uint32_t spi2 = 5;
+inline constexpr uint32_t spi3 = 6;
+inline constexpr uint32_t usart1 = 7;
+inline constexpr uint32_t usart2 = 7;
+inline constexpr uint32_t usart3 = 7;
+inline constexpr uint32_t uart4 = 8;
+inline constexpr uint32_t uart5 = 8;
+inline constexpr uint32_t usart6 = 8;
+inline constexpr uint32_t can1 = 9;
+inline constexpr uint32_t can2 = 9;
+inline constexpr uint32_t tmr12 = 9;
+inline constexpr uint32_t tmr13 = 9;
+inline constexpr uint32_t tmr14 = 9;
+} // namespace altfunc
 
 struct input_pin_config {
   apm32::f4::gpio::port port;
@@ -98,7 +131,7 @@ struct alternate_pin_config {
   apm32::f4::gpio::pull pull;
   apm32::f4::gpio::output_type output_type;
   apm32::f4::gpio::speed speed;
-  GPIO_AF_T altfunc;
+  uint32_t altfunc;
 };
 
 struct analog_pin_config {
@@ -116,8 +149,12 @@ protected:
 private:
   pin_base(
       port p,
-      GPIO_Config_T conf,
-      std::optional<GPIO_AF_T> altfunc = std::nullopt
+      uint16_t pin_mask,
+      uint32_t mode_val,
+      uint32_t otype_val,
+      uint32_t speed_val,
+      uint32_t pupd_val,
+      std::optional<uint32_t> altfunc = std::nullopt
   );
 protected:
   ~pin_base();
@@ -143,18 +180,17 @@ public:
 private:
   static inline std::array<uint16_t, port_count> used_pins_{};
   static inline std::array<bool, port_count> is_clock_enabled_{};
-  static std::array<void (*)(void), port_count> enable_port_clock_;
+
+  static inline constexpr std::array<uint32_t, port_count> port_clock_bits_ = {
+      RCM_AHB1CLKEN_PAEN, RCM_AHB1CLKEN_PBEN, RCM_AHB1CLKEN_PCEN,
+      RCM_AHB1CLKEN_PDEN, RCM_AHB1CLKEN_PEEN, RCM_AHB1CLKEN_PFEN,
+      RCM_AHB1CLKEN_PGEN, RCM_AHB1CLKEN_PHEN, RCM_AHB1CLKEN_PIEN,
+  };
 };
 
 } // namespace detail
 
 class input_pin : public detail::pin_base {
-  // friend void ::EXTI0_IRQHandler();
-  // friend void ::EXTI1_IRQHandler();
-  // friend void ::EXTI2_IRQHandler();
-  // friend void ::EXTI3_IRQHandler();
-  // friend void ::EXTI4_IRQHandler();
-  // friend void ::HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin);
 private:
   emb::gpio::level const active_level_;
 public:
@@ -169,7 +205,7 @@ public:
   }
 
   emb::gpio::level read_level() const {
-    if ((read_reg(regs_->IDATA) & pin_) != 0) {
+    if ((regs_->IDATA & pin_) != 0) {
       return emb::gpio::level::high;
     }
     return emb::gpio::level::low;
@@ -181,61 +217,6 @@ public:
     }
     return emb::gpio::state::inactive;
   }
-
-  // clang-format off
-    // TODO
-    // private:
-    //     IRQn_Type _irqn = NonMaskableInt_IRQn;	// use NonMaskableInt_IRQn as value for not initialized interrupt
-    //     static inline std::array<void(*)(void), 16> on_interrupt = {
-    //         emb::invalid_function, emb::invalid_function, emb::invalid_function, emb::invalid_function,
-    //         emb::invalid_function, emb::invalid_function, emb::invalid_function, emb::invalid_function,
-    //         emb::invalid_function, emb::invalid_function, emb::invalid_function, emb::invalid_function,
-    //         emb::invalid_function, emb::invalid_function, emb::invalid_function, emb::invalid_function,
-    //     };
-    // public:
-    //     void initialize_interrupt(void(*handler)(void), IrqPriority priority) {
-    //         switch (_config.pin.Pin) {
-    //         case GPIO_PIN_0:
-    //             _irqn = EXTI0_IRQn;
-    //             break;
-    //         case GPIO_PIN_1:
-    //             _irqn = EXTI1_IRQn;
-    //             break;
-    //         case GPIO_PIN_2:
-    //             _irqn = EXTI2_IRQn;
-    //             break;
-    //         case GPIO_PIN_3:
-    //             _irqn = EXTI3_IRQn;
-    //             break;
-    //         case GPIO_PIN_4:
-    //             _irqn = EXTI4_IRQn;
-    //             break;
-    //         case GPIO_PIN_5: case GPIO_PIN_6: case GPIO_PIN_7: case GPIO_PIN_8: case GPIO_PIN_9:
-    //             _irqn = EXTI9_5_IRQn;
-    //             break;
-    //         case GPIO_PIN_10: case GPIO_PIN_11: case GPIO_PIN_12: case GPIO_PIN_13: case GPIO_PIN_14: case GPIO_PIN_15:
-    //             _irqn = EXTI15_10_IRQn;
-    //             break;
-    //         default:
-    //             _irqn = NonMaskableInt_IRQn;
-    //             return;
-    //         }
-    //         HAL_NVIC_SetPriority(_irqn, priority.get(), 0);
-    //         on_interrupt[this->pin_no()] = handler;
-    //     }
-
-    //     void enable_interrupts() {
-    //         if (_irqn != NonMaskableInt_IRQn) {
-    //             HAL_NVIC_EnableIRQ(_irqn);
-    //         }
-    //     }
-
-    //     void disable_interrupts() {
-    //         if (_irqn != NonMaskableInt_IRQn) {
-    //             HAL_NVIC_EnableIRQ(_irqn);
-    //         }
-    //     }
-  // clang-format on
 };
 
 static_assert(emb::gpio::input<input_pin>);
@@ -260,7 +241,7 @@ public:
   }
 
   emb::gpio::level read_level() const {
-    if ((read_reg(regs_->IDATA) & pin_) != 0) {
+    if ((regs_->IDATA & pin_) != 0) {
       return emb::gpio::level::high;
     }
     return emb::gpio::level::low;
@@ -268,9 +249,9 @@ public:
 
   void set_level(emb::gpio::level lvl) {
     if (lvl == emb::gpio::level::high) {
-      write_reg(regs_->BSCL, pin_);
+      regs_->BSC = uint32_t(pin_);
     } else {
-      write_reg(regs_->BSCH, pin_);
+      regs_->BSC = uint32_t(pin_) << 16;
     }
   }
 
@@ -294,9 +275,8 @@ public:
   }
 
   void toggle() {
-    uint16_t const out = static_cast<uint16_t>(read_reg(regs_->ODATA));
-    write_reg<uint16_t>(regs_->BSCL, ~out & pin_);
-    write_reg<uint16_t>(regs_->BSCH, out & pin_);
+    uint16_t const out = static_cast<uint16_t>(regs_->ODATA);
+    regs_->BSC = uint32_t(~out & pin_) | (uint32_t(out & pin_) << 16);
   }
 };
 
@@ -309,7 +289,7 @@ public:
   alternate_pin& operator=(alternate_pin const& other) = delete;
 
   emb::gpio::level read_level() const {
-    if ((read_reg(regs_->IDATA) & pin_) != 0) {
+    if ((regs_->IDATA & pin_) != 0) {
       return emb::gpio::level::high;
     }
     return emb::gpio::level::low;

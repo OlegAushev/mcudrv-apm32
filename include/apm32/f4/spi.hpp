@@ -7,7 +7,7 @@
 #include <apm32/f4/gpio.hpp>
 #include <apm32/f4/nvic.hpp>
 
-#include <apm32f4xx_spi.h>
+#include <emb/mmio.hpp>
 
 #include <initializer_list>
 #include <optional>
@@ -17,7 +17,7 @@ namespace apm32 {
 namespace f4 {
 namespace spi {
 
-using peripheral_registers = SPI_T;
+using peripheral_registers = SPI_TypeDef;
 
 inline constexpr size_t peripheral_count = 3;
 
@@ -31,25 +31,25 @@ enum class bidimode_direction { rx, tx };
 struct mosi_pin_config {
   gpio::port port;
   gpio::pin pin;
-  GPIO_AF_T altfunc;
+  uint32_t altfunc;
 };
 
 struct miso_pin_config {
   gpio::port port;
   gpio::pin pin;
-  GPIO_AF_T altfunc;
+  uint32_t altfunc;
 };
 
 struct clk_pin_config {
   gpio::port port;
   gpio::pin pin;
-  GPIO_AF_T altfunc;
+  uint32_t altfunc;
 };
 
 struct hardware_ss_pin_config {
   gpio::port port;
   gpio::pin pin;
-  GPIO_AF_T altfunc;
+  uint32_t altfunc;
 };
 
 struct software_ss_pin_config {
@@ -58,7 +58,7 @@ struct software_ss_pin_config {
 };
 
 struct config {
-  SPI_Config_T hal_config;
+  uint32_t ctrl1;  // raw CTRL1 register value (mode, CPOL, CPHA, baudrate, etc.)
 };
 
 enum class interrupt_event { txe, rxne, err };
@@ -90,10 +90,10 @@ public:
   software_ss_pin(software_ss_pin_config const& conf);
 };
 
-inline std::array<void (*)(void), peripheral_count> const enable_clock = {
-    []() { RCM_EnableAPB2PeriphClock(RCM_APB2_PERIPH_SPI1); },
-    []() { RCM_EnableAPB1PeriphClock(RCM_APB1_PERIPH_SPI2); },
-    []() { RCM_EnableAPB1PeriphClock(RCM_APB1_PERIPH_SPI3); }
+inline constexpr std::array<uint32_t, peripheral_count> clock_bits = {
+    RCM_APB2CLKEN_SPI1EN,
+    RCM_APB1CLKEN_SPI2EN,
+    RCM_APB1CLKEN_SPI3EN,
 };
 
 inline constexpr std::array<IRQn_Type, peripheral_count> irq_numbers =
@@ -142,30 +142,30 @@ public:
   }
 
   void enable() {
-    regs_->CTRL1_B.SPIEN = 1;
+    emb::mmio::set(regs_->CTRL1, SPI_CTRL1_SPIEN);
   }
 
   void disable() {
-    regs_->CTRL1_B.SPIEN = 0;
+    emb::mmio::clear(regs_->CTRL1, SPI_CTRL1_SPIEN);
   }
 
   bool busy() const {
-    return regs_->STS_B.BSYFLG == 1;
+    return emb::mmio::test_any(regs_->STS, SPI_STS_BSYFLG);
   }
 
   bool rx_empty() const {
-    return regs_->STS_B.RXBNEFLG == 0;
+    return !emb::mmio::test_any(regs_->STS, SPI_STS_RXBNEFLG);
   }
 
   bool tx_empty() const {
-    return regs_->STS_B.TXBEFLG == 1;
+    return emb::mmio::test_any(regs_->STS, SPI_STS_TXBEFLG);
   }
 
   exec_status put_data(uint16_t data) {
     if (!tx_empty()) {
       return exec_status::busy;
     }
-    regs_->DATA_B.DATA = data;
+    regs_->DATA = data;
     return exec_status::ok;
   }
 
@@ -173,17 +173,17 @@ public:
     if (rx_empty()) {
       return {};
     }
-    uint16_t data = regs_->DATA_B.DATA;
+    uint16_t data = static_cast<uint16_t>(regs_->DATA);
     return {data};
   }
 
   void set_bidirectional_mode(bidimode_direction dir) {
     switch (dir) {
     case bidimode_direction::rx:
-      regs_->CTRL1_B.BMOEN = 0;
+      emb::mmio::clear(regs_->CTRL1, SPI_CTRL1_BMOEN);
       break;
     case bidimode_direction::tx:
-      regs_->CTRL1_B.BMOEN = 1;
+      emb::mmio::set(regs_->CTRL1, SPI_CTRL1_BMOEN);
       break;
     }
   }

@@ -2,6 +2,8 @@
 
 #include <apm32/f4/core.hpp>
 
+#include <emb/mmio.hpp>
+
 namespace apm32 {
 namespace f4 {
 namespace tim {
@@ -16,16 +18,19 @@ void detail::configure_timebase(
   auto const timebase_freq = clk_freq /
                              static_cast<float>(conf.prescaler.value() + 1);
 
-  TMR_BaseConfig_T base_config{};
-  base_config.countMode = TMR_COUNTER_MODE_UP;
-  base_config.clockDivision = TMR_CLOCK_DIV_1;
-  base_config.period = uint32_t(timebase_freq / conf.frequency) - 1;
-  core::ensure(base_config.period <= UINT16_MAX);
-  base_config.division = conf.prescaler.value();
-  base_config.repetitionCounter = 0;
+  uint32_t const period = uint32_t(timebase_freq / conf.frequency) - 1;
+  core::ensure(period <= UINT16_MAX);
 
-  TMR_ConfigTimeBase(&regs, &base_config);
-  regs.CTRL1_B.ARPEN = 1;
+  emb::mmio::modify(regs.CTRL1,
+      emb::mmio::bits<TMR_CTRL1_CNTDIR>(0),   // up counting
+      emb::mmio::bits<TMR_CTRL1_CAMSEL>(0),    // edge-aligned
+      emb::mmio::bits<TMR_CTRL1_CLKDIV>(0)     // div1
+  );
+  regs.AUTORLD = period;
+  regs.PSC = conf.prescaler.value();
+  regs.REPCNT = 0;
+  emb::mmio::set(regs.CEG, TMR_CEG_UEG);
+  emb::mmio::set(regs.CTRL1, TMR_CTRL1_ARPEN);
 }
 
 } // namespace tim

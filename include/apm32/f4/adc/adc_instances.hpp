@@ -8,8 +8,7 @@
 #include <apm32/f4/dma.hpp>
 #include <apm32/f4/nvic.hpp>
 
-#include <apm32f4xx_adc.h>
-#include <apm32f4xx_rcm.h>
+#include <emb/mmio.hpp>
 
 #include <chrono>
 
@@ -17,8 +16,8 @@ namespace apm32 {
 namespace f4 {
 namespace adc {
 
-using common_registers = ADC_Common_T;
-using registers = ADC_T;
+using common_registers = ADC_Common_TypeDef;
+using registers = ADC_TypeDef;
 
 inline constexpr size_t count = 3;
 
@@ -33,12 +32,12 @@ struct adc1 {
   static constexpr uintptr_t base_addr = ADC1_BASE;
   using reg_addr = detail::register_addresses<base_addr>;
 
-  static inline common_registers& common_regs = *ADC;
+  static inline common_registers& common_regs = *ADC123_COMMON;
   static inline registers& regs = *ADC1;
   static constexpr nvic::irq_number irqn = ADC_IRQn;
 
   static constexpr auto enable_clock = []() {
-    RCM_EnableAPB2PeriphClock(RCM_APB2_PERIPH_ADC1);
+    emb::mmio::set(RCM->APB2CLKEN, RCM_APB2CLKEN_ADC1EN);
   };
 
   using dma_streams = emb::typelist<dma::dma2_stream0, dma::dma2_stream4>;
@@ -49,12 +48,12 @@ struct adc2 {
   static constexpr uintptr_t base_addr = ADC2_BASE;
   using reg_addr = detail::register_addresses<base_addr>;
 
-  static inline common_registers& common_regs = *ADC;
+  static inline common_registers& common_regs = *ADC123_COMMON;
   static inline registers& regs = *ADC2;
   static constexpr nvic::irq_number irqn = ADC_IRQn;
 
   static constexpr auto enable_clock = []() {
-    RCM_EnableAPB2PeriphClock(RCM_APB2_PERIPH_ADC2);
+    emb::mmio::set(RCM->APB2CLKEN, RCM_APB2CLKEN_ADC2EN);
   };
 
   using dma_streams = emb::typelist<dma::dma2_stream2, dma::dma2_stream3>;
@@ -65,12 +64,12 @@ struct adc3 {
   static constexpr uintptr_t base_addr = ADC3_BASE;
   using reg_addr = detail::register_addresses<base_addr>;
 
-  static inline common_registers& common_regs = *ADC;
+  static inline common_registers& common_regs = *ADC123_COMMON;
   static inline registers& regs = *ADC3;
   static constexpr nvic::irq_number irqn = ADC_IRQn;
 
   static constexpr auto enable_clock = []() {
-    RCM_EnableAPB2PeriphClock(RCM_APB2_PERIPH_ADC3);
+    emb::mmio::set(RCM->APB2CLKEN, RCM_APB2CLKEN_ADC3EN);
   };
 
   using dma_streams = emb::typelist<dma::dma2_stream0, dma::dma2_stream1>;

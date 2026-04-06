@@ -4,6 +4,7 @@
 #include <apm32/f4/tim/timer_types.hpp>
 #include <apm32/f4/tim/timer_utils.hpp>
 
+#include <emb/mmio.hpp>
 #include <emb/singleton.hpp>
 
 namespace apm32 {
@@ -55,7 +56,7 @@ public:
     );
 
     // Interrupt configuration
-    regs_.DIEN_B.UIEN = 1;
+    emb::mmio::set(regs_.DIEN, TMR_DIEN_UIEN);
     set_irq_priority(update_irqn_, conf.irq_priority);
   }
 
@@ -75,15 +76,15 @@ public:
   }
 
   void ack_update_interrupt() {
-    regs_.STS_B.UIFLG = 0;
+    emb::mmio::clear_w0(regs_.STS, TMR_STS_UIFLG);
   }
 private:
   void enable_counter() {
-    regs_.CTRL1_B.CNTEN = 1;
+    emb::mmio::set(regs_.CTRL1, TMR_CTRL1_CNTEN);
   }
 
   void disable_counter() {
-    regs_.CTRL1_B.CNTEN = 0;
+    emb::mmio::clear(regs_.CTRL1, TMR_CTRL1_CNTEN);
   }
 };
 

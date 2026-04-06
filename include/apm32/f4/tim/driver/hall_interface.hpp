@@ -7,7 +7,7 @@
 #include <apm32/f4/gpio.hpp>
 #include <apm32/f4/nvic.hpp>
 
-#include <apm32f4xx_tmr.h>
+#include <emb/mmio.hpp>
 
 #include <limits>
 #include <optional>
@@ -113,8 +113,7 @@ public:
     detail::configure_channel(regs_, cfg.filter);
 
     // Interrupt configuration
-    regs_.DIEN_B.CC1IEN = 1;
-    regs_.DIEN_B.UIEN = 1;
+    emb::mmio::set(regs_.DIEN, TMR_DIEN_CC1IEN | TMR_DIEN_UIEN);
     set_irq_priority(irqn_, cfg.irq_priority);
   }
 

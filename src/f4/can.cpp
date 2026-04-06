@@ -1,6 +1,7 @@
 #include <apm32/f4/can.hpp>
 
 #include <emb/chrono.hpp>
+#include <emb/mmio.hpp>
 
 namespace apm32 {
 namespace f4 {
@@ -38,34 +39,84 @@ peripheral::peripheral(
       rx_pin_(rx_pinconf),
       tx_pin_(tx_pinconf) {
   enable_clock(id_);
-  CAN_Config(regs_, &conf.hal_config);
+
+  // enter init mode
+  emb::mmio::set(regs_->MCTRL, CAN_MCTRL_INITREQ);
+  emb::chrono::timeout init_t(std::chrono::milliseconds(2));
+  while (!emb::mmio::test_any(regs_->MSTS, CAN_MSTS_INITFLG)) {
+    if (init_t.expired()) {
+      while (true) {}
+    }
+  }
+
+  // configure
+  regs_->MCTRL = (regs_->MCTRL & CAN_MCTRL_INITREQ) | conf.mctrl;
+  regs_->BITTIM = conf.bittim;
 }
 
-rxmessage_attr peripheral::register_rxmessage(CAN_FilterConfig_T filter) {
+rxmessage_attr peripheral::register_rxmessage(filter_config filter) {
   core::ensure(filter_count_ < max_fitler_count_);
 
   rxmessage_attr attr{};
 
+  uint32_t filter_number;
   if (id_ == peripheral_id::can1) {
-    filter.filterNumber = filter_count_++;
+    filter_number = filter_count_++;
   } else {
-    filter.filterNumber = 14 + filter_count_++;
+    filter_number = 14 + filter_count_++;
   }
-  filter.filterActivation = ENABLE;
-  //filter.SlaveStartFilterBank = 14;
 
-  attr.filter_idx = filter.filterNumber;
-  attr.fifo = static_cast<rx_fifo>(filter.filterFIFO);
+  attr.filter_idx = filter_number;
+  attr.fifo = filter.fifo;
 
-  CAN_ConfigFilter(&filter);
+  uint32_t const filter_bit = 1u << filter_number;
+
+  // enter filter init mode
+  emb::mmio::set(regs_->FCTRL, CAN_FCTRL_FINITEN);
+
+  // deactivate filter
+  emb::mmio::clear(regs_->FACT, filter_bit);
+
+  // set scale
+  if (filter.scale_32bit) {
+    emb::mmio::set(regs_->FSCFG, filter_bit);
+  } else {
+    emb::mmio::clear(regs_->FSCFG, filter_bit);
+  }
+
+  // set mode
+  if (filter.mode_id_list) {
+    emb::mmio::set(regs_->FMCFG, filter_bit);
+  } else {
+    emb::mmio::clear(regs_->FMCFG, filter_bit);
+  }
+
+  // set filter values
+  regs_->sFilterRegister[filter_number].FBANK1 =
+      (filter.filter_id_high << 16) | filter.filter_id_low;
+  regs_->sFilterRegister[filter_number].FBANK2 =
+      (filter.filter_mask_id_high << 16) | filter.filter_mask_id_low;
+
+  // set FIFO assignment
+  if (filter.fifo == rx_fifo::fifo1) {
+    emb::mmio::set(regs_->FFASS, filter_bit);
+  } else {
+    emb::mmio::clear(regs_->FFASS, filter_bit);
+  }
+
+  // activate filter
+  emb::mmio::set(regs_->FACT, filter_bit);
+
+  // leave filter init mode
+  emb::mmio::clear(regs_->FCTRL, CAN_FCTRL_FINITEN);
 
   return attr;
 }
 
 void peripheral::start() {
-  regs_->MCTRL_B.INITREQ = 0;
+  emb::mmio::clear(regs_->MCTRL, CAN_MCTRL_INITREQ);
   emb::chrono::timeout start_t(std::chrono::milliseconds(2));
-  while (regs_->MSTS_B.INITFLG == 1) {
+  while (emb::mmio::test_any(regs_->MSTS, CAN_MSTS_INITFLG)) {
     if (start_t.expired()) {
       while (true) {
         // TODO
@@ -75,9 +126,9 @@ void peripheral::start() {
 }
 
 void peripheral::stop() {
-  regs_->MCTRL_B.INITREQ = 1;
+  emb::mmio::set(regs_->MCTRL, CAN_MCTRL_INITREQ);
   emb::chrono::timeout stop_t(std::chrono::milliseconds(2));
-  while (regs_->MSTS_B.INITFLG == 0) {
+  while (!emb::mmio::test_any(regs_->MSTS, CAN_MSTS_INITFLG)) {
     if (stop_t.expired()) {
       while (true) {
         // TODO
@@ -95,40 +146,35 @@ exec_status peripheral::put_frame(can_frame const& frame) {
     return exec_status::busy;
   }
 
-  uint32_t mailboxid = regs_->TXSTS_B.EMNUM;
+  uint32_t mailboxid = emb::mmio::read(regs_->TXSTS, CAN_TXSTS_EMNUM);
   if (mailboxid > 2) {
     return exec_status::error;
   }
 
   // set up id
   if (frame.id <= 0x7FF) {
-    write_reg(regs_->sTxMailBox[mailboxid].TXMID, (frame.id << 21));
+    regs_->sTxMailBox[mailboxid].TXMID = (frame.id << 21);
   } else if (frame.id <= 0x1FFFFFFF) {
-    write_reg(regs_->sTxMailBox[mailboxid].TXMID, (frame.id << 3));
-    regs_->sTxMailBox[mailboxid].TXMID_B.IDTYPESEL = 1;
+    regs_->sTxMailBox[mailboxid].TXMID =
+        (frame.id << 3) | CAN_TXMID0_IDTYPESEL;
   } else {
     return exec_status::invalid_argument;
   }
 
   // set up dlc
-  regs_->sTxMailBox[mailboxid].TXDLEN_B.DLCODE = frame.len & 0x0F;
+  emb::mmio::write(regs_->sTxMailBox[mailboxid].TXDLEN,
+      CAN_TXDLEN0_DLCODE, frame.len & 0x0Fu);
 
   // set up data field
-  write_reg(
-      regs_->sTxMailBox[mailboxid].TXMDL,
+  regs_->sTxMailBox[mailboxid].TXMDL =
       (uint32_t(frame.payload[0]) << 0) | (uint32_t(frame.payload[1]) << 8) |
-          (uint32_t(frame.payload[2]) << 16) |
-          (uint32_t(frame.payload[3]) << 24)
-  );
-  write_reg(
-      regs_->sTxMailBox[mailboxid].TXMDH,
+      (uint32_t(frame.payload[2]) << 16) | (uint32_t(frame.payload[3]) << 24);
+  regs_->sTxMailBox[mailboxid].TXMDH =
       (uint32_t(frame.payload[4]) << 0) | (uint32_t(frame.payload[5]) << 8) |
-          (uint32_t(frame.payload[6]) << 16) |
-          (uint32_t(frame.payload[7]) << 24)
-  );
+      (uint32_t(frame.payload[6]) << 16) | (uint32_t(frame.payload[7]) << 24);
 
   // request transmission
-  regs_->sTxMailBox[mailboxid].TXMID_B.TXMREQ = 1;
+  emb::mmio::set(regs_->sTxMailBox[mailboxid].TXMID, CAN_TXMID0_TXMREQ);
 
   return exec_status::ok;
 }
@@ -141,36 +187,41 @@ peripheral::get_frame(can_frame& frame, rx_fifo fifo) const {
 
   auto fifo_idx = std::to_underlying(fifo);
 
-  // get id, len, filter
-  if (regs_->sRxMailBox[fifo_idx].RXMID_B.IDTYPESEL == 0) {
-    frame.id = regs_->sRxMailBox[fifo_idx].RXMID >> 21;
+  // get id
+  if (!emb::mmio::test_any(regs_->sFIFOMailBox[fifo_idx].RXMID,
+          CAN_RXMID0_IDTYPESEL)) {
+    frame.id = regs_->sFIFOMailBox[fifo_idx].RXMID >> 21;
   } else {
-    frame.id = regs_->sRxMailBox[fifo_idx].RXMID >> 3;
+    frame.id = regs_->sFIFOMailBox[fifo_idx].RXMID >> 3;
   }
 
-  frame.len = uint8_t(regs_->sRxMailBox[fifo_idx].RXDLEN_B.DLCODE);
+  frame.len = uint8_t(emb::mmio::read(
+      regs_->sFIFOMailBox[fifo_idx].RXDLEN, CAN_RXDLEN0_DLCODE));
 
   rxmessage_attr attr{};
-  attr.filter_idx = regs_->sRxMailBox[fifo_idx].RXDLEN_B.FMIDX;
+  attr.filter_idx = emb::mmio::read(
+      regs_->sFIFOMailBox[fifo_idx].RXDLEN, CAN_RXDLEN0_FMIDX);
   attr.fifo = fifo;
 
   // get data
-  frame.payload[0] = uint8_t(regs_->sRxMailBox[fifo_idx].RXMDL_B.DATABYTE0);
-  frame.payload[1] = uint8_t(regs_->sRxMailBox[fifo_idx].RXMDL_B.DATABYTE1);
-  frame.payload[2] = uint8_t(regs_->sRxMailBox[fifo_idx].RXMDL_B.DATABYTE2);
-  frame.payload[3] = uint8_t(regs_->sRxMailBox[fifo_idx].RXMDL_B.DATABYTE3);
-  frame.payload[4] = uint8_t(regs_->sRxMailBox[fifo_idx].RXMDH_B.DATABYTE4);
-  frame.payload[5] = uint8_t(regs_->sRxMailBox[fifo_idx].RXMDH_B.DATABYTE5);
-  frame.payload[6] = uint8_t(regs_->sRxMailBox[fifo_idx].RXMDH_B.DATABYTE6);
-  frame.payload[7] = uint8_t(regs_->sRxMailBox[fifo_idx].RXMDH_B.DATABYTE7);
+  uint32_t const rdl = regs_->sFIFOMailBox[fifo_idx].RXMDL;
+  uint32_t const rdh = regs_->sFIFOMailBox[fifo_idx].RXMDH;
+  frame.payload[0] = uint8_t(rdl >> 0);
+  frame.payload[1] = uint8_t(rdl >> 8);
+  frame.payload[2] = uint8_t(rdl >> 16);
+  frame.payload[3] = uint8_t(rdl >> 24);
+  frame.payload[4] = uint8_t(rdh >> 0);
+  frame.payload[5] = uint8_t(rdh >> 8);
+  frame.payload[6] = uint8_t(rdh >> 16);
+  frame.payload[7] = uint8_t(rdh >> 24);
 
   // release fifo
   switch (fifo) {
   case rx_fifo::fifo0:
-    regs_->RXF0_B.RFOM0 = 1;
+    emb::mmio::set(regs_->RXF0, CAN_RXF0_RFOM0);
     break;
   case rx_fifo::fifo1:
-    regs_->RXF1_B.RFOM1 = 1;
+    emb::mmio::set(regs_->RXF1, CAN_RXF1_RFOM1);
     break;
   }
 
@@ -178,7 +229,7 @@ peripheral::get_frame(can_frame& frame, rx_fifo fifo) const {
 }
 
 void peripheral::configure_interrupts(uint32_t interrupt_bitset) {
-  set_bit(regs_->INTEN, interrupt_bitset);
+  emb::mmio::set(regs_->INTEN, interrupt_bitset);
 }
 
 void peripheral::set_interrupts_priority(
@@ -218,30 +269,10 @@ void peripheral::enable_clock(peripheral_id id) {
     return;
   }
 
-  detail::enable_clock[can_idx]();
+  emb::mmio::set(RCM->APB1CLKEN, detail::clock_bits[can_idx]);
   is_clock_enabled_[can_idx] = true;
 }
 
 } // namespace can
 } // namespace f4
 } // namespace apm32
-
-// extern "C" void CAN2_RX0_IRQHandler() {
-//     using namespace mcu::can;
-//     HAL_CAN_IRQHandler(Module::instance(Peripheral::can2)->handle());
-// }
-
-// extern "C" void CAN1_RX1_IRQHandler() {
-//     using namespace mcu::can;
-//     HAL_CAN_IRQHandler(Module::instance(Peripheral::can1)->handle());
-// }
-
-// extern "C" void CAN2_RX1_IRQHandler() {
-//     using namespace mcu::can;
-//     HAL_CAN_IRQHandler(Module::instance(Peripheral::can2)->handle());
-// }
-
-// extern "C" void CAN2_TX_IRQHandler() {
-//     using namespace mcu::can;
-//     HAL_CAN_IRQHandler(Module::instance(Peripheral::can2)->handle());
-// }

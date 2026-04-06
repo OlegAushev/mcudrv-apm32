@@ -7,6 +7,8 @@
 #include <apm32/f4/adc/adc_types.hpp>
 #include <apm32/f4/adc/adc_utils.hpp>
 
+#include <emb/mmio.hpp>
+
 #include <optional>
 
 namespace apm32 {
@@ -83,12 +85,12 @@ public:
 
   void start_injected()
     requires(injected_count > 0 && !injected_trigger && !auto_injconv) {
-    regs_.CTRL2_B.INJSWSC = 1;
+    emb::mmio::set(regs_.CTRL2, ADC_CTRL2_INJSWSC);
   }
 
   void start_regular()
     requires(regular_count > 0 && !regular_trigger) {
-    regs_.CTRL2_B.REGSWSC = 1;
+    emb::mmio::set(regs_.CTRL2, ADC_CTRL2_REGSWSC);
   }
 
   template<unsigned Channel>

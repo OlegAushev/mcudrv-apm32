@@ -7,9 +7,8 @@
 #include <apm32/f4/gpio.hpp>
 #include <apm32/f4/nvic.hpp>
 
-#include <apm32f4xx_can.h>
-
 #include <emb/can.hpp>
+#include <emb/mmio.hpp>
 #include <emb/queue.hpp>
 
 extern "C" {
@@ -25,7 +24,7 @@ namespace apm32 {
 namespace f4 {
 namespace can {
 
-using peripheral_registers = CAN_T;
+using peripheral_registers = CAN_TypeDef;
 
 inline constexpr size_t peripheral_count = 2;
 
@@ -39,17 +38,18 @@ enum class peripheral_id : uint32_t { can1, can2 };
 struct rx_pin_config {
   gpio::port port;
   gpio::pin pin;
-  GPIO_AF_T altfunc;
+  uint32_t altfunc;
 };
 
 struct tx_pin_config {
   gpio::port port;
   gpio::pin pin;
-  GPIO_AF_T altfunc;
+  uint32_t altfunc;
 };
 
 struct config {
-  CAN_Config_T hal_config;
+  uint32_t bittim;  // raw BITTIM register value
+  uint32_t mctrl;   // raw MCTRL register value (mode bits)
 };
 
 namespace detail {
@@ -64,9 +64,9 @@ public:
   tx_pin(tx_pin_config const& conf);
 };
 
-inline std::array<void (*)(void), peripheral_count> enable_clock = {
-    []() { RCM_EnableAPB1PeriphClock(RCM_APB1_PERIPH_CAN1); },
-    []() { RCM_EnableAPB1PeriphClock(RCM_APB1_PERIPH_CAN2); }
+inline constexpr std::array<uint32_t, peripheral_count> clock_bits = {
+    RCM_APB1CLKEN_CAN1EN,
+    RCM_APB1CLKEN_CAN2EN,
 };
 
 inline constexpr std::array<nvic::irq_number, peripheral_count>
@@ -84,6 +84,17 @@ struct rxmessage_attr {
   rx_fifo fifo;
   uint32_t filter_idx = 0xBAAAAAAD; // FIXME
   bool operator==(rxmessage_attr const&) const = default;
+};
+
+struct filter_config {
+  uint32_t filter_number;
+  uint32_t filter_id_high;
+  uint32_t filter_id_low;
+  uint32_t filter_mask_id_high;
+  uint32_t filter_mask_id_low;
+  rx_fifo fifo;
+  bool scale_32bit;  // true = single 32-bit, false = dual 16-bit
+  bool mode_id_list; // true = id list, false = id/mask
 };
 
 class peripheral
@@ -113,7 +124,7 @@ public:
       config conf
   );
 
-  rxmessage_attr register_rxmessage(CAN_FilterConfig_T filter);
+  rxmessage_attr register_rxmessage(filter_config filter);
 
   peripheral_id id() const {
     return id_;
@@ -127,8 +138,8 @@ public:
   void stop();
 
   bool mailbox_full() const {
-    if ((regs_->TXSTS_B.TXMEFLG0 + regs_->TXSTS_B.TXMEFLG1 +
-         regs_->TXSTS_B.TXMEFLG2) == 0) {
+    if (!emb::mmio::test_any(regs_->TXSTS,
+            CAN_TXSTS_TXMEFLG0 | CAN_TXSTS_TXMEFLG1 | CAN_TXSTS_TXMEFLG2)) {
       return true;
     }
     return false;
@@ -137,9 +148,9 @@ public:
   uint32_t rxfifo_level(rx_fifo fifo) const {
     switch (fifo) {
     case rx_fifo::fifo0:
-      return regs_->RXF0_B.FMNUM0;
+      return emb::mmio::read(regs_->RXF0, CAN_RXF0_FMNUM0);
     case rx_fifo::fifo1:
-      return regs_->RXF1_B.FMNUM1;
+      return emb::mmio::read(regs_->RXF1, CAN_RXF1_FMNUM1);
     }
     return 0;
   }

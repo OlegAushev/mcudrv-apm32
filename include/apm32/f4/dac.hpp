@@ -6,7 +6,7 @@
 #include <apm32/f4/core.hpp>
 #include <apm32/f4/gpio.hpp>
 
-#include <apm32f4xx_dac.h>
+#include <emb/mmio.hpp>
 
 #include <algorithm>
 #include <utility>
@@ -15,7 +15,7 @@ namespace apm32 {
 namespace f4 {
 namespace dac {
 
-using peripheral_registers = DAC_T;
+using peripheral_registers = DAC_TypeDef;
 
 inline constexpr size_t peripheral_count = 1;
 
@@ -25,13 +25,8 @@ inline std::array<peripheral_registers*, peripheral_count> const peripherals = {
 
 enum class peripheral_id : uint32_t { dac1 };
 
-enum class channel : uint32_t { ch1 = DAC_CHANNEL_1, ch2 = DAC_CHANNEL_2 };
-
-enum class data_alignment : uint32_t {
-  right_12bit = DAC_ALIGN_12BIT_R,
-  left_12bit = DAC_ALIGN_12BIT_L,
-  right_8bit = DAC_ALIGN_8BIT_R
-};
+// channel offset in CTRL register: ch1 starts at bit 0, ch2 at bit 16
+enum class channel : uint32_t { ch1 = 0, ch2 = 16 };
 
 struct pin_config {
   gpio::port port;
@@ -39,13 +34,15 @@ struct pin_config {
 };
 
 struct channel_config {
-  DAC_Config_T hal_config;
+  bool output_buffer_disable;
+  uint32_t trigger_selection;
+  bool trigger_enable;
 };
 
 namespace detail {
 
-inline std::array<void (*)(void), peripheral_count> const enable_clock = {
-    []() { RCM_EnableAPB1PeriphClock(RCM_APB1_PERIPH_DAC); },
+inline constexpr std::array<uint32_t, peripheral_count> clock_bits = {
+    RCM_APB1CLKEN_DACEN,
 };
 
 } // namespace detail
@@ -75,17 +72,6 @@ public:
   peripheral_registers* regs() {
     return regs_;
   }
-
-  // void convert(Channel channel, DataAlignment alignment, uint32_t value) {
-  //     uint32_t tmp = reinterpret_cast<uint32_t>(_handle.Instance);
-  //     if (channel == Channel::channel1) {
-  //         tmp += DAC_DHR12R1_ALIGNMENT(std::to_underlying(alignment));
-  //     } else {
-  //         tmp += DAC_DHR12R2_ALIGNMENT(std::to_underlying(alignment));
-  //     }
-
-  //     *(reinterpret_cast<volatile uint32_t *>(tmp)) = value;
-  // }
 
 private:
   static void enable_clock(peripheral_id id);

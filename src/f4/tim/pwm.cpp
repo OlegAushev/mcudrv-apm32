@@ -2,6 +2,8 @@
 
 #include <apm32/f4/core.hpp>
 
+#include <emb/mmio.hpp>
+
 namespace apm32 {
 namespace f4 {
 namespace tim {
@@ -14,26 +16,23 @@ void detail::configure_bdt(
     clock_division clkdiv,
     std::optional<break_pin_config> const& bk_pin
 ) {
-  TMR_BDTConfig_T bdt_config{};
-
-  bdt_config.RMOS = TMR_RMOS_STATE_ENABLE;
-  bdt_config.IMOS = TMR_IMOS_STATE_ENABLE;
-  bdt_config.lockLevel = TMR_LOCK_LEVEL_OFF;
-  bdt_config.deadTime = get_deadtime_setup(clk_freq, deadtime, clkdiv);
+  uint32_t brk_enable = 0;
+  uint32_t brk_polarity = 0;
 
   if (bk_pin.has_value()) {
-    bdt_config.BRKState = TMR_BRK_STATE_ENABLE;
-    bdt_config.BRKPolarity = bk_pin->active_level == emb::gpio::level::low ?
-                                 TMR_BRK_POLARITY_LOW :
-                                 TMR_BRK_POLARITY_HIGH;
-  } else {
-    bdt_config.BRKState = TMR_BRK_STATE_DISABLE;
-    bdt_config.BRKPolarity = TMR_BRK_POLARITY_LOW;
+    brk_enable = 1;
+    brk_polarity = bk_pin->active_level == emb::gpio::level::low ? 0u : 1u;
   }
 
-  bdt_config.automaticOutput = TMR_AUTOMATIC_OUTPUT_DISABLE;
-
-  TMR_ConfigBDT(&regs, &bdt_config);
+  emb::mmio::modify(regs.BDT,
+      emb::mmio::bits<TMR_BDT_RMOS>(1u),
+      emb::mmio::bits<TMR_BDT_IMOS>(1u),
+      emb::mmio::bits<TMR_BDT_LOCKCFG>(0u),
+      emb::mmio::bits<TMR_BDT_DTS>(get_deadtime_setup(clk_freq, deadtime, clkdiv)),
+      emb::mmio::bits<TMR_BDT_BRKEN>(brk_enable),
+      emb::mmio::bits<TMR_BDT_BRKPOL>(brk_polarity),
+      emb::mmio::bits<TMR_BDT_AOEN>(0u)
+  );
 }
 
 } // namespace pwm

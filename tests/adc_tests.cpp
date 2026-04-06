@@ -5,10 +5,10 @@ using namespace apm32::f4::adc;
 
 namespace {
 
-static_assert(detail::to_sdk(2) == ADC_PRESCALER_DIV2);
-static_assert(detail::to_sdk(4) == ADC_PRESCALER_DIV4);
-static_assert(detail::to_sdk(6) == ADC_PRESCALER_DIV6);
-static_assert(detail::to_sdk(8) == ADC_PRESCALER_DIV8);
+static_assert(detail::prescaler_to_field(2) == 0);
+static_assert(detail::prescaler_to_field(4) == 1);
+static_assert(detail::prescaler_to_field(6) == 2);
+static_assert(detail::prescaler_to_field(8) == 3);
 
 static_assert(
     detail::calculate_prescaler(
