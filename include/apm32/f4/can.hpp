@@ -47,9 +47,42 @@ struct tx_pin_config {
   uint32_t altfunc;
 };
 
+enum class mode : uint32_t {
+  normal          = 0b00,
+  loopback        = 0b01,
+  silent          = 0b10,
+  silent_loopback = 0b11,
+};
+
 struct config {
-  uint32_t bittim;  // raw BITTIM register value
-  uint32_t mctrl;   // raw MCTRL register value (mode bits)
+  uint16_t prescaler;         // 1..1024
+  uint8_t sync_jump_width;    // 1..4
+  uint8_t time_segment1;      // 1..16
+  uint8_t time_segment2;      // 1..8
+
+  can::mode mode;
+  bool auto_bus_off_management;
+  bool auto_wakeup;
+  bool no_auto_retransmit;
+  bool rx_fifo_locked;
+  bool tx_fifo_priority;
+
+  constexpr uint32_t bittim_reg() const {
+    return ((prescaler - 1u) << CAN_BITTIM_BRPSC_Pos)
+         | ((sync_jump_width - 1u) << CAN_BITTIM_RSYNJW_Pos)
+         | ((time_segment1 - 1u) << CAN_BITTIM_TIMSEG1_Pos)
+         | ((time_segment2 - 1u) << CAN_BITTIM_TIMSEG2_Pos)
+         | ((std::to_underlying(mode) & 0b01u) << CAN_BITTIM_LBKMEN_Pos)
+         | ((std::to_underlying(mode) >> 1) << CAN_BITTIM_SILMEN_Pos);
+  }
+
+  constexpr uint32_t mctrl_reg() const {
+    return (tx_fifo_priority ? CAN_MCTRL_TXFPCFG : 0u)
+         | (rx_fifo_locked ? CAN_MCTRL_RXFLOCK : 0u)
+         | (no_auto_retransmit ? CAN_MCTRL_ARTXMD : 0u)
+         | (auto_wakeup ? CAN_MCTRL_AWUPCFG : 0u)
+         | (auto_bus_off_management ? CAN_MCTRL_ALBOFFM : 0u);
+  }
 };
 
 namespace detail {

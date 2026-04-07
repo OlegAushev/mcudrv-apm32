@@ -57,8 +57,45 @@ struct software_ss_pin_config {
   gpio::pin pin;
 };
 
+enum class mode : uint32_t { slave = 0, master = 1 };
+enum class clock_polarity : uint32_t { low = 0, high = 1 };
+enum class clock_phase : uint32_t { first_edge = 0, second_edge = 1 };
+enum class data_length : uint32_t { bits_8 = 0, bits_16 = 1 };
+enum class bit_order : uint32_t { msb_first = 0, lsb_first = 1 };
+enum class nss_mode : uint32_t { hardware = 0, software = 1 };
+enum class direction : uint32_t {
+  full_duplex = 0b00,
+  rx_only     = 0b01,
+  bidi_rx     = 0b10,
+  bidi_tx     = 0b11,
+};
+enum class baudrate_divisor : uint32_t {
+  div2 = 0b000, div4 = 0b001, div8 = 0b010, div16 = 0b011,
+  div32 = 0b100, div64 = 0b101, div128 = 0b110, div256 = 0b111,
+};
+
 struct config {
-  uint32_t ctrl1;  // raw CTRL1 register value (mode, CPOL, CPHA, baudrate, etc.)
+  spi::mode mode;
+  spi::clock_polarity cpol;
+  spi::clock_phase cpha;
+  spi::data_length data_length;
+  spi::bit_order bit_order;
+  spi::nss_mode nss;
+  spi::direction direction;
+  spi::baudrate_divisor baudrate;
+
+  constexpr uint32_t ctrl1() const {
+    auto dir = std::to_underlying(direction);
+    return (std::to_underlying(cpha) << SPI_CTRL1_CPHA_Pos)
+         | (std::to_underlying(cpol) << SPI_CTRL1_CPOL_Pos)
+         | (std::to_underlying(mode) << SPI_CTRL1_MSMCFG_Pos)
+         | (std::to_underlying(baudrate) << SPI_CTRL1_BRSEL_Pos)
+         | (std::to_underlying(bit_order) << SPI_CTRL1_LSBSEL_Pos)
+         | (nss == nss_mode::software ? (SPI_CTRL1_SSEN | SPI_CTRL1_ISSEL) : 0u)
+         | ((dir & 0b01u) << SPI_CTRL1_RXOMEN_Pos)
+         | ((dir >> 1) << SPI_CTRL1_BMEN_Pos)
+         | (std::to_underlying(data_length) << SPI_CTRL1_DFLSEL_Pos);
+  }
 };
 
 enum class interrupt_event { txe, rxne, err };

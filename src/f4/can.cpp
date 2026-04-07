@@ -50,8 +50,8 @@ peripheral::peripheral(
   }
 
   // configure
-  regs_->MCTRL = (regs_->MCTRL & CAN_MCTRL_INITREQ) | conf.mctrl;
-  regs_->BITTIM = conf.bittim;
+  regs_->MCTRL = (regs_->MCTRL & CAN_MCTRL_INITREQ) | conf.mctrl_reg();
+  regs_->BITTIM = conf.bittim_reg();
 }
 
 rxmessage_attr peripheral::register_rxmessage(filter_config filter) {

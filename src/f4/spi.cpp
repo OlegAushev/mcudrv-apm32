@@ -72,7 +72,7 @@ peripheral::peripheral(
       clk_pin_(clk_pinconf) {
   ss_pin_ = std::make_unique<detail::hardware_ss_pin>(ss_pinconf);
   enable_clock(id_);
-  regs_->CTRL1 = conf.ctrl1;
+  regs_->CTRL1 = conf.ctrl1();
   emb::mmio::set(regs_->CTRL1, SPI_CTRL1_SPIEN);
 }
 
@@ -91,7 +91,7 @@ peripheral::peripheral(
       miso_pin_(miso_pinconf),
       clk_pin_(clk_pinconf) {
   core::ensure(
-      ss_pinconfs.size() != 0 || !emb::mmio::test_any(conf.ctrl1, SPI_CTRL1_MSMCFG)
+      ss_pinconfs.size() != 0 || conf.mode != mode::master
   );
 
   for (auto ss_pinconf : ss_pinconfs) {
@@ -102,7 +102,7 @@ peripheral::peripheral(
   }
 
   enable_clock(id_);
-  regs_->CTRL1 = conf.ctrl1;
+  regs_->CTRL1 = conf.ctrl1();
   emb::mmio::set(regs_->CTRL1, SPI_CTRL1_SPIEN);
 }
 
