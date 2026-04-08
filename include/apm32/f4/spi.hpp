@@ -1,5 +1,8 @@
 #pragma once
 
+#include <apm32/f4/spi/driver/blocking_master.hpp>
+
+#if 0
 #include <apm32/device.hpp>
 #include <apm32/utility.hpp>
 
@@ -259,3 +262,4 @@ private:
 } // namespace spi
 } // namespace f4
 } // namespace apm32
+#endif

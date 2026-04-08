@@ -12,14 +12,12 @@ namespace spi {
 
 template<some_spi_instance Instance>
 void enable() {
-  registers& regs = Instance::regs;
-  emb::mmio::set(regs.CTRL1, SPI_CTRL1_SPIEN);
+  emb::mmio::set(Instance::REG.CTRL1, SPI_CTRL1_SPIEN);
 }
 
 template<some_spi_instance Instance>
 void disable() {
-  registers& regs = Instance::regs;
-  emb::mmio::clear(regs.CTRL1, SPI_CTRL1_SPIEN);
+  emb::mmio::clear(Instance::REG.CTRL1, SPI_CTRL1_SPIEN);
 }
 
 inline constexpr std::array<uint32_t, 8> clock_prescalers =
@@ -51,7 +49,8 @@ calculate_prescaler(emb::units::hz_f32 clk_freq, emb::units::hz_f32 spi_freq) {
 
 template<some_spi_instance Instance>
 baudrate_prescaler calculate_prescaler(emb::units::hz_f32 spi_freq) {
-  return detail::calculate_prescaler(Instance::clock_frequency(), spi_freq);
+  return detail::calculate_prescaler(
+      Instance::template clock_frequency<emb::units::hz_f32>(), spi_freq);
 }
 
 constexpr gpio::speed pin_speed(emb::units::hz_f32 spi_freq) {

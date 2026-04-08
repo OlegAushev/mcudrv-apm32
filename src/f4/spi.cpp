@@ -1,3 +1,4 @@
+#if 0
 #include <apm32/f4/spi.hpp>
 
 #include <emb/mmio.hpp>
@@ -144,3 +145,4 @@ void peripheral::enable_clock(peripheral_id id) {
 } // namespace spi
 } // namespace f4
 } // namespace apm32
+#endif
