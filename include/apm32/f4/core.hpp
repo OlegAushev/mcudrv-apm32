@@ -29,7 +29,17 @@ inline T clock_frequency() {
 }
 
 template<typename T>
+inline T apb1_frequency() {
+  return clock_frequency<T>() / 4;
+}
+
+template<typename T>
 inline T apb1_timer_frequency() {
+  return clock_frequency<T>() / 2;
+}
+
+template<typename T>
+inline T apb2_frequency() {
   return clock_frequency<T>() / 2;
 }
 

@@ -12,7 +12,7 @@ detail::mosi_pin::mosi_pin(mosi_pin_config const& conf)
            .pin = conf.pin,
            .pull = gpio::pull::none,
            .output_type = gpio::output_type::pushpull,
-           .speed = gpio::speed::high,
+           .speed = gpio::speed::very_high,
            .altfunc = conf.altfunc}
       } {}
 
@@ -22,7 +22,7 @@ detail::miso_pin::miso_pin(miso_pin_config const& conf)
            .pin = conf.pin,
            .pull = gpio::pull::none,
            .output_type = gpio::output_type::pushpull,
-           .speed = gpio::speed::high,
+           .speed = gpio::speed::very_high,
            .altfunc = conf.altfunc}
       } {}
 
@@ -32,7 +32,7 @@ detail::clk_pin::clk_pin(clk_pin_config const& conf)
            .pin = conf.pin,
            .pull = gpio::pull::none,
            .output_type = gpio::output_type::pushpull,
-           .speed = gpio::speed::high,
+           .speed = gpio::speed::very_high,
            .altfunc = conf.altfunc}
       } {}
 

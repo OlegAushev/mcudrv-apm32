@@ -63,8 +63,8 @@ enum class output_type : uint32_t {
 enum class speed : uint32_t {
   low = 0b00,
   medium = 0b01,
-  fast = 0b10,
-  high = 0b11
+  // high = 0b10,
+  very_high = 0b11
 };
 
 enum class pull : uint32_t {

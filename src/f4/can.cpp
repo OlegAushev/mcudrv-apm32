@@ -13,7 +13,7 @@ detail::rx_pin::rx_pin(rx_pin_config const& conf)
            .pin = conf.pin,
            .pull = gpio::pull::none,
            .output_type = gpio::output_type::pushpull,
-           .speed = gpio::speed::fast,
+           .speed = gpio::speed::medium,
            .altfunc = conf.altfunc}
       ) {}
 
@@ -23,7 +23,7 @@ detail::tx_pin::tx_pin(tx_pin_config const& conf)
            .pin = conf.pin,
            .pull = gpio::pull::none,
            .output_type = gpio::output_type::pushpull,
-           .speed = gpio::speed::fast,
+           .speed = gpio::speed::medium,
            .altfunc = conf.altfunc}
       ) {}
 
