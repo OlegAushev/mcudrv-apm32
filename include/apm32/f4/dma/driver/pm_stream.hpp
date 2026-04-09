@@ -20,8 +20,8 @@ void init_pm_stream(stream_registers& regs, uint32_t ch);
 } // namespace detail
 
 template<
-    dma_stream_instance Stream,
-    dma_channel_instance Channel,
+    some_dma_stream_instance Stream,
+    some_dma_channel_instance Channel,
     typename MemoryBuffer>
 class peripheral_to_memory_stream {
 public:

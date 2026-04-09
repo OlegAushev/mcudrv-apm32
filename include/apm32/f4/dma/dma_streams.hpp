@@ -145,7 +145,7 @@ struct is_dma_stream_instance : std::bool_constant<emb::same_as_any<
                                     dma2_stream7>> {};
 
 template<typename T>
-concept dma_stream_instance = is_dma_stream_instance<T>::value;
+concept some_dma_stream_instance = is_dma_stream_instance<T>::value;
 
 } // namespace dma
 } // namespace f4

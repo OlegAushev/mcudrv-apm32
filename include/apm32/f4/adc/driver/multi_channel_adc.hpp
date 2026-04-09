@@ -17,7 +17,7 @@ namespace adc {
 
 namespace detail {
 
-struct basic_adc_config {
+struct milti_channel_adc_config {
   unsigned injected_count;
   unsigned regular_count;
   bool dma_enabled;
@@ -27,12 +27,15 @@ struct basic_adc_config {
   bool auto_injected_conversion;
 };
 
-void init_basic_adc(registers& regs, detail::basic_adc_config const& conf);
+void init_multi_channel_adc(
+    registers& REG,
+    detail::milti_channel_adc_config const& conf
+);
 
 } // namespace detail
 
-template<traits::basic_traits Traits, typename... Channels>
-class basic_adc {
+template<traits::some_multi_channel_traits Traits, typename... Channels>
+class multi_channel_adc {
 public:
   using adc_instance = Traits::adc_instance;
   using dma_stream = Traits::dma_stream;
@@ -50,27 +53,27 @@ public:
   static constexpr bool eoc_on_each = Traits::eoc_on_each;
   static constexpr bool auto_injconv = Traits::auto_injconv;
 private:
-  static inline registers& regs_ = adc_instance::regs;
+  static inline registers& REG = adc_instance::REG;
   dma_stream_type dma_stream_;
   std::array<std::optional<gpio::analog_pin>, sizeof...(Channels)> pins_;
 public:
-  basic_adc()
+  multi_channel_adc()
     requires(!dma_enabled) {
     adc_instance::enable_clock();
-    detail::init_basic_adc(regs_, get_config());
+    detail::init_multi_channel_adc(REG, get_config());
     init_channels();
   }
 
-  basic_adc()
+  multi_channel_adc()
     requires(dma_enabled)
       : dma_stream_(
             dma::peripheral_to_memory_stream_config{
                 .irq_priority = dma_irq_priority
             },
-            &regs_.REGDATA
+            &REG.REGDATA
         ) {
     adc_instance::enable_clock();
-    detail::init_basic_adc(regs_, get_config());
+    detail::init_multi_channel_adc(REG, get_config());
     init_channels();
   }
 
@@ -85,28 +88,30 @@ public:
 
   void start_injected()
     requires(injected_count > 0 && !injected_trigger && !auto_injconv) {
-    emb::mmio::set(regs_.CTRL2, ADC_CTRL2_INJSWSC);
+    emb::mmio::set(REG.CTRL2, ADC_CTRL2_INJSWSC);
   }
 
   void start_regular()
     requires(regular_count > 0 && !regular_trigger) {
-    emb::mmio::set(regs_.CTRL2, ADC_CTRL2_REGSWSC);
+    emb::mmio::set(REG.CTRL2, ADC_CTRL2_REGSWSC);
   }
 
   template<unsigned Channel>
     requires(1 <= Channel && Channel <= injected_count)
   [[nodiscard]] uint32_t injected_result() const {
-    return *reinterpret_cast<uint32_t volatile*>(
-        adc_instance::reg_addr::jdrx[Channel - 1]
-    );
+    if constexpr (Channel == 1) return REG.INJDATA1;
+    else if constexpr (Channel == 2) return REG.INJDATA2;
+    else if constexpr (Channel == 3) return REG.INJDATA3;
+    else if constexpr (Channel == 4) return REG.INJDATA4;
   }
 
   template<unsigned Channel>
     requires(1 <= Channel && Channel <= injected_count)
   [[nodiscard]] uint32_t const volatile* injected_storage() const {
-    return reinterpret_cast<uint32_t const volatile*>(
-        adc_instance::reg_addr::jdrx[Channel - 1]
-    );
+    if constexpr (Channel == 1) return &REG.INJDATA1;
+    else if constexpr (Channel == 2) return &REG.INJDATA2;
+    else if constexpr (Channel == 3) return &REG.INJDATA3;
+    else if constexpr (Channel == 4) return &REG.INJDATA4;
   }
 
   template<unsigned Rank>
@@ -119,7 +124,7 @@ private:
     [[maybe_unused]] size_t i = 0;
     (
         [&] {
-          if (auto conf = Channels::init(regs_)) {
+          if (auto conf = Channels::init(REG)) {
             pins_[i].emplace(*conf);
           }
           ++i;
@@ -128,8 +133,8 @@ private:
     );
   }
 
-  detail::basic_adc_config get_config() const {
-    return detail::basic_adc_config{
+  detail::milti_channel_adc_config get_config() const {
+    return detail::milti_channel_adc_config{
         .injected_count = injected_count,
         .regular_count = regular_count,
         .dma_enabled = dma_enabled,

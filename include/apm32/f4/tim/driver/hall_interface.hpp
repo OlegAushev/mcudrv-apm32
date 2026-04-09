@@ -40,11 +40,11 @@ struct timebase_config {
   uint32_t counter_max;
 };
 
-void configure_timebase(registers& regs, timebase_config const& cfg);
+void configure_timebase(registers& REG, timebase_config const& cfg);
 
-void configure_channel(registers& regs, capture_filter filter);
+void configure_channel(registers& REG, capture_filter filter);
 
-template<timer_instance Tim>
+template<some_timer_instance Tim>
 [[nodiscard]] gpio::alternate_pin_config
 make_input_config(input_pin_config const& pin) {
   return gpio::alternate_pin_config{
@@ -59,14 +59,14 @@ make_input_config(input_pin_config const& pin) {
 
 } // namespace detail
 
-template<timer_instance Tim>
+template<some_timer_instance Tim>
   requires(Tim::io_channel_count >= 3)
 class hall_interface {
 public:
   using timer_instance = Tim;
   using counter_type = Tim::counter_type;
 private:
-  static inline registers& regs_ = timer_instance::regs;
+  static inline registers& REG = timer_instance::REG;
   static inline nvic::irq_number const irqn_ =
       timer_instance::capture_compare_irqn;
 
@@ -109,16 +109,12 @@ public:
       );
     }
 
-    detail::configure_timebase(regs_, timebase_cfg);
-    detail::configure_channel(regs_, cfg.filter);
+    detail::configure_timebase(REG, timebase_cfg);
+    detail::configure_channel(REG, cfg.filter);
 
     // Interrupt configuration
-    emb::mmio::set(regs_.DIEN, TMR_DIEN_CC1IEN | TMR_DIEN_UIEN);
+    emb::mmio::set(REG.DIEN, TMR_DIEN_CC1IEN | TMR_DIEN_UIEN);
     set_irq_priority(irqn_, cfg.irq_priority);
-  }
-
-  registers& regs() {
-    return regs_;
   }
 
   void enable() {
@@ -129,7 +125,7 @@ public:
   }
 
   typename timer_instance::counter_type captured_counter() const {
-    return regs_.CC1;
+    return REG.CC1;
   }
 
   emb::units::sec_f32 captured_time() const {
@@ -137,7 +133,7 @@ public:
   }
 
   emb::units::sec_f32 time_since_capture() const {
-    return float(regs_.CNT) * counter_period_;
+    return float(REG.CNT) * counter_period_;
   }
 
   std::array<emb::gpio::level, 3> input_levels() const {

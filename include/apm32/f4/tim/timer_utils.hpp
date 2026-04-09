@@ -11,69 +11,61 @@ namespace apm32 {
 namespace f4 {
 namespace tim {
 
-template<timer_instance Tim>
+template<some_timer_instance Tim>
 void enable_counter() {
-  registers& regs = Tim::regs;
-  emb::mmio::set(regs.CTRL1, TMR_CTRL1_CNTEN);
+  emb::mmio::set(Tim::REG.CTRL1, TMR_CTRL1_CNTEN);
 }
 
-template<timer_instance Tim>
+template<some_timer_instance Tim>
 void disable_counter() {
-  registers& regs = Tim::regs;
-  emb::mmio::clear(regs.CTRL1, TMR_CTRL1_CNTEN);
+  emb::mmio::clear(Tim::REG.CTRL1, TMR_CTRL1_CNTEN);
 }
 
-template<timer_instance Tim>
+template<some_timer_instance Tim>
 bool update_flag() {
-  registers const& regs = Tim::regs;
-  return emb::mmio::test_any(regs.STS, TMR_STS_UIFLG);
+  return emb::mmio::test_any(Tim::REG.STS, TMR_STS_UIFLG);
 }
 
-template<timer_instance Tim>
+template<some_timer_instance Tim>
 void acknowledge_update() {
-  registers& regs = Tim::regs;
-  emb::mmio::clear_w0(regs.STS, TMR_STS_UIFLG);
+  emb::mmio::clear_w0(Tim::REG.STS, TMR_STS_UIFLG);
 }
 
-template<timer_instance Tim>
+template<some_timer_instance Tim>
 bool break_flag() {
-  registers const& regs = Tim::regs;
-  return emb::mmio::test_any(regs.STS, TMR_STS_BRKIFLG);
+  return emb::mmio::test_any(Tim::REG.STS, TMR_STS_BRKIFLG);
 }
 
-template<timer_instance Tim>
+template<some_timer_instance Tim>
 void acknowledge_break() {
-  registers& regs = Tim::regs;
-  emb::mmio::clear_w0(regs.STS, TMR_STS_BRKIFLG);
+  emb::mmio::clear_w0(Tim::REG.STS, TMR_STS_BRKIFLG);
 }
 
-template<timer_instance Tim, timer_channel_instance Ch>
+template<some_timer_instance Tim, some_timer_channel_instance Ch>
 bool capture_compare_flag() {
-  registers& regs = Tim::regs;
   if constexpr (std::same_as<Ch, channel1>) {
-    return emb::mmio::test_any(regs.STS, TMR_STS_CC1IFLG);
+    return emb::mmio::test_any(Tim::REG.STS, TMR_STS_CC1IFLG);
   } else if constexpr (std::same_as<Ch, channel2>) {
-    return emb::mmio::test_any(regs.STS, TMR_STS_CC2IFLG);
+    return emb::mmio::test_any(Tim::REG.STS, TMR_STS_CC2IFLG);
   } else if constexpr (std::same_as<Ch, channel3>) {
-    return emb::mmio::test_any(regs.STS, TMR_STS_CC3IFLG);
+    return emb::mmio::test_any(Tim::REG.STS, TMR_STS_CC3IFLG);
   } else if constexpr (std::same_as<Ch, channel4>) {
-    return emb::mmio::test_any(regs.STS, TMR_STS_CC4IFLG);
+    return emb::mmio::test_any(Tim::REG.STS, TMR_STS_CC4IFLG);
   } else {
     std::unreachable();
   }
 }
 
-template<timer_instance Tim, timer_channel_instance Ch>
+template<some_timer_instance Tim, some_timer_channel_instance Ch>
 void acknowledge_capture_compare() {
-  registers& regs = Tim::regs;
   if constexpr (std::same_as<Ch, channel1>) {
-    emb::mmio::clear_w0(regs.STS, TMR_STS_CC1IFLG);
+    emb::mmio::clear_w0(Tim::REG.STS, TMR_STS_CC1IFLG);
   } else if constexpr (std::same_as<Ch, channel2>) {
-    emb::mmio::clear_w0(regs.STS, TMR_STS_CC2IFLG);
+    emb::mmio::clear_w0(Tim::REG.STS, TMR_STS_CC2IFLG);
   } else if constexpr (std::same_as<Ch, channel3>) {
-    emb::mmio::clear_w0(regs.STS, TMR_STS_CC3IFLG);
+    emb::mmio::clear_w0(Tim::REG.STS, TMR_STS_CC3IFLG);
   } else if constexpr (std::same_as<Ch, channel4>) {
-    emb::mmio::clear_w0(regs.STS, TMR_STS_CC4IFLG);
+    emb::mmio::clear_w0(Tim::REG.STS, TMR_STS_CC4IFLG);
   } else {
     std::unreachable();
   }
@@ -81,7 +73,7 @@ void acknowledge_capture_compare() {
 
 namespace detail {
 
-template<timer_instance Tim>
+template<some_timer_instance Tim>
 constexpr uint16_t calculate_prescaler(
     emb::units::hz_f32 clk_freq,
     emb::units::hz_f32 tim_freq,
@@ -107,7 +99,7 @@ constexpr uint16_t calculate_prescaler(
 
 } // namespace detail
 
-template<timer_instance Tim>
+template<some_timer_instance Tim>
 uint16_t calculate_prescaler(emb::units::hz_f32 tim_freq, counter_mode mode) {
   return detail::calculate_prescaler<Tim>(
       Tim::template clock_frequency<emb::units::hz_f32>(),

@@ -10,9 +10,7 @@
 #include <emb/meta.hpp>
 #include <emb/mmio.hpp>
 
-#include <array>
 #include <cstddef>
-#include <utility>
 
 namespace apm32 {
 namespace f4 {

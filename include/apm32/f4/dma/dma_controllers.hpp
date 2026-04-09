@@ -35,7 +35,7 @@ struct is_dma_controller_instance
     : std::bool_constant<emb::same_as_any<T, dma1, dma2>> {};
 
 template<typename T>
-concept dma_controller_instance = is_dma_controller_instance<T>::value;
+concept some_dma_controller_instance = is_dma_controller_instance<T>::value;
 
 } // namespace dma
 } // namespace f4

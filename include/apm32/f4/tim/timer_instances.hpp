@@ -3,8 +3,6 @@
 #include <apm32/device.hpp>
 #include <apm32/utility.hpp>
 
-#include <apm32/f4/tim/timer_registers.hpp>
-
 #include <apm32/f4/core.hpp>
 #include <apm32/f4/gpio.hpp>
 #include <apm32/f4/nvic.hpp>
@@ -25,10 +23,7 @@ using registers = TMR_TypeDef;
 inline constexpr size_t timer_count = 14;
 
 struct tim1 {
-  static constexpr uintptr_t base_addr = TMR1_BASE;
-  using reg_addr = detail::register_addresses<base_addr>;
-
-  static inline registers& regs = *TMR1;
+  static inline registers& REG = *TMR1;
 
   using counter_type = uint16_t;
   static constexpr unsigned io_channel_count = 4;
@@ -48,10 +43,7 @@ struct tim1 {
 };
 
 struct tim2 {
-  static constexpr uintptr_t base_addr = TMR2_BASE;
-  using reg_addr = detail::register_addresses<base_addr>;
-
-  static inline registers& regs = *TMR2;
+  static inline registers& REG = *TMR2;
 
   using counter_type = uint32_t;
   static constexpr unsigned io_channel_count = 4;
@@ -70,10 +62,7 @@ struct tim2 {
 };
 
 struct tim3 {
-  static constexpr uintptr_t base_addr = TMR3_BASE;
-  using reg_addr = detail::register_addresses<base_addr>;
-
-  static inline registers& regs = *TMR3;
+  static inline registers& REG = *TMR3;
 
   using counter_type = uint16_t;
   static constexpr unsigned io_channel_count = 4;
@@ -92,10 +81,7 @@ struct tim3 {
 };
 
 struct tim4 {
-  static constexpr uintptr_t base_addr = TMR4_BASE;
-  using reg_addr = detail::register_addresses<base_addr>;
-
-  static inline registers& regs = *TMR4;
+  static inline registers& REG = *TMR4;
 
   using counter_type = uint16_t;
   static constexpr unsigned io_channel_count = 4;
@@ -114,10 +100,7 @@ struct tim4 {
 };
 
 struct tim5 {
-  static constexpr uintptr_t base_addr = TMR5_BASE;
-  using reg_addr = detail::register_addresses<base_addr>;
-
-  static inline registers& regs = *TMR5;
+  static inline registers& REG = *TMR5;
 
   using counter_type = uint32_t;
   static constexpr unsigned io_channel_count = 4;
@@ -136,10 +119,7 @@ struct tim5 {
 };
 
 struct tim6 {
-  static constexpr uintptr_t base_addr = TMR6_BASE;
-  using reg_addr = detail::register_addresses<base_addr>;
-
-  static inline registers& regs = *TMR6;
+  static inline registers& REG = *TMR6;
 
   using counter_type = uint16_t;
   static constexpr unsigned io_channel_count = 0;
@@ -150,10 +130,7 @@ struct tim6 {
 };
 
 struct tim7 {
-  static constexpr uintptr_t base_addr = TMR7_BASE;
-  using reg_addr = detail::register_addresses<base_addr>;
-
-  static inline registers& regs = *TMR7;
+  static inline registers& REG = *TMR7;
 
   using counter_type = uint16_t;
   static constexpr unsigned io_channel_count = 0;
@@ -164,10 +141,7 @@ struct tim7 {
 };
 
 struct tim8 {
-  static constexpr uintptr_t base_addr = TMR8_BASE;
-  using reg_addr = detail::register_addresses<base_addr>;
-
-  static inline registers& regs = *TMR8;
+  static inline registers& REG = *TMR8;
 
   using counter_type = uint16_t;
   static constexpr unsigned io_channel_count = 4;
@@ -187,7 +161,7 @@ struct tim8 {
 };
 
 struct tim9 {
-  static inline registers& regs = *TMR9;
+  static inline registers& REG = *TMR9;
 
   using counter_type = uint16_t;
   static constexpr unsigned io_channel_count = 2;
@@ -198,7 +172,7 @@ struct tim9 {
 };
 
 struct tim10 {
-  static inline registers& regs = *TMR10;
+  static inline registers& REG = *TMR10;
 
   using counter_type = uint16_t;
   static constexpr unsigned io_channel_count = 1;
@@ -209,7 +183,7 @@ struct tim10 {
 };
 
 struct tim11 {
-  static inline registers& regs = *TMR11;
+  static inline registers& REG = *TMR11;
 
   using counter_type = uint16_t;
   static constexpr unsigned io_channel_count = 1;
@@ -220,7 +194,7 @@ struct tim11 {
 };
 
 struct tim12 {
-  static inline registers& regs = *TMR12;
+  static inline registers& REG = *TMR12;
 
   using counter_type = uint16_t;
   static constexpr unsigned io_channel_count = 2;
@@ -231,7 +205,7 @@ struct tim12 {
 };
 
 struct tim13 {
-  static inline registers& regs = *TMR13;
+  static inline registers& REG = *TMR13;
 
   using counter_type = uint16_t;
   static constexpr unsigned io_channel_count = 1;
@@ -242,7 +216,7 @@ struct tim13 {
 };
 
 struct tim14 {
-  static inline registers& regs = *TMR14;
+  static inline registers& REG = *TMR14;
 
   using counter_type = uint16_t;
   static constexpr unsigned io_channel_count = 1;
@@ -271,14 +245,14 @@ struct is_timer_instance : std::bool_constant<emb::same_as_any<
                                tim14>> {};
 
 template<typename T>
-concept timer_instance = is_timer_instance<T>::value;
+concept some_timer_instance = is_timer_instance<T>::value;
 
 template<typename T>
 struct is_advanced_timer : std::bool_constant<emb::same_as_any<T, tim1, tim8>> {
 };
 
 template<typename T>
-concept advanced_timer = is_advanced_timer<T>::value;
+concept some_advanced_timer = is_advanced_timer<T>::value;
 
 template<typename T>
 struct is_general_purpose_timer : std::bool_constant<emb::same_as_any<
@@ -295,20 +269,20 @@ struct is_general_purpose_timer : std::bool_constant<emb::same_as_any<
                                       tim14>> {};
 
 template<typename T>
-concept general_purpose_timer = is_general_purpose_timer<T>::value;
+concept some_general_purpose_timer = is_general_purpose_timer<T>::value;
 
 template<typename T>
 struct is_32bit_timer
     : std::bool_constant<std::same_as<typename T::counter_type, uint32_t>> {};
 
 template<typename T>
-concept timer_32bit = is_32bit_timer<T>::value;
+concept some_32bit_timer = is_32bit_timer<T>::value;
 
 template<typename T>
 struct is_basic_timer : std::bool_constant<emb::same_as_any<T, tim6, tim7>> {};
 
 template<typename T>
-concept basic_timer = is_basic_timer<T>::value;
+concept some_basic_timer = is_basic_timer<T>::value;
 
 } // namespace tim
 } // namespace f4

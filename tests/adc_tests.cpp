@@ -55,8 +55,8 @@ struct adc_traits_2 {
   static constexpr bool auto_injconv = false;
 };
 
-static_assert(traits::basic_traits<adc_traits_1>);
-static_assert(traits::basic_traits<adc_traits_2>);
+static_assert(traits::some_multi_channel_traits<adc_traits_1>);
+static_assert(traits::some_multi_channel_traits<adc_traits_2>);
 
 using testing_extinj_channel =
     injected_channel<adc123_in0, sampletime::cycles_3, 1, 2, 3, 4>;
@@ -66,13 +66,13 @@ using testing_intinj_channel =
     injected_channel<adc1_in16, sampletime::cycles_144, 2>;
 
 [[maybe_unused]] void test() {
-  basic_adc<
+  multi_channel_adc<
       adc_traits_1,
       testing_extinj_channel,
       testing_extreg_channel,
       testing_intinj_channel>
       adc_1;
-  basic_adc<adc_traits_2> adc_2;
+  multi_channel_adc<adc_traits_2> adc_2;
 
   adc_1.enable();
   adc_2.enable();

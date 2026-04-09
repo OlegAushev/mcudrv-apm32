@@ -10,7 +10,7 @@ namespace tim {
 namespace pwm {
 
 void detail::configure_bdt(
-    registers& regs,
+    registers& REG,
     emb::units::hz_f32 clk_freq,
     emb::chrono::nanoseconds_i32 const& deadtime,
     clock_division clkdiv,
@@ -24,7 +24,7 @@ void detail::configure_bdt(
     brk_polarity = bk_pin->active_level == emb::gpio::level::low ? 0u : 1u;
   }
 
-  emb::mmio::modify(regs.BDT,
+  emb::mmio::modify(REG.BDT,
       emb::mmio::bits<TMR_BDT_RMOS>(1u),
       emb::mmio::bits<TMR_BDT_IMOS>(1u),
       emb::mmio::bits<TMR_BDT_LOCKCFG>(0u),

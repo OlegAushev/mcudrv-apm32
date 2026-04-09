@@ -12,9 +12,9 @@ namespace traits {
 
 namespace detail {
 
-template<adc_instance Instance, typename T>
+template<some_adc_instance Instance, typename T>
 consteval bool check_dma_stream() {
-  if constexpr (dma::dma_stream_instance<T>) {
+  if constexpr (dma::some_dma_stream_instance<T>) {
     return emb::typelist_contains_v<typename Instance::dma_streams, T>;
   } else if constexpr (std::is_void_v<T>) {
     return true;
@@ -23,9 +23,9 @@ consteval bool check_dma_stream() {
   }
 }
 
-template<adc_instance Instance, typename T>
+template<some_adc_instance Instance, typename T>
 consteval bool check_dma_channel() {
-  if constexpr (dma::dma_channel_instance<T>) {
+  if constexpr (dma::some_dma_channel_instance<T>) {
     return std::same_as<T, typename Instance::dma_channel>;
   } else if constexpr (std::is_void_v<T>) {
     return true;
@@ -57,19 +57,19 @@ consteval bool check_dma_irq_priority() {
 } // namespace detail
 
 template<typename T>
-concept basic_traits = requires {
-  requires adc_instance<typename T::adc_instance>;
+concept some_multi_channel_traits = requires {
+  requires some_adc_instance<typename T::adc_instance>;
 
   { T::injected_count } -> std::convertible_to<unsigned>;
   { T::regular_count } -> std::convertible_to<unsigned>;
   { T::dma_enabled } -> std::convertible_to<bool>;
 
   requires(
-      T::dma_enabled ? dma::dma_stream_instance<typename T::dma_stream> : true
+      T::dma_enabled ? dma::some_dma_stream_instance<typename T::dma_stream> : true
   );
 
   requires(
-      T::dma_enabled ? dma::dma_channel_instance<typename T::dma_channel> : true
+      T::dma_enabled ? dma::some_dma_channel_instance<typename T::dma_channel> : true
   );
 
   requires detail::check_dma_stream<

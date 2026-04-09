@@ -20,19 +20,19 @@ struct periodic_timer_config {
 namespace detail {
 
 void configure_timebase(
+    registers& REG,
     emb::units::hz_f32 clk_freq,
-    registers& regs,
     periodic_timer_config const& conf
 );
 
 } // namespace detail
 
-template<general_purpose_timer Tim>
+template<some_general_purpose_timer Tim>
 class periodic_timer : public emb::singleton<periodic_timer<Tim>> {
 public:
   using timer_instance = Tim;
 private:
-  static inline registers& regs_ = timer_instance::regs;
+  static inline registers& REG = timer_instance::REG;
   static inline nvic::irq_number const update_irqn_ =
       timer_instance::update_irqn;
 
@@ -50,18 +50,14 @@ public:
     timer_instance::enable_clock();
 
     detail::configure_timebase(
+        REG,
         timer_instance::template clock_frequency<emb::units::hz_f32>(),
-        regs_,
         conf
     );
 
     // Interrupt configuration
-    emb::mmio::set(regs_.DIEN, TMR_DIEN_UIEN);
+    emb::mmio::set(REG.DIEN, TMR_DIEN_UIEN);
     set_irq_priority(update_irqn_, conf.irq_priority);
-  }
-
-  registers& regs() {
-    return regs_;
   }
 
   emb::units::sec_f32 period() const {
@@ -76,15 +72,15 @@ public:
   }
 
   void ack_update_interrupt() {
-    emb::mmio::clear_w0(regs_.STS, TMR_STS_UIFLG);
+    emb::mmio::clear_w0(REG.STS, TMR_STS_UIFLG);
   }
 private:
   void enable_counter() {
-    emb::mmio::set(regs_.CTRL1, TMR_CTRL1_CNTEN);
+    emb::mmio::set(REG.CTRL1, TMR_CTRL1_CNTEN);
   }
 
   void disable_counter() {
-    emb::mmio::clear(regs_.CTRL1, TMR_CTRL1_CNTEN);
+    emb::mmio::clear(REG.CTRL1, TMR_CTRL1_CNTEN);
   }
 };
 

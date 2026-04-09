@@ -6,8 +6,8 @@ namespace apm32 {
 namespace f4 {
 namespace dma {
 
-void detail::init_pm_stream(stream_registers& regs, uint32_t ch) {
-  emb::mmio::modify(regs.SCFG,
+void detail::init_pm_stream(stream_registers& REG, uint32_t ch) {
+  emb::mmio::modify(REG.SCFG,
       emb::mmio::bits<DMA_SCFGx_CHSEL>(ch),
       emb::mmio::bits<DMA_SCFGx_DIRCFG>(0b00u),      // periph to memory
       emb::mmio::bits<DMA_SCFGx_CIRCMEN>(1u),         // circular mode

@@ -39,7 +39,7 @@ struct is_timer_channel_instance
           emb::same_as_any<T, channel1, channel2, channel3, channel4>> {};
 
 template<typename T>
-concept timer_channel_instance = is_timer_channel_instance<T>::value;
+concept some_timer_channel_instance = is_timer_channel_instance<T>::value;
 
 template<size_t I>
   requires(I < 4)

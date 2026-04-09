@@ -34,7 +34,7 @@ enum class trigger_output {
 
 namespace detail {
 
-template<advanced_timer Tim>
+template<some_advanced_timer Tim>
 [[nodiscard]] gpio::alternate_pin_config
 make_output_gpio_config(output_pin_config const& pin) {
   return gpio::alternate_pin_config{
@@ -47,7 +47,7 @@ make_output_gpio_config(output_pin_config const& pin) {
   };
 }
 
-template<advanced_timer Tim>
+template<some_advanced_timer Tim>
 [[nodiscard]] gpio::alternate_pin_config
 make_break_input_gpio_config(break_pin_config const& bk_pin) {
   return gpio::alternate_pin_config{
@@ -86,7 +86,7 @@ constexpr uint8_t get_deadtime_setup(
 }
 
 void configure_bdt(
-    registers& regs,
+    registers& REG,
     emb::units::hz_f32 clk_freq,
     emb::chrono::nanoseconds_i32 const& deadtime,
     clock_division clkdiv,
