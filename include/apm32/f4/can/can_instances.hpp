@@ -23,6 +23,10 @@ inline constexpr size_t count = 2;
 struct can1 {
   static inline registers& REG = *CAN1;
 
+  static constexpr nvic::irq_number rx0_irqn = CAN1_RX0_IRQn;
+  static constexpr nvic::irq_number rx1_irqn = CAN1_RX1_IRQn;
+  static constexpr nvic::irq_number tx_irqn = CAN1_TX_IRQn;
+
   template<typename T>
   static constexpr auto clock_frequency = core::apb1_frequency<T>;
 
@@ -35,6 +39,10 @@ struct can1 {
 
 struct can2 {
   static inline registers& REG = *CAN2;
+
+  static constexpr nvic::irq_number rx0_irqn = CAN2_RX0_IRQn;
+  static constexpr nvic::irq_number rx1_irqn = CAN2_RX1_IRQn;
+  static constexpr nvic::irq_number tx_irqn = CAN2_TX_IRQn;
 
   template<typename T>
   static constexpr auto clock_frequency = core::apb1_frequency<T>;
