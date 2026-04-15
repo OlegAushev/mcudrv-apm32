@@ -321,11 +321,11 @@ public:
     enable_counter<timer_instance>();
   }
 private:
-  static counter_type min_ccr_v() {
+  static uint32_t min_ccr_v() {
     return 1;
   }
 
-  static counter_type max_ccr_v(counter_type arr_value) {
+  static uint32_t max_ccr_v(uint32_t arr_value) {
     return arr_value - 1;
   }
 };
