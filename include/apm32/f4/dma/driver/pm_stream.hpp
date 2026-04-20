@@ -16,7 +16,7 @@ struct peripheral_to_memory_stream_config {
 };
 
 namespace detail {
-void init_pm_stream(stream_registers& regs, uint32_t ch);
+void init_pm_stream(stream_registers& STREAM_REG, uint32_t ch);
 } // namespace detail
 
 template<
@@ -30,10 +30,9 @@ public:
   using channel_instance = Channel;
   using memory_buffer_type = MemoryBuffer;
 private:
-  static inline controller_registers& controller_regs_ =
-      controller_instance::regs;
-  static inline stream_registers& stream_regs_ = stream_instance::regs;
-  static inline nvic::irq_number const irqn_ = stream_instance::irqn;
+  static inline controller_registers& DMA_REG = controller_instance::REG;
+  static inline stream_registers& STREAM_REG = stream_instance::REG;
+  static constexpr nvic::irq_number const irqn_ = stream_instance::irqn;
 
   memory_buffer_type dest_;
 public:
@@ -43,23 +42,23 @@ public:
   ) {
     controller_instance::enable_clock();
 
-    detail::init_pm_stream(stream_regs_, channel_instance::idx);
+    detail::init_pm_stream(STREAM_REG, channel_instance::idx);
 
     if constexpr (!memory_buffer_type::double_buffer_mode) {
-      emb::mmio::clear(stream_regs_.SCFG, DMA_SCFGx_DBM);
-      stream_regs_.NDATA = memory_buffer_type::size;
-      stream_regs_.M0ADDR = reinterpret_cast<uint32_t>(dest_.data.data());
+      emb::mmio::clear(STREAM_REG.SCFG, DMA_SCFGx_DBM);
+      STREAM_REG.NDATA = memory_buffer_type::size;
+      STREAM_REG.M0ADDR = reinterpret_cast<uint32_t>(dest_.data.data());
     } else {
-      emb::mmio::set(stream_regs_.SCFG, DMA_SCFGx_DBM);
-      stream_regs_.NDATA = memory_buffer_type::size;
-      stream_regs_.M0ADDR = reinterpret_cast<uint32_t>(dest_.data1.data());
-      stream_regs_.M1ADDR = reinterpret_cast<uint32_t>(dest_.data2.data());
+      emb::mmio::set(STREAM_REG.SCFG, DMA_SCFGx_DBM);
+      STREAM_REG.NDATA = memory_buffer_type::size;
+      STREAM_REG.M0ADDR = reinterpret_cast<uint32_t>(dest_.data1.data());
+      STREAM_REG.M1ADDR = reinterpret_cast<uint32_t>(dest_.data2.data());
     }
 
-    stream_regs_.PADDR = reinterpret_cast<uint32_t>(periph_addr);
+    STREAM_REG.PADDR = reinterpret_cast<uint32_t>(periph_addr);
 
     // Interrupts configuration
-    emb::mmio::set(stream_regs_.SCFG,
+    emb::mmio::set(STREAM_REG.SCFG,
         DMA_SCFGx_DMEIEN | DMA_SCFGx_TXEIEN | DMA_SCFGx_TXCIEN);
     set_irq_priority(stream_instance::irqn, conf.irq_priority);
   }
@@ -70,14 +69,14 @@ public:
 
   void enable() {
     nvic::enable_irq(stream_instance::irqn);
-    emb::mmio::set(stream_regs_.SCFG, DMA_SCFGx_EN);
+    emb::mmio::set(STREAM_REG.SCFG, DMA_SCFGx_EN);
   }
 
   void ack_interrupt() {
     if constexpr (channel_instance::idx >= 4) {
-      controller_regs_.HIFCLR |= get_interrupt_clear_mask();
+      DMA_REG.HIFCLR |= get_interrupt_clear_mask();
     } else {
-      controller_regs_.LIFCLR |= get_interrupt_clear_mask();
+      DMA_REG.LIFCLR |= get_interrupt_clear_mask();
     }
   }
 private:

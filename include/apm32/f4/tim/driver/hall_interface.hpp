@@ -67,7 +67,8 @@ public:
   using counter_type = Tim::counter_type;
 private:
   static inline registers& REG = timer_instance::REG;
-  static inline nvic::irq_number const irqn_ =
+
+  static constexpr nvic::irq_number const irqn_ =
       timer_instance::capture_compare_irqn;
 
   std::array<std::optional<gpio::alternate_pin>, 3> pins_;

@@ -121,9 +121,13 @@ public:
   using dutycycle_type = std::array<emb::unsigned_pu, LegCount>;
 private:
   static inline registers& REG = timer_instance::REG;
-  static inline nvic::irq_number const update_irqn_ =
+
+  static constexpr nvic::irq_number const update_irqn_ =
       timer_instance::update_irqn;
-  static inline nvic::irq_number const break_irqn_ = timer_instance::break_irqn;
+
+  static constexpr nvic::irq_number const break_irqn_ =
+      timer_instance::break_irqn;
+
   static inline std::array<uint32_t volatile*, 4> const CCR_REGS = {
       &REG.CC1, &REG.CC2, &REG.CC3, &REG.CC4
   };

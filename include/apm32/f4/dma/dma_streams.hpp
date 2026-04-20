@@ -15,112 +15,112 @@ inline constexpr size_t stream_count = 16;
 struct dma1_stream0 {
   using controller = dma1;
   static constexpr unsigned idx = 0;
-  static inline stream_registers& regs = *DMA1_Stream0;
+  static inline stream_registers& REG = *DMA1_Stream0;
   static constexpr nvic::irq_number irqn = DMA1_Stream0_IRQn;
 };
 
 struct dma1_stream1 {
   using controller = dma1;
   static constexpr unsigned idx = 1;
-  static inline stream_registers& regs = *DMA1_Stream1;
+  static inline stream_registers& REG = *DMA1_Stream1;
   static constexpr nvic::irq_number irqn = DMA1_Stream1_IRQn;
 };
 
 struct dma1_stream2 {
   using controller = dma1;
   static constexpr unsigned idx = 2;
-  static inline stream_registers& regs = *DMA1_Stream2;
+  static inline stream_registers& REG = *DMA1_Stream2;
   static constexpr nvic::irq_number irqn = DMA1_Stream2_IRQn;
 };
 
 struct dma1_stream3 {
   using controller = dma1;
   static constexpr unsigned idx = 3;
-  static inline stream_registers& regs = *DMA1_Stream3;
+  static inline stream_registers& REG = *DMA1_Stream3;
   static constexpr nvic::irq_number irqn = DMA1_Stream3_IRQn;
 };
 
 struct dma1_stream4 {
   using controller = dma1;
   static constexpr unsigned idx = 4;
-  static inline stream_registers& regs = *DMA1_Stream4;
+  static inline stream_registers& REG = *DMA1_Stream4;
   static constexpr nvic::irq_number irqn = DMA1_Stream4_IRQn;
 };
 
 struct dma1_stream5 {
   using controller = dma1;
   static constexpr unsigned idx = 5;
-  static inline stream_registers& regs = *DMA1_Stream5;
+  static inline stream_registers& REG = *DMA1_Stream5;
   static constexpr nvic::irq_number irqn = DMA1_Stream5_IRQn;
 };
 
 struct dma1_stream6 {
   using controller = dma1;
   static constexpr unsigned idx = 6;
-  static inline stream_registers& regs = *DMA1_Stream6;
+  static inline stream_registers& REG = *DMA1_Stream6;
   static constexpr nvic::irq_number irqn = DMA1_Stream6_IRQn;
 };
 
 struct dma1_stream7 {
   using controller = dma1;
   static constexpr unsigned idx = 7;
-  static inline stream_registers& regs = *DMA1_Stream7;
+  static inline stream_registers& REG = *DMA1_Stream7;
   static constexpr nvic::irq_number irqn = DMA1_Stream7_IRQn;
 };
 
 struct dma2_stream0 {
   using controller = dma2;
   static constexpr unsigned idx = 0;
-  static inline stream_registers& regs = *DMA2_Stream0;
+  static inline stream_registers& REG = *DMA2_Stream0;
   static constexpr nvic::irq_number irqn = DMA2_Stream0_IRQn;
 };
 
 struct dma2_stream1 {
   using controller = dma2;
   static constexpr unsigned idx = 1;
-  static inline stream_registers& regs = *DMA2_Stream1;
+  static inline stream_registers& REG = *DMA2_Stream1;
   static constexpr nvic::irq_number irqn = DMA2_Stream1_IRQn;
 };
 
 struct dma2_stream2 {
   using controller = dma2;
   static constexpr unsigned idx = 2;
-  static inline stream_registers& regs = *DMA2_Stream2;
+  static inline stream_registers& REG = *DMA2_Stream2;
   static constexpr nvic::irq_number irqn = DMA2_Stream2_IRQn;
 };
 
 struct dma2_stream3 {
   using controller = dma2;
   static constexpr unsigned idx = 3;
-  static inline stream_registers& regs = *DMA2_Stream3;
+  static inline stream_registers& REG = *DMA2_Stream3;
   static constexpr nvic::irq_number irqn = DMA2_Stream3_IRQn;
 };
 
 struct dma2_stream4 {
   using controller = dma2;
   static constexpr unsigned idx = 4;
-  static inline stream_registers& regs = *DMA2_Stream4;
+  static inline stream_registers& REG = *DMA2_Stream4;
   static constexpr nvic::irq_number irqn = DMA2_Stream4_IRQn;
 };
 
 struct dma2_stream5 {
   using controller = dma2;
   static constexpr unsigned idx = 5;
-  static inline stream_registers& regs = *DMA2_Stream5;
+  static inline stream_registers& REG = *DMA2_Stream5;
   static constexpr nvic::irq_number irqn = DMA2_Stream5_IRQn;
 };
 
 struct dma2_stream6 {
   using controller = dma2;
   static constexpr unsigned idx = 6;
-  static inline stream_registers& regs = *DMA2_Stream6;
+  static inline stream_registers& REG = *DMA2_Stream6;
   static constexpr nvic::irq_number irqn = DMA2_Stream6_IRQn;
 };
 
 struct dma2_stream7 {
   using controller = dma2;
   static constexpr unsigned idx = 7;
-  static inline stream_registers& regs = *DMA2_Stream7;
+  static inline stream_registers& REG = *DMA2_Stream7;
   static constexpr nvic::irq_number irqn = DMA2_Stream7_IRQn;
 };
 

@@ -33,7 +33,8 @@ public:
   using timer_instance = Tim;
 private:
   static inline registers& REG = timer_instance::REG;
-  static inline nvic::irq_number const update_irqn_ =
+
+  static constexpr nvic::irq_number const update_irqn_ =
       timer_instance::update_irqn;
 
   emb::units::sec_f32 period_;
