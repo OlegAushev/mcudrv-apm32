@@ -27,7 +27,7 @@ public:
   static constexpr bool is_steady = true;
 private:
   static inline bool initialized_ = false;
-  static inline emb::seqlock<int64_t> time_{};
+  static inline emb::isr_seqlock<int64_t> time_{};
 public:
   steady_clock() = delete;
   static void init();
