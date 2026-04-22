@@ -9,7 +9,7 @@
 
 #include <emb/can.hpp>
 #include <emb/mmio.hpp>
-#include <emb/queue.hpp>
+#include <emb/inplace_queue.hpp>
 
 extern "C" {
 void CAN1_RX0_IRQHandler();
@@ -148,7 +148,7 @@ private:
   static const uint8_t max_fitler_count_ = 14;
 #endif
 
-  emb::queue<can_frame, 32> txqueue_;
+  emb::inplace_queue<can_frame, 32> txqueue_;
 public:
   peripheral(
       peripheral_id id,
