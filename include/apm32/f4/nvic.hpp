@@ -61,6 +61,10 @@ inline void disable_irq(irq_number irqn) {
   NVIC_DisableIRQ(irqn);
 }
 
+inline void set_pending_irq(irq_number irqn) {
+  NVIC_SetPendingIRQ(irqn);
+}
+
 inline void clear_pending_irq(irq_number irqn) {
   NVIC_ClearPendingIRQ(irqn);
 }
