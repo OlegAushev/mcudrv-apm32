@@ -25,13 +25,13 @@ inline void setup_filter_bank(
     uint32_t bank1,
     uint32_t bank2
 ) {
-  registers reg = can1::reg;
+  registers& reg = can1::reg;
 
   uint32_t const filter_bit = 1u << filter_idx;
 
   filter_init_session fg;
 
-  // Deactivate filter
+  // deactivate filter
   emb::mmio::clear(reg.FACT, filter_bit);
 
   emb::mmio::set_or_clear(reg.FSCFG, filter_bit, scale == filter_scale::_32bit);
@@ -41,7 +41,7 @@ inline void setup_filter_bank(
   reg.sFilterRegister[filter_idx].FBANK1 = bank1;
   reg.sFilterRegister[filter_idx].FBANK2 = bank2;
 
-  // Activate filter
+  // activate filter
   emb::mmio::set(reg.FACT, filter_bit);
 }
 
@@ -56,7 +56,7 @@ constexpr uint32_t encode_32bit_id(emb::canid_t id, emb::canformat_t fmt) {
 }
 
 constexpr uint32_t encode_32bit_mask(emb::canid_t mask, emb::canformat_t fmt) {
-  constexpr uint32_t rtr_bit = 1u << 1; // ignore remote frames
+  constexpr uint32_t rtr_bit = 1u << 1; // accept data frames only
   constexpr uint32_t ide_bit = 1u << 2;
   if (fmt == emb::canformat_t::standard) {
     return (mask & 0x7FFu) << 21 | ide_bit | rtr_bit;
@@ -69,7 +69,7 @@ constexpr uint32_t encode_16bit_id(emb::canid_t id) {
 }
 
 constexpr uint32_t encode_16bit_mask(emb::canid_t id) {
-  constexpr uint32_t rtr_bit = 1u << 4; // ignore remote frames
+  constexpr uint32_t rtr_bit = 1u << 4; // accept data frames only
   constexpr uint32_t ide_bit = 1u << 3;
   return (id & 0x7FFu) << 5 | ide_bit | rtr_bit;
 }
