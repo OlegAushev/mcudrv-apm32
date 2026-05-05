@@ -246,7 +246,7 @@ private:
     return bank_offset + filters_used_;
   }
 
-  void register_filter(filter_32_mask const& filter, rx_fifo fifo) {
+  void add_filter(filter_32_mask const& filter, rx_fifo fifo) {
     core::ensure(filters_used_ < Traits.filter_count);
 
     setup_filter_bank(
@@ -261,7 +261,7 @@ private:
     ++filters_used_;
   }
 
-  void register_filter(filter_32_list const& filter, rx_fifo fifo) {
+  void add_filter(filter_32_list const& filter, rx_fifo fifo) {
     core::ensure(filters_used_ < Traits.filter_count);
 
     setup_filter_bank(
@@ -276,7 +276,7 @@ private:
     ++filters_used_;
   }
 
-  void register_filter(filter_16_mask const& filter, rx_fifo fifo) {
+  void add_filter(filter_16_mask const& filter, rx_fifo fifo) {
     core::ensure(filters_used_ < Traits.filter_count);
 
     uint32_t const bank1 = detail::encode_16bit_mask(filter.mask1) << 16
@@ -296,7 +296,7 @@ private:
     ++filters_used_;
   }
 
-  void register_filter(filter_16_list const& filter, rx_fifo fifo) {
+  void add_filter(filter_16_list const& filter, rx_fifo fifo) {
     core::ensure(filters_used_ < Traits.filter_count);
 
     uint32_t const bank1 = detail::encode_16bit_id(filter.id2) << 16
@@ -394,7 +394,7 @@ private:
 };
 
 // Phase guard for filter configuration: only `init_filter_banks` can construct
-// a `filter_setup`, so `register_filter` is unreachable until CAN2SB has been
+// a `filter_setup`, so `add_filter` is unreachable until CAN2SB has been
 // programmed.
 template<some_can_instance Instance, transceiver_traits Traits>
 class filter_setup {
@@ -420,20 +420,20 @@ class filter_setup {
   ) -> std::pair<filter_setup<can1, T1>, filter_setup<can2, T2>>;
 
 public:
-  void register_filter(filter_32_mask const& filter, rx_fifo fifo) {
-    xcvr_.register_filter(filter, fifo);
+  void add(filter_32_mask const& filter, rx_fifo fifo) {
+    xcvr_.add_filter(filter, fifo);
   }
 
-  void register_filter(filter_32_list const& filter, rx_fifo fifo) {
-    xcvr_.register_filter(filter, fifo);
+  void add(filter_32_list const& filter, rx_fifo fifo) {
+    xcvr_.add_filter(filter, fifo);
   }
 
-  void register_filter(filter_16_mask const& filter, rx_fifo fifo) {
-    xcvr_.register_filter(filter, fifo);
+  void add(filter_16_mask const& filter, rx_fifo fifo) {
+    xcvr_.add_filter(filter, fifo);
   }
 
-  void register_filter(filter_16_list const& filter, rx_fifo fifo) {
-    xcvr_.register_filter(filter, fifo);
+  void add(filter_16_list const& filter, rx_fifo fifo) {
+    xcvr_.add_filter(filter, fifo);
   }
 };
 
