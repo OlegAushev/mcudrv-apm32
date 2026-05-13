@@ -2,7 +2,6 @@
 
 using namespace apm32::f4::can;
 
-#if 0
 extern "C" void CAN1_RX0_IRQHandler() {
   if (can1::on_irq_rx0) can1::on_irq_rx0();
 }
@@ -34,4 +33,3 @@ extern "C" void CAN2_TX_IRQHandler() {
 extern "C" void CAN2_SCE_IRQHandler() {
   if (can2::on_irq_sce) can2::on_irq_sce();
 }
-#endif
