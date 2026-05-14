@@ -223,7 +223,7 @@ public:
         emb::mmio::read(reg.sFIFOMailBox[fifo].RXDLEN, CAN_RXDLEN0_DLCODE)
     );
 
-    frame.payload = std::bit_cast<canpayload_t>(
+    frame.payload = std::bit_cast<emb::canpayload_t>(
         std::array{reg.sFIFOMailBox[fifo].RXMDL, reg.sFIFOMailBox[fifo].RXMDH}
     );
 
@@ -254,8 +254,8 @@ private:
         filter_mode::mask,
         fifo,
         get_next_filter_idx(),
-        detail::encode_32bit_id(filter.id, filter.format),
-        detail::encode_32bit_mask(filter.mask, filter.format)
+        detail::encode_32bit_id(filter.format, filter.id),
+        detail::encode_32bit_mask(filter.format, filter.mask)
     );
 
     ++filters_used_;
@@ -269,8 +269,8 @@ private:
         filter_mode::list,
         fifo,
         get_next_filter_idx(),
-        detail::encode_32bit_id(filter.id1, filter.format),
-        detail::encode_32bit_id(filter.id2, filter.format)
+        detail::encode_32bit_id(filter.format, filter.id1),
+        detail::encode_32bit_id(filter.format, filter.id2)
     );
 
     ++filters_used_;
