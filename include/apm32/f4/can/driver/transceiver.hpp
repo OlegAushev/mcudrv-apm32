@@ -154,10 +154,10 @@ public:
         }
     );
 
-    Instance::on_irq_rx0 = irq_handler::bind<&transceiver::on_irq_rx0>(this);
-    Instance::on_irq_rx1 = irq_handler::bind<&transceiver::on_irq_rx1>(this);
-    Instance::on_irq_tx = irq_handler::bind<&transceiver::on_irq_tx>(this);
-    Instance::on_irq_sce = irq_handler::bind<&transceiver::on_irq_sce>(this);
+    Instance::on_irq_rx0 = emb::make_delegate<&transceiver::on_irq_rx0>(this);
+    Instance::on_irq_rx1 = emb::make_delegate<&transceiver::on_irq_rx1>(this);
+    Instance::on_irq_tx = emb::make_delegate<&transceiver::on_irq_tx>(this);
+    Instance::on_irq_sce = emb::make_delegate<&transceiver::on_irq_sce>(this);
 
     // interrupt configuration
     emb::mmio::set(
