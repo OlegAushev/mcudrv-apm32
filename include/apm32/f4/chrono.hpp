@@ -40,6 +40,10 @@ public:
     return time_point{std::chrono::milliseconds{time_.load()}};
   }
 
+  static std::chrono::milliseconds time_since_boot() {
+    return std::chrono::milliseconds{time_.load()};
+  }
+
   static void delay(std::chrono::milliseconds delay) {
     auto const start = now();
     while ((now() - start) <= delay) {
