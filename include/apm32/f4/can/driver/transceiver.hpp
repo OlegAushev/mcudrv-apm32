@@ -4,6 +4,8 @@
 #include <apm32/f4/can/can_types.hpp>
 #include <apm32/f4/can/can_utils.hpp>
 
+#include <apm32/f4/chrono.hpp>
+
 #include <emb/can.hpp>
 #include <emb/chrono.hpp>
 #include <emb/concurrent.hpp>
@@ -96,6 +98,8 @@ public:
   using can_instance = Instance;
   using rx_delegate = emb::delegate<void(emb::canframe_t const&)>;
 private:
+  using timeout_t = emb::chrono::timeout<chrono::steady_clock>;
+
   static inline registers& reg = Instance::reg;
   static constexpr nvic::irq_number rx0_irqn = Instance::rx0_irqn;
   static constexpr nvic::irq_number rx1_irqn = Instance::rx1_irqn;
@@ -116,14 +120,14 @@ public:
 
     // enter init mode
     emb::mmio::set(reg.MCTRL, CAN_MCTRL_INITREQ);
-    emb::chrono::timeout init_timeout(std::chrono::milliseconds(2));
+    timeout_t init_timeout(std::chrono::milliseconds(2));
     while (!emb::mmio::test_any(reg.MSTS, CAN_MSTS_INITFLG)) {
       core::ensure(!init_timeout.expired());
     }
 
     // exit sleep mode
     emb::mmio::clear(reg.MCTRL, CAN_MCTRL_SLEEPREQ);
-    emb::chrono::timeout sleep_timeout(std::chrono::milliseconds(2));
+    timeout_t sleep_timeout(std::chrono::milliseconds(2));
     while (emb::mmio::test_any(reg.MSTS, CAN_MSTS_SLEEPFLG)) {
       core::ensure(!sleep_timeout.expired());
     }
@@ -181,7 +185,7 @@ public:
     // TODO nvic::enable_irq(sce_irqn);
 
     emb::mmio::clear(reg.MCTRL, CAN_MCTRL_INITREQ);
-    emb::chrono::timeout start_timeout(std::chrono::milliseconds(2));
+    timeout_t start_timeout(std::chrono::milliseconds(2));
     while (emb::mmio::test_any(reg.MSTS, CAN_MSTS_INITFLG)) {
       core::ensure(!start_timeout.expired());
     }

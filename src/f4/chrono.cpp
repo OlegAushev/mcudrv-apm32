@@ -8,14 +8,6 @@ extern "C" void SysTick_Handler() {
   apm32::f4::chrono::steady_clock::on_interrupt();
 }
 
-// emb::chrono::steady_clock::now() is intentionally defined here
-// since emblib doesn't provide it's definition.
-std::chrono::time_point<emb::chrono::steady_clock>
-emb::chrono::steady_clock::now() {
-  auto now = apm32::f4::chrono::steady_clock::now().time_since_epoch();
-  return std::chrono::time_point<emb::chrono::steady_clock>{now};
-}
-
 namespace apm32 {
 namespace f4 {
 namespace chrono {

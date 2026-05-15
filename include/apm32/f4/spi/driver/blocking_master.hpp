@@ -4,6 +4,8 @@
 #include <apm32/f4/spi/spi_types.hpp>
 #include <apm32/f4/spi/spi_utils.hpp>
 
+#include <apm32/f4/chrono.hpp>
+
 #include <emb/chrono.hpp>
 
 #include <array>
@@ -35,6 +37,8 @@ class blocking_master {
 public:
   using spi_instance = Instance;
 private:
+  using timeout_t = emb::chrono::timeout<chrono::steady_clock>;
+
   static inline registers& REG = spi_instance::REG;
 
   std::optional<gpio::alternate_pin> mosi_pin_;
@@ -182,7 +186,7 @@ public:
       clear_overrun();
       return std::unexpected(error::overrun);
     }
-    emb::chrono::timeout t(timeout);
+    timeout_t t(timeout);
     while (rx_empty()) {
       if (t.expired()) return std::unexpected(error::timeout);
     }
@@ -195,7 +199,7 @@ public:
       clear_overrun();
       return std::unexpected(error::overrun);
     }
-    emb::chrono::timeout t(timeout);
+    timeout_t t(timeout);
     while (!tx_empty()) {
       if (t.expired()) return std::unexpected(error::timeout);
     }
@@ -210,7 +214,7 @@ public:
 
   auto wait_idle(std::chrono::milliseconds timeout)
       -> std::expected<void, error> {
-    emb::chrono::timeout t(timeout);
+    timeout_t t(timeout);
     while (!tx_empty() || busy()) {
       if (t.expired()) return std::unexpected(error::timeout);
     }
