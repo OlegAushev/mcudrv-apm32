@@ -4,7 +4,7 @@
 
 #include <apm32/f4/nvic.hpp>
 
-#include <emb/concurrent.hpp>
+#include <emb/concurrent/isr_seqlock.hpp>
 
 #include <chrono>
 

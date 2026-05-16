@@ -8,7 +8,7 @@
 
 #include <emb/can.hpp>
 #include <emb/chrono.hpp>
-#include <emb/concurrent.hpp>
+#include <emb/concurrent/isr_spsc_inplace_queue.hpp>
 #include <emb/delegate.hpp>
 #include <emb/meta.hpp>
 
