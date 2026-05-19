@@ -24,7 +24,7 @@ struct break_pin_config {
   gpio::port port;
   gpio::pin pin;
   gpio::pull pull;
-  emb::gpio::level active_level;
+  emb::gpio::polarity polarity;
 };
 
 enum class trigger_output {

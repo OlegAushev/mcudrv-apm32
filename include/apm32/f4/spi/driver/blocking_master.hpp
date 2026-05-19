@@ -108,7 +108,7 @@ public:
               .pull = gpio::pull::none,
               .output_type = gpio::output_type::pushpull,
               .speed = pin_speed(config.clk_frequency),
-              .active_level = emb::gpio::level::low
+              .polarity = emb::gpio::polarity::active_low
           }
       );
       ss_pins_[i]->reset();

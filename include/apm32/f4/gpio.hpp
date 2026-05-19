@@ -113,7 +113,7 @@ struct input_pin_config {
   apm32::f4::gpio::port port;
   apm32::f4::gpio::pin pin;
   apm32::f4::gpio::pull pull;
-  emb::gpio::level active_level;
+  emb::gpio::polarity polarity;
 };
 
 struct output_pin_config {
@@ -122,7 +122,7 @@ struct output_pin_config {
   apm32::f4::gpio::pull pull;
   apm32::f4::gpio::output_type output_type;
   apm32::f4::gpio::speed speed;
-  emb::gpio::level active_level;
+  emb::gpio::polarity polarity;
 };
 
 struct alternate_pin_config {
@@ -192,16 +192,16 @@ private:
 
 class input_pin : public detail::pin_base {
 private:
-  emb::gpio::level const active_level_;
+  emb::gpio::polarity const polarity_;
 public:
   explicit input_pin(input_pin_config const& conf)
-      : detail::pin_base(conf), active_level_(conf.active_level) {}
+      : detail::pin_base(conf), polarity_(conf.polarity) {}
 
   input_pin(input_pin const& other) = delete;
   input_pin& operator=(input_pin const& other) = delete;
 
-  emb::gpio::level active_level() const {
-    return active_level_;
+  emb::gpio::polarity polarity() const {
+    return polarity_;
   }
 
   emb::gpio::level read_level() const {
@@ -212,10 +212,7 @@ public:
   }
 
   emb::gpio::state read() const {
-    if (read_level() == active_level_) {
-      return emb::gpio::state::active;
-    }
-    return emb::gpio::state::inactive;
+    return emb::gpio::to_state(read_level(), polarity_);
   }
 };
 
@@ -223,21 +220,21 @@ static_assert(emb::gpio::input<input_pin>);
 
 class output_pin : public detail::pin_base {
 private:
-  emb::gpio::level const active_level_;
+  emb::gpio::polarity const polarity_;
 public:
   explicit output_pin(
       output_pin_config const& conf,
       emb::gpio::state init_state = emb::gpio::state::inactive
   )
-      : detail::pin_base(conf), active_level_(conf.active_level) {
+      : detail::pin_base(conf), polarity_(conf.polarity) {
     set(init_state);
   }
 
   output_pin(output_pin const& other) = delete;
   output_pin& operator=(output_pin const& other) = delete;
 
-  emb::gpio::level active_level() const {
-    return active_level_;
+  emb::gpio::polarity polarity() const {
+    return polarity_;
   }
 
   emb::gpio::level read_level() const {
@@ -256,18 +253,11 @@ public:
   }
 
   emb::gpio::state read() const {
-    if (read_level() == active_level_) {
-      return emb::gpio::state::active;
-    }
-    return emb::gpio::state::inactive;
+    return emb::gpio::to_state(read_level(), polarity_);
   }
 
   void set(emb::gpio::state s = emb::gpio::state::active) {
-    if (s == emb::gpio::state::active) {
-      set_level(active_level_);
-    } else {
-      set_level(!active_level_);
-    }
+    set_level(emb::gpio::to_level(s, polarity_));
   }
 
   void reset() {

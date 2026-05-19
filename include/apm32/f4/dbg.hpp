@@ -47,7 +47,7 @@ public:
             .pull = gpio::pull::none,
             .output_type = gpio::output_type::pushpull,
             .speed = gpio::speed::very_high,
-            .active_level = emb::gpio::level::high
+            .polarity = emb::gpio::polarity::active_high
         }
     );
   }

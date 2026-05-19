@@ -21,7 +21,8 @@ void detail::configure_bdt(
 
   if (bk_pin.has_value()) {
     brk_enable = 1;
-    brk_polarity = bk_pin->active_level == emb::gpio::level::low ? 0u : 1u;
+    brk_polarity = bk_pin->polarity == emb::gpio::polarity::active_low ? 0u
+                                                                       : 1u;
   }
 
   emb::mmio::modify(REG.BDT,
