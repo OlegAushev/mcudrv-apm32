@@ -47,28 +47,29 @@ inline void setup_filter_bank(
 
 namespace detail {
 
-constexpr uint32_t encode_32bit_id(emb::canformat_t fmt, emb::canid_t id) {
-  if (fmt == emb::canformat_t::standard) {
+constexpr uint32_t encode_32bit_id(emb::can::format_t fmt, emb::can::id_t id) {
+  if (fmt == emb::can::format_t::standard) {
     return (id & 0x7FFu) << 21;
   }
   constexpr uint32_t ide_bit = 1u << 2;
   return (id & 0x1FFFFFFFu) << 3 | ide_bit;
 }
 
-constexpr uint32_t encode_32bit_mask(emb::canformat_t fmt, emb::canid_t mask) {
+constexpr uint32_t
+encode_32bit_mask(emb::can::format_t fmt, emb::can::id_t mask) {
   constexpr uint32_t rtr_bit = 1u << 1; // accept data frames only
   constexpr uint32_t ide_bit = 1u << 2;
-  if (fmt == emb::canformat_t::standard) {
+  if (fmt == emb::can::format_t::standard) {
     return (mask & 0x7FFu) << 21 | ide_bit | rtr_bit;
   }
   return (mask & 0x1FFFFFFFu) << 3 | ide_bit | rtr_bit;
 }
 
-constexpr uint32_t encode_16bit_id(emb::canid_t id) {
+constexpr uint32_t encode_16bit_id(emb::can::id_t id) {
   return (id & 0x7FFu) << 5;
 }
 
-constexpr uint32_t encode_16bit_mask(emb::canid_t id) {
+constexpr uint32_t encode_16bit_mask(emb::can::id_t id) {
   constexpr uint32_t rtr_bit = 1u << 4; // accept data frames only
   constexpr uint32_t ide_bit = 1u << 3;
   return (id & 0x7FFu) << 5 | ide_bit | rtr_bit;

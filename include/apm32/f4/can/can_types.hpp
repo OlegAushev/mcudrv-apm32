@@ -37,15 +37,15 @@ enum class filter_scale : uint32_t { _16bit, _32bit };
 enum class filter_mode : uint32_t { mask, list };
 
 struct filter_32_mask {
-  emb::canformat_t format;
-  emb::canid_t id;
-  emb::canid_t mask;
+  emb::can::format_t format;
+  emb::can::id_t id;
+  emb::can::id_t mask;
 };
 
 struct filter_32_list {
-  emb::canformat_t format;
-  emb::canid_t id1;
-  emb::canid_t id2;
+  emb::can::format_t format;
+  emb::can::id_t id1;
+  emb::can::id_t id2;
 };
 
 struct filter_16_mask {

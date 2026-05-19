@@ -96,7 +96,7 @@ class transceiver {
   friend class filter_setup;
 public:
   using can_instance = Instance;
-  using rx_delegate = emb::delegate<void(emb::canframe_t const&)>;
+  using rx_delegate = emb::delegate<void(emb::can::frame_t const&)>;
 private:
   using timeout_t = emb::chrono::timeout<chrono::steady_clock>;
 
@@ -111,7 +111,8 @@ private:
 
   uint32_t filters_used_ = 0;
 
-  emb::isr_spsc_inplace_queue<emb::canframe_t, Traits.tx_queue_size> tx_queue_;
+  emb::isr_spsc_inplace_queue<emb::can::frame_t, Traits.tx_queue_size>
+      tx_queue_;
   rx_delegate on_rx_fifo0_;
   rx_delegate on_rx_fifo1_;
 public:
@@ -199,27 +200,27 @@ public:
     on_rx_fifo1_ = sink;
   }
 
-  auto put(emb::canframe_t const& frame) -> std::expected<void, error> {
+  auto put(emb::can::frame_t const& frame) -> std::expected<void, error> {
     if (!tx_queue_.try_push(frame)) return std::unexpected(error::overflow);
     if (!all_mailboxes_busy()) nvic::set_pending_irq(tx_irqn);
     return {};
   }
 
   template<rx_fifo RxFifo>
-  auto get() -> std::optional<emb::canframe_t> {
+  auto get() -> std::optional<emb::can::frame_t> {
     if (rx_messages_pending<RxFifo>() == 0) {
       return {};
     }
 
     constexpr auto fifo = std::to_underlying(RxFifo);
-    emb::canframe_t frame;
+    emb::can::frame_t frame;
 
     uint32_t const rxmid = reg.sFIFOMailBox[fifo].RXMID;
     if (!emb::mmio::test_any(rxmid, CAN_RXMID0_IDTYPESEL)) {
-      frame.format = emb::canformat_t::standard;
+      frame.format = emb::can::format_t::standard;
       frame.id = rxmid >> 21;
     } else {
-      frame.format = emb::canformat_t::extended;
+      frame.format = emb::can::format_t::extended;
       frame.id = rxmid >> 3;
     }
 
@@ -227,7 +228,7 @@ public:
         emb::mmio::read(reg.sFIFOMailBox[fifo].RXDLEN, CAN_RXDLEN0_DLCODE)
     );
 
-    frame.payload = std::bit_cast<emb::canpayload_t>(
+    frame.payload = std::bit_cast<emb::can::payload_t>(
         std::array{reg.sFIFOMailBox[fifo].RXMDL, reg.sFIFOMailBox[fifo].RXMDH}
     );
 
@@ -341,13 +342,13 @@ private:
     }
   }
 
-  void put_into_mailbox(emb::canframe_t const& frame) {
+  void put_into_mailbox(emb::can::frame_t const& frame) {
     auto mailbox = emb::mmio::read(reg.TXSTS, CAN_TXSTS_EMNUM);
     if (mailbox > 2) return;
 
     // ID
     uint32_t txmid;
-    if (frame.format == emb::canformat_t::standard) {
+    if (frame.format == emb::can::format_t::standard) {
       txmid = (frame.id << CAN_TXMID0_STDID_Pos);
     } else {
       txmid = (frame.id << CAN_TXMID0_EXTID_Pos) | CAN_TXMID0_IDTYPESEL;
