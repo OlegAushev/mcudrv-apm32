@@ -6,9 +6,7 @@
 #include <emb/meta.hpp>
 #include <emb/mmio.hpp>
 
-namespace apm32 {
-namespace f4 {
-namespace dma {
+namespace apm32::f4::dma {
 
 using controller_registers = DMA_TypeDef;
 
@@ -37,6 +35,4 @@ struct is_dma_controller_instance
 template<typename T>
 concept some_dma_controller_instance = is_dma_controller_instance<T>::value;
 
-} // namespace dma
-} // namespace f4
-} // namespace apm32
+} // namespace apm32::f4::dma

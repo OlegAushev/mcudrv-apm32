@@ -13,9 +13,7 @@
 #include <optional>
 #include <utility>
 
-namespace apm32 {
-namespace f4 {
-namespace gpio {
+namespace apm32::f4::gpio {
 
 using port_registers = GPIO_TypeDef;
 
@@ -294,6 +292,4 @@ public:
   analog_pin& operator=(analog_pin const& other) = delete;
 };
 
-} // namespace gpio
-} // namespace f4
-} // namespace apm32
+} // namespace apm32::f4::gpio

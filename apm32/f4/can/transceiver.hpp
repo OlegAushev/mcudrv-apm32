@@ -14,9 +14,7 @@
 #include <optional>
 #include <utility>
 
-namespace apm32 {
-namespace f4 {
-namespace can {
+namespace apm32::f4::can {
 
 inline constexpr size_t filter_count_total = 28;
 
@@ -475,6 +473,4 @@ template<transceiver_traits Traits1, transceiver_traits Traits2>
   };
 }
 
-} // namespace can
-} // namespace f4
-} // namespace apm32
+} // namespace apm32::f4::can

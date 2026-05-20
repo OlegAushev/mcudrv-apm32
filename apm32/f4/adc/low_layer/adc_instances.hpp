@@ -10,9 +10,7 @@
 
 #include <chrono>
 
-namespace apm32 {
-namespace f4 {
-namespace adc {
+namespace apm32::f4::adc {
 
 using common_registers = ADC_Common_TypeDef;
 using registers = ADC_TypeDef;
@@ -82,6 +80,4 @@ consteval bool is_compatible_dma_channel() {
   return std::same_as<T, typename Instance::dma_channel>;
 }
 
-} // namespace adc
-} // namespace f4
-} // namespace apm32
+} // namespace apm32::f4::adc

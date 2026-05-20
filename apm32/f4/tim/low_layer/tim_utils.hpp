@@ -7,9 +7,7 @@
 #include <emb/mmio.hpp>
 #include <emb/units.hpp>
 
-namespace apm32 {
-namespace f4 {
-namespace tim {
+namespace apm32::f4::tim {
 
 template<some_timer_instance Tim>
 void enable_counter() {
@@ -108,6 +106,4 @@ uint16_t calculate_prescaler(emb::units::hz_f32 tim_freq, counter_mode mode) {
   );
 }
 
-} // namespace tim
-} // namespace f4
-} // namespace apm32
+} // namespace apm32::f4::tim

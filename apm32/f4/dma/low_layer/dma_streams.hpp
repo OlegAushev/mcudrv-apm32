@@ -4,9 +4,7 @@
 
 #include <apm32/f4/nvic.hpp>
 
-namespace apm32 {
-namespace f4 {
-namespace dma {
+namespace apm32::f4::dma {
 
 using stream_registers = DMA_Stream_TypeDef;
 
@@ -147,6 +145,4 @@ struct is_dma_stream_instance : std::bool_constant<emb::same_as_any<
 template<typename T>
 concept some_dma_stream_instance = is_dma_stream_instance<T>::value;
 
-} // namespace dma
-} // namespace f4
-} // namespace apm32
+} // namespace apm32::f4::dma

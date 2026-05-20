@@ -9,9 +9,7 @@
 
 #include <emb/units.hpp>
 
-namespace apm32 {
-namespace f4 {
-namespace core {
+namespace apm32::f4::core {
 
 void init_clock();
 void update_clock();
@@ -94,6 +92,4 @@ public:
   }
 };
 
-} // namespace core
-} // namespace f4
-} // namespace apm32
+} // namespace apm32::f4::core

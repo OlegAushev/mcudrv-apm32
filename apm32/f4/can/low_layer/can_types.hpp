@@ -7,9 +7,7 @@
 
 #include <emb/can.hpp>
 
-namespace apm32 {
-namespace f4 {
-namespace can {
+namespace apm32::f4::can {
 
 enum class error : uint8_t { timeout, overflow, internal };
 
@@ -62,6 +60,4 @@ struct filter_16_list {
   uint16_t id4;
 };
 
-} // namespace can
-} // namespace f4
-} // namespace apm32
+} // namespace apm32::f4::can

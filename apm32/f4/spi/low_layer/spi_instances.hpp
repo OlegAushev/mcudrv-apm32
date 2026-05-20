@@ -12,9 +12,7 @@
 
 #include <cstddef>
 
-namespace apm32 {
-namespace f4 {
-namespace spi {
+namespace apm32::f4::spi {
 
 using registers = SPI_TypeDef;
 
@@ -68,6 +66,4 @@ struct is_spi_instance
 template<typename T>
 concept some_spi_instance = is_spi_instance<T>::value;
 
-} // namespace spi
-} // namespace f4
-} // namespace apm32
+} // namespace apm32::f4::spi

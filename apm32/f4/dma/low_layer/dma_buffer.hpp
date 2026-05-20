@@ -5,9 +5,7 @@
 #include <array>
 #include <cstdint>
 
-namespace apm32 {
-namespace f4 {
-namespace dma {
+namespace apm32::f4::dma {
 
 template<typename T>
 concept dma_data_type = emb::same_as_any<T, uint8_t, uint16_t, uint32_t>;
@@ -29,6 +27,4 @@ struct memory_double_buffer {
   std::array<element_type, Size> data2 __attribute__((aligned(32)));
 };
 
-} // namespace dma
-} // namespace f4
-} // namespace apm32
+} // namespace apm32::f4::dma

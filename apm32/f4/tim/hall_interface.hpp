@@ -10,10 +10,7 @@
 #include <limits>
 #include <optional>
 
-namespace apm32 {
-namespace f4 {
-namespace tim {
-namespace hall {
+namespace apm32::f4::tim::hall {
 
 struct input_pin_config {
   gpio::port port;
@@ -151,7 +148,4 @@ public:
   }
 };
 
-} // namespace hall
-} // namespace tim
-} // namespace f4
-} // namespace apm32
+} // namespace apm32::f4::tim::hall

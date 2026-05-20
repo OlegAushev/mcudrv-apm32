@@ -3,9 +3,7 @@
 #include <apm32/f4/can/low_layer/can_instances.hpp>
 #include <apm32/f4/can/low_layer/can_types.hpp>
 
-namespace apm32 {
-namespace f4 {
-namespace can {
+namespace apm32::f4::can {
 
 struct filter_init_session {
   filter_init_session() {
@@ -77,6 +75,4 @@ constexpr uint32_t encode_16bit_mask(emb::can::id_t id) {
 
 } // namespace detail
 
-} // namespace can
-} // namespace f4
-} // namespace apm32
+} // namespace apm32::f4::can

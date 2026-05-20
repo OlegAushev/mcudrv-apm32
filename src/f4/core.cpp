@@ -2,9 +2,7 @@
 
 #include <apm32/f4/nvic.hpp>
 
-namespace apm32 {
-namespace f4 {
-namespace core {
+namespace apm32::f4::core {
 
 __attribute__((weak)) void init_clock() {
   while (true) {
@@ -33,6 +31,4 @@ void reset_device() {
   }
 }
 
-} // namespace core
-} // namespace f4
-} // namespace apm32
+} // namespace apm32::f4::core

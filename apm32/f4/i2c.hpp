@@ -10,10 +10,7 @@
 #include <emb/noncopyable.hpp>
 #include <emb/singleton.hpp>
 
-namespace mcu {
-inline namespace apm32 {
-inline namespace f4 {
-namespace i2c {
+namespace mcu::inline apm32::inline f4::i2c {
 
 using Regs = I2C_T;
 
@@ -247,9 +244,6 @@ private:
       []() { RCM_EnableAPB1PeriphClock(RCM_APB1_PERIPH_I2C3); }};
 };
 
-} // namespace i2c
-} // namespace f4
-} // namespace apm32
-} // namespace mcu
+} // namespace mcu::apm32::f4::i2c
 
 #endif

@@ -5,9 +5,7 @@
 #include <emb/mmio.hpp>
 #include <emb/units.hpp>
 
-namespace apm32 {
-namespace f4 {
-namespace spi {
+namespace apm32::f4::spi {
 
 enum class error : uint8_t {
   timeout,
@@ -60,6 +58,4 @@ enum class baudrate_prescaler : uint32_t {
 template<typename T>
 concept frame_format = emb::same_as_any<T, uint8_t, uint16_t>;
 
-} // namespace spi
-} // namespace f4
-} // namespace apm32
+} // namespace apm32::f4::spi

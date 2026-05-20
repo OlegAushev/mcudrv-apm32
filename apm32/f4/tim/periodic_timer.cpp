@@ -4,9 +4,7 @@
 
 #include <emb/mmio.hpp>
 
-namespace apm32 {
-namespace f4 {
-namespace tim {
+namespace apm32::f4::tim {
 
 void detail::configure_timebase(
     registers& REG,
@@ -33,6 +31,4 @@ void detail::configure_timebase(
   emb::mmio::set(REG.CTRL1, TMR_CTRL1_ARPEN);
 }
 
-} // namespace tim
-} // namespace f4
-} // namespace apm32
+} // namespace apm32::f4::tim

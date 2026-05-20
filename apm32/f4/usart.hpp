@@ -11,10 +11,7 @@
 #include <emb/singleton.hpp>
 #include <emb/uart.hpp>
 
-namespace mcu {
-inline namespace apm32 {
-inline namespace f4 {
-namespace usart {
+namespace mcu::inline apm32::inline f4::usart {
 
 using Regs = USART_T;
 
@@ -133,9 +130,6 @@ protected:
       []() { RCM_EnableAPB2PeriphClock(RCM_APB2_PERIPH_USART6); }};
 };
 
-} // namespace usart
-} // namespace f4
-} // namespace apm32
-} // namespace mcu
+} // namespace mcu::apm32::f4::usart
 
 #endif

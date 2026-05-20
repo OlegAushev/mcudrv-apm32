@@ -2,9 +2,7 @@
 
 #include <emb/mmio.hpp>
 
-namespace apm32 {
-namespace f4 {
-namespace exti {
+namespace apm32::f4::exti {
 
 namespace {
 
@@ -45,6 +43,4 @@ void configure(line l, mode m, trigger_edge edge) {
   }
 }
 
-} // namespace exti
-} // namespace f4
-} // namespace apm32
+} // namespace apm32::f4::exti

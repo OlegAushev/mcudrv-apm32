@@ -5,9 +5,7 @@
 #include <emb/mmio.hpp>
 #include <emb/singleton.hpp>
 
-namespace apm32 {
-namespace f4 {
-namespace tim {
+namespace apm32::f4::tim {
 
 struct periodic_timer_config {
   emb::units::hz_f32 frequency;
@@ -83,6 +81,4 @@ private:
   }
 };
 
-} // namespace tim
-} // namespace f4
-} // namespace apm32
+} // namespace apm32::f4::tim

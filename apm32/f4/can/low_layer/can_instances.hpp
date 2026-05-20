@@ -13,9 +13,7 @@
 
 #include <cstddef>
 
-namespace apm32 {
-namespace f4 {
-namespace can {
+namespace apm32::f4::can {
 
 using registers = CAN_TypeDef;
 
@@ -75,6 +73,4 @@ struct is_can_instance : std::bool_constant<emb::same_as_any<T, can1, can2>> {};
 template<typename T>
 concept some_can_instance = is_can_instance<T>::value;
 
-} // namespace can
-} // namespace f4
-} // namespace apm32
+} // namespace apm32::f4::can

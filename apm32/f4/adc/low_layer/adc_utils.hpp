@@ -7,9 +7,7 @@
 
 #include <algorithm>
 
-namespace apm32 {
-namespace f4 {
-namespace adc {
+namespace apm32::f4::adc {
 
 template<some_adc_instance Instance>
 void start_injected() {
@@ -90,6 +88,4 @@ inline float convert_to_mcu_temperature(uint32_t adc_data) {
   return (volt - 0.7782f) / 0.0024f + 28.0f;
 }
 
-} // namespace adc
-} // namespace f4
-} // namespace apm32
+} // namespace apm32::f4::adc

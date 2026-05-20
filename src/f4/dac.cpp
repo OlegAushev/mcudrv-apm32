@@ -2,9 +2,7 @@
 
 #include <emb/mmio.hpp>
 
-namespace apm32 {
-namespace f4 {
-namespace dac {
+namespace apm32::f4::dac {
 
 peripheral::peripheral(peripheral_id id)
     : peripheral_type(id),
@@ -54,6 +52,4 @@ void peripheral::enable_clock(peripheral_id id) {
   is_clock_enabled_[dac_idx] = true;
 }
 
-} // namespace dac
-} // namespace f4
-} // namespace apm32
+} // namespace apm32::f4::dac

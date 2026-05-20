@@ -2,9 +2,7 @@
 
 #include <emb/meta.hpp>
 
-namespace apm32 {
-namespace f4 {
-namespace dma {
+namespace apm32::f4::dma {
 
 struct channel0 {
   static constexpr unsigned idx = 0;
@@ -53,6 +51,4 @@ struct is_dma_channel_instance : std::bool_constant<emb::same_as_any<
 template<typename T>
 concept some_dma_channel_instance = is_dma_channel_instance<T>::value;
 
-} // namespace dma
-} // namespace f4
-} // namespace apm32
+} // namespace apm32::f4::dma

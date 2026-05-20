@@ -14,9 +14,7 @@
 #include <cstddef>
 #include <utility>
 
-namespace apm32 {
-namespace f4 {
-namespace tim {
+namespace apm32::f4::tim {
 
 using registers = TMR_TypeDef;
 
@@ -284,6 +282,4 @@ struct is_basic_timer : std::bool_constant<emb::same_as_any<T, tim6, tim7>> {};
 template<typename T>
 concept some_basic_timer = is_basic_timer<T>::value;
 
-} // namespace tim
-} // namespace f4
-} // namespace apm32
+} // namespace apm32::f4::tim

@@ -2,9 +2,7 @@
 
 #include <emb/mmio.hpp>
 
-namespace apm32 {
-namespace f4 {
-namespace dma {
+namespace apm32::f4::dma {
 
 void detail::init_pm_stream(stream_registers& STREAM_REG, uint32_t ch) {
   emb::mmio::modify(STREAM_REG.SCFG,
@@ -19,6 +17,4 @@ void detail::init_pm_stream(stream_registers& STREAM_REG, uint32_t ch) {
   );
 }
 
-} // namespace dma
-} // namespace f4
-} // namespace apm32
+} // namespace apm32::f4::dma

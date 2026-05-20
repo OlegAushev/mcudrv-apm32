@@ -18,10 +18,7 @@
 #include <optional>
 #include <utility>
 
-namespace apm32 {
-namespace f4 {
-namespace tim {
-namespace pwm {
+namespace apm32::f4::tim::pwm {
 
 struct half_bridge_pwm_config {
   emb::units::hz_f32 frequency;
@@ -323,7 +320,4 @@ using three_phase_bridge_config = half_bridge_config<3>;
 template<typename Tim>
 using three_phase_bridge = half_bridge<Tim, 3>;
 
-} // namespace pwm
-} // namespace tim
-} // namespace f4
-} // namespace apm32
+} // namespace apm32::f4::tim::pwm

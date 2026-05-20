@@ -2,9 +2,7 @@
 
 #include <cstdint>
 
-namespace apm32 {
-namespace f4 {
-namespace tim {
+namespace apm32::f4::tim {
 
 enum class clock_division : uint32_t {
   div1 = 0b00u,
@@ -42,6 +40,4 @@ enum class capture_filter : uint32_t {
   div32_n8,
 };
 
-} // namespace tim
-} // namespace f4
-} // namespace apm32
+} // namespace apm32::f4::tim

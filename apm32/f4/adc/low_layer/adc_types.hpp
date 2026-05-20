@@ -2,9 +2,7 @@
 
 #include <cstdint>
 
-namespace apm32 {
-namespace f4 {
-namespace adc {
+namespace apm32::f4::adc {
 
 enum class trigger_edge : uint8_t {
   rising = 0b01,
@@ -71,6 +69,4 @@ enum class sampletime {
   cycles_480
 };
 
-} // namespace adc
-} // namespace f4
-} // namespace apm32
+} // namespace apm32::f4::adc

@@ -6,9 +6,7 @@
 
 #include <cstddef>
 
-namespace apm32 {
-namespace f4 {
-namespace crc {
+namespace apm32::f4::crc {
 
 inline void init() { emb::mmio::set(RCM->AHB1CLKEN, RCM_AHB1CLKEN_CRCEN); }
 
@@ -20,6 +18,4 @@ inline uint32_t calc_crc32(const uint8_t* buf, size_t len) {
     return CRC->DATA;
 }
 
-} // namespace crc
-} // namespace f4
-} // namespace apm32
+} // namespace apm32::f4::crc

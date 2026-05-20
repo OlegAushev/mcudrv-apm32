@@ -18,10 +18,7 @@
 #include <optional>
 #include <utility>
 
-namespace apm32 {
-namespace f4 {
-namespace tim {
-namespace pwm {
+namespace apm32::f4::tim::pwm {
 
 struct psfb_pwm_config {
   emb::units::hz_f32 frequency;
@@ -332,7 +329,4 @@ private:
   }
 };
 
-} // namespace pwm
-} // namespace tim
-} // namespace f4
-} // namespace apm32
+} // namespace apm32::f4::tim::pwm

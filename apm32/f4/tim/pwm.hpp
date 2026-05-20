@@ -9,10 +9,7 @@
 #include <emb/mmio.hpp>
 #include <emb/units.hpp>
 
-namespace apm32 {
-namespace f4 {
-namespace tim {
-namespace pwm {
+namespace apm32::f4::tim::pwm {
 
 struct output_pin_config {
   gpio::port port;
@@ -94,7 +91,4 @@ void configure_bdt(
 
 } // namespace detail
 
-} // namespace pwm
-} // namespace tim
-} // namespace f4
-} // namespace apm32
+} // namespace apm32::f4::tim::pwm

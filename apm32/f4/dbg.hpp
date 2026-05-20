@@ -3,9 +3,7 @@
 #include <apm32/f4/core.hpp>
 #include <apm32/f4/gpio.hpp>
 
-namespace apm32 {
-namespace f4 {
-namespace dbg {
+namespace apm32::f4::dbg {
 
 enum class probe_mode { level, edge };
 
@@ -111,6 +109,4 @@ private:
   }
 };
 
-} // namespace dbg
-} // namespace f4
-} // namespace apm32
+} // namespace apm32::f4::dbg

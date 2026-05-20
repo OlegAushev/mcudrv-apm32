@@ -4,9 +4,7 @@
 
 #include <emb/mmio.hpp>
 
-namespace apm32 {
-namespace f4 {
-namespace dma {
+namespace apm32::f4::dma {
 
 struct peripheral_to_memory_stream_config {
   nvic::irq_priority irq_priority;
@@ -86,6 +84,4 @@ private:
   }
 };
 
-} // namespace dma
-} // namespace f4
-} // namespace apm32
+} // namespace apm32::f4::dma

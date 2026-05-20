@@ -7,9 +7,7 @@
 
 #include <emb/mmio.hpp>
 
-namespace apm32 {
-namespace f4 {
-namespace adc {
+namespace apm32::f4::adc {
 
 enum class channel_type {
   external,
@@ -336,6 +334,4 @@ struct regular_channel {
   }
 };
 
-} // namespace adc
-} // namespace f4
-} // namespace apm32
+} // namespace apm32::f4::adc

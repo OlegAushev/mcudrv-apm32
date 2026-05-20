@@ -8,9 +8,7 @@ extern "C" void SysTick_Handler() {
   apm32::f4::chrono::steady_clock::on_interrupt();
 }
 
-namespace apm32 {
-namespace f4 {
-namespace chrono {
+namespace apm32::f4::chrono {
 
 void steady_clock::init() {
   core::ensure(!initialized_);
@@ -31,6 +29,4 @@ void high_resolution_clock::init() {
   initialized_ = true;
 }
 
-} //namespace chrono
-} // namespace f4
-} // namespace apm32
+} // namespace apm32::f4::chrono

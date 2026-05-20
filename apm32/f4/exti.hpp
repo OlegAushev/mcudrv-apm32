@@ -6,9 +6,7 @@
 
 #include <utility>
 
-namespace apm32 {
-namespace f4 {
-namespace exti {
+namespace apm32::f4::exti {
 
 enum class line : uint32_t {
     line0  = (1u << 0),
@@ -63,6 +61,4 @@ inline void ack_interrupt(line l) {
   emb::mmio::clear_w1(EINT->IPEND, std::to_underlying(l));
 }
 
-} // namespace exti
-} // namespace f4
-} // namespace apm32
+} // namespace apm32::f4::exti

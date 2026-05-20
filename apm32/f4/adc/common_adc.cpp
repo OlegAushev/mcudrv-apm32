@@ -3,10 +3,7 @@
 
 #include <emb/mmio.hpp>
 
-namespace apm32 {
-namespace f4 {
-namespace adc {
-namespace detail {
+namespace apm32::f4::adc::detail {
 
 void init_common() {
   static bool initialized = false;
@@ -27,7 +24,4 @@ void init_common() {
   );
 }
 
-} // namespace detail
-} // namespace adc
-} // namespace f4
-} // namespace apm32
+} // namespace apm32::f4::adc::detail

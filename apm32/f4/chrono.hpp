@@ -10,9 +10,7 @@
 
 extern "C" void SysTick_Handler();
 
-namespace apm32 {
-namespace f4 {
-namespace chrono {
+namespace apm32::f4::chrono {
 
 class high_resolution_clock;
 
@@ -148,6 +146,4 @@ constexpr float to_float(high_resolution_clock::duration dur) {
   return static_cast<float>(dur_);
 }
 
-} // namespace chrono
-} // namespace f4
-} // namespace apm32
+} // namespace apm32::f4::chrono

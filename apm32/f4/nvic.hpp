@@ -8,9 +8,7 @@
 
 #include <algorithm>
 
-namespace apm32 {
-namespace f4 {
-namespace nvic {
+namespace apm32::f4::nvic {
 
 using irq_number = IRQn_Type;
 
@@ -126,6 +124,4 @@ private:
   }
 };
 
-} // namespace nvic
-} // namespace f4
-} // namespace apm32
+} // namespace apm32::f4::nvic

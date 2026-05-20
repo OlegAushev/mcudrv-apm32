@@ -4,9 +4,7 @@
 
 #include <emb/mmio.hpp>
 
-namespace apm32 {
-namespace f4 {
-namespace gpio {
+namespace apm32::f4::gpio {
 
 detail::pin_base::pin_base(
     port p,
@@ -96,6 +94,4 @@ detail::pin_base::pin_base(analog_pin_config const& conf)
           std::to_underlying(pull::none)
       ) {}
 
-} // namespace gpio
-} // namespace f4
-} // namespace apm32
+} // namespace apm32::f4::gpio

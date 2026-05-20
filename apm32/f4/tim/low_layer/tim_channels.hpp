@@ -6,9 +6,7 @@
 
 #include <tuple>
 
-namespace apm32 {
-namespace f4 {
-namespace tim {
+namespace apm32::f4::tim {
 
 enum class channel_idx : unsigned {
   ch1,
@@ -47,6 +45,4 @@ using channel_at = std::tuple_element_t<
     I,
     std::tuple<channel1, channel2, channel3, channel4>>;
 
-} // namespace tim
-} // namespace f4
-} // namespace apm32
+} // namespace apm32::f4::tim

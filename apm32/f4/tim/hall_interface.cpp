@@ -2,10 +2,7 @@
 
 #include <emb/mmio.hpp>
 
-namespace apm32 {
-namespace f4 {
-namespace tim {
-namespace hall {
+namespace apm32::f4::tim::hall {
 
 void detail::configure_timebase(
     registers& REG,
@@ -45,7 +42,4 @@ void detail::configure_channel(registers& REG, capture_filter filter) {
   );
 }
 
-} // namespace hall
-} // namespace tim
-} // namespace f4
-} // namespace apm32
+} // namespace apm32::f4::tim::hall

@@ -4,10 +4,7 @@
 
 #include <emb/mmio.hpp>
 
-namespace apm32 {
-namespace f4 {
-namespace tim {
-namespace pwm {
+namespace apm32::f4::tim::pwm {
 
 void detail::configure_half_bridge_timebase(
     registers& REG,
@@ -36,7 +33,4 @@ void detail::configure_half_bridge_timebase(
   emb::mmio::set(REG.CTRL1, TMR_CTRL1_ARPEN);
 }
 
-} // namespace pwm
-} // namespace tim
-} // namespace f4
-} // namespace apm32
+} // namespace apm32::f4::tim::pwm

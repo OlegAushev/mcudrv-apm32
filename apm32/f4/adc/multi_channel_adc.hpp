@@ -8,9 +8,7 @@
 
 #include <optional>
 
-namespace apm32 {
-namespace f4 {
-namespace adc {
+namespace apm32::f4::adc {
 
 namespace detail {
 
@@ -205,6 +203,4 @@ private:
   }
 };
 
-} // namespace adc
-} // namespace f4
-} // namespace apm32
+} // namespace apm32::f4::adc

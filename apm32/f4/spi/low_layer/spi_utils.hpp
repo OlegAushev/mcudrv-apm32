@@ -6,9 +6,7 @@
 #include <emb/mmio.hpp>
 #include <emb/units.hpp>
 
-namespace apm32 {
-namespace f4 {
-namespace spi {
+namespace apm32::f4::spi {
 
 template<some_spi_instance Instance>
 void enable() {
@@ -63,6 +61,4 @@ constexpr gpio::speed pin_speed(emb::units::hz_f32 spi_freq) {
   }
 }
 
-} // namespace spi
-} // namespace f4
-} // namespace apm32
+} // namespace apm32::f4::spi

@@ -11,9 +11,7 @@
 #include <algorithm>
 #include <utility>
 
-namespace apm32 {
-namespace f4 {
-namespace dac {
+namespace apm32::f4::dac {
 
 using peripheral_registers = DAC_TypeDef;
 
@@ -77,6 +75,4 @@ private:
   static void enable_clock(peripheral_id id);
 };
 
-} // namespace dac
-} // namespace f4
-} // namespace apm32
+} // namespace apm32::f4::dac
