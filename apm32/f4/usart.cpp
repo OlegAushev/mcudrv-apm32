@@ -1,56 +1,58 @@
+#if 0
 #ifdef APM32F4XX
 
-#include <apm32/f4/i2c.hpp>
+#include <apm32/f4/usart.hpp>
 
 namespace mcu {
 inline namespace apm32 {
 inline namespace f4 {
-namespace i2c {
+namespace usart {
 
-internal::SdaPin::SdaPin(SdaPinConfig const& conf)
+internal::RxPin::RxPin(RxPinConfig const& conf)
     : gpio::AlternatePin{{.port = conf.port,
                           .pin = conf.pin,
                           .pull = gpio::Pull::none,
-                          .output_type = gpio::OutputType::opendrain,
+                          .output_type = gpio::OutputType::pushpull,
                           .speed = gpio::Speed::fast,
                           .altfunc = conf.altfunc}} {}
 
-internal::SclPin::SclPin(SclPinConfig const& conf)
+internal::TxPin::TxPin(TxPinConfig const& conf)
     : gpio::AlternatePin{{.port = conf.port,
                           .pin = conf.pin,
                           .pull = gpio::Pull::none,
-                          .output_type = gpio::OutputType::opendrain,
+                          .output_type = gpio::OutputType::pushpull,
                           .speed = gpio::Speed::fast,
                           .altfunc = conf.altfunc}} {}
 
 Module::Module(Peripheral peripheral,
-               SdaPinConfig const& sda_pinconf,
-               SclPinConfig const& scl_pinconf,
-               Config const& conf)
+               RxPinConfig const& rx_pinconf,
+               TxPinConfig const& tx_pinconf,
+               Config const& config)
     : emb::singleton_array<Module, periph_num>(this,
                                                std::to_underlying(peripheral)),
       peripheral_(peripheral),
-      regs_(i2c::regs[std::to_underlying(peripheral)]),
-      sda_pin_{sda_pinconf},
-      scl_pin_{scl_pinconf},
-      conf_{conf} {
+      regs_{usart::regs[std::to_underlying(peripheral)]},
+      rx_pin_{rx_pinconf},
+      tx_pin_{tx_pinconf} {
   enable_clk(peripheral);
-  I2C_Config(regs_, const_cast<I2C_Config_T*>(&conf.hal_config));
+  USART_Config(regs_, const_cast<USART_Config_T*>(&config.hal_config));
+  USART_Enable(regs_);
 }
 
 void Module::enable_clk(Peripheral peripheral) {
-  size_t i2c_idx{std::to_underlying(peripheral)};
-  if (clk_enabled_[i2c_idx]) {
+  size_t usart_idx{std::to_underlying(peripheral)};
+  if (clk_enabled_[usart_idx]) {
     return;
   }
 
-  enable_clk_[i2c_idx]();
-  clk_enabled_[i2c_idx] = true;
+  enable_clk_[usart_idx]();
+  clk_enabled_[usart_idx] = true;
 }
 
-} // namespace i2c
+} // namespace usart
 } // namespace f4
 } // namespace apm32
 } // namespace mcu
 
+#endif
 #endif
