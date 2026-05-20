@@ -13,32 +13,32 @@ namespace adc {
 
 template<some_adc_instance Instance>
 void start_injected() {
-  emb::mmio::set(Instance::REG.CTRL2, ADC_CTRL2_INJSWSC);
+  emb::mmio::set(Instance::reg.CTRL2, ADC_CTRL2_INJSWSC);
 }
 
 template<some_adc_instance Instance>
 void start_regular() {
-  emb::mmio::set(Instance::REG.CTRL2, ADC_CTRL2_REGSWSC);
+  emb::mmio::set(Instance::reg.CTRL2, ADC_CTRL2_REGSWSC);
 }
 
 template<some_adc_instance Instance>
 bool jeoc_flag() {
-  return emb::mmio::test_any(Instance::REG.STS, ADC_STS_INJEOCFLG);
+  return emb::mmio::test_any(Instance::reg.STS, ADC_STS_INJEOCFLG);
 }
 
 template<some_adc_instance Instance>
 void acknowledge_jeoc() {
-  emb::mmio::clear_w0(Instance::REG.STS, ADC_STS_INJEOCFLG);
+  emb::mmio::clear_w0(Instance::reg.STS, ADC_STS_INJEOCFLG);
 }
 
 template<some_adc_instance Instance>
 bool eoc_flag() {
-  return emb::mmio::test_any(Instance::REG.STS, ADC_STS_EOCFLG);
+  return emb::mmio::test_any(Instance::reg.STS, ADC_STS_EOCFLG);
 }
 
 template<some_adc_instance Instance>
 void acknowledge_eoc() {
-  emb::mmio::clear_w0(Instance::REG.STS, ADC_STS_EOCFLG);
+  emb::mmio::clear_w0(Instance::reg.STS, ADC_STS_EOCFLG);
 }
 
 inline constexpr std::array<uint32_t, 4> clock_prescalers = {2, 4, 6, 8};

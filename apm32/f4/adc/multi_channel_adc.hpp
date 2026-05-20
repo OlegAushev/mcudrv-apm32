@@ -1,6 +1,7 @@
 #pragma once
 
 #include <apm32/f4/adc/adc.hpp>
+#include <apm32/f4/adc/common_adc.hpp>
 #include <apm32/f4/dma/pm_stream.hpp>
 
 #include <emb/mmio.hpp>
@@ -86,7 +87,7 @@ struct milti_channel_adc_config {
 };
 
 void init_multi_channel_adc(
-    registers& REG,
+    registers& reg,
     detail::milti_channel_adc_config const& conf
 );
 
@@ -111,14 +112,14 @@ public:
   static constexpr bool eoc_on_each = Traits::eoc_on_each;
   static constexpr bool auto_injconv = Traits::auto_injconv;
 private:
-  static inline registers& REG = adc_instance::REG;
+  static inline registers& reg = adc_instance::reg;
   dma_stream_type dma_stream_;
   std::array<std::optional<gpio::analog_pin>, sizeof...(Channels)> pins_;
 public:
   multi_channel_adc()
     requires(!dma_enabled) {
     adc_instance::enable_clock();
-    detail::init_multi_channel_adc(REG, get_config());
+    detail::init_multi_channel_adc(reg, get_config());
     init_channels();
   }
 
@@ -128,10 +129,10 @@ public:
             dma::peripheral_to_memory_stream_config{
                 .irq_priority = dma_irq_priority
             },
-            &REG.REGDATA
+            &reg.REGDATA
         ) {
     adc_instance::enable_clock();
-    detail::init_multi_channel_adc(REG, get_config());
+    detail::init_multi_channel_adc(reg, get_config());
     init_channels();
   }
 
@@ -146,30 +147,30 @@ public:
 
   void start_injected()
     requires(injected_count > 0 && !injected_trigger && !auto_injconv) {
-    emb::mmio::set(REG.CTRL2, ADC_CTRL2_INJSWSC);
+    emb::mmio::set(reg.CTRL2, ADC_CTRL2_INJSWSC);
   }
 
   void start_regular()
     requires(regular_count > 0 && !regular_trigger) {
-    emb::mmio::set(REG.CTRL2, ADC_CTRL2_REGSWSC);
+    emb::mmio::set(reg.CTRL2, ADC_CTRL2_REGSWSC);
   }
 
   template<unsigned Channel>
     requires(1 <= Channel && Channel <= injected_count)
   [[nodiscard]] uint32_t injected_result() const {
-    if constexpr (Channel == 1) return REG.INJDATA1;
-    else if constexpr (Channel == 2) return REG.INJDATA2;
-    else if constexpr (Channel == 3) return REG.INJDATA3;
-    else if constexpr (Channel == 4) return REG.INJDATA4;
+    if constexpr (Channel == 1) return reg.INJDATA1;
+    else if constexpr (Channel == 2) return reg.INJDATA2;
+    else if constexpr (Channel == 3) return reg.INJDATA3;
+    else if constexpr (Channel == 4) return reg.INJDATA4;
   }
 
   template<unsigned Channel>
     requires(1 <= Channel && Channel <= injected_count)
   [[nodiscard]] uint32_t const volatile* injected_storage() const {
-    if constexpr (Channel == 1) return &REG.INJDATA1;
-    else if constexpr (Channel == 2) return &REG.INJDATA2;
-    else if constexpr (Channel == 3) return &REG.INJDATA3;
-    else if constexpr (Channel == 4) return &REG.INJDATA4;
+    if constexpr (Channel == 1) return &reg.INJDATA1;
+    else if constexpr (Channel == 2) return &reg.INJDATA2;
+    else if constexpr (Channel == 3) return &reg.INJDATA3;
+    else if constexpr (Channel == 4) return &reg.INJDATA4;
   }
 
   template<unsigned Rank>
@@ -182,7 +183,7 @@ private:
     [[maybe_unused]] size_t i = 0;
     (
         [&] {
-          if (auto conf = Channels::init(REG)) {
+          if (auto conf = Channels::init(reg)) {
             pins_[i].emplace(*conf);
           }
           ++i;

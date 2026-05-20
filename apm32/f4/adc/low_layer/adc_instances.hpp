@@ -27,8 +27,8 @@ template<typename T>
 inline constexpr T nmax = T{4095};
 
 struct adc1 {
-  static inline common_registers& COMMON_REG = *ADC123_COMMON;
-  static inline registers& REG = *ADC1;
+  static inline common_registers& common_reg = *ADC123_COMMON;
+  static inline registers& reg = *ADC1;
   static constexpr nvic::irq_number irqn = ADC_IRQn;
 
   static constexpr auto enable_clock = []() {
@@ -40,8 +40,8 @@ struct adc1 {
 };
 
 struct adc2 {
-  static inline common_registers& COMMON_REG = *ADC123_COMMON;
-  static inline registers& REG = *ADC2;
+  static inline common_registers& common_reg = *ADC123_COMMON;
+  static inline registers& reg = *ADC2;
   static constexpr nvic::irq_number irqn = ADC_IRQn;
 
   static constexpr auto enable_clock = []() {
@@ -53,8 +53,8 @@ struct adc2 {
 };
 
 struct adc3 {
-  static inline common_registers& COMMON_REG = *ADC123_COMMON;
-  static inline registers& REG = *ADC3;
+  static inline common_registers& common_reg = *ADC123_COMMON;
+  static inline registers& reg = *ADC3;
   static constexpr nvic::irq_number irqn = ADC_IRQn;
 
   static constexpr auto enable_clock = []() {

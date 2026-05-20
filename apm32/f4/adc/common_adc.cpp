@@ -1,5 +1,5 @@
-#include <apm32/f4/adc/low_layer/adc_init.hpp>
-#include <apm32/f4/adc/low_layer/adc_utils.hpp>
+#include <apm32/f4/adc/common_adc.hpp>
+#include <apm32/f4/adc/adc.hpp>
 
 #include <emb/mmio.hpp>
 

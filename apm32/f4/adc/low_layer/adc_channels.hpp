@@ -22,13 +22,13 @@ namespace detail {
 // sample time: 3 bits per channel
 // channels 0-9  -> SMPTIM2 at (ch * 3) bits
 // channels 10-17 -> SMPTIM1 at ((ch - 10) * 3) bits
-inline void set_sample_time(registers& REG, unsigned ch, uint8_t smp) {
+inline void set_sample_time(registers& reg, unsigned ch, uint8_t smp) {
   if (ch < 10) {
     uint32_t const pos = ch * 3u;
-    emb::mmio::write(REG.SMPTIM2, 0x7u << pos, uint32_t(smp));
+    emb::mmio::write(reg.SMPTIM2, 0x7u << pos, uint32_t(smp));
   } else {
     uint32_t const pos = (ch - 10u) * 3u;
-    emb::mmio::write(REG.SMPTIM1, 0x7u << pos, uint32_t(smp));
+    emb::mmio::write(reg.SMPTIM1, 0x7u << pos, uint32_t(smp));
   }
 }
 
@@ -36,39 +36,39 @@ inline void set_sample_time(registers& REG, unsigned ch, uint8_t smp) {
 // ranks 1-6   -> REGSEQ3 at ((rank-1) * 5) bits
 // ranks 7-12  -> REGSEQ2 at ((rank-7) * 5) bits
 // ranks 13-16 -> REGSEQ1 at ((rank-13) * 5) bits
-inline void set_regular_sequence(registers& REG, unsigned ch, uint8_t rank) {
+inline void set_regular_sequence(registers& reg, unsigned ch, uint8_t rank) {
   if (rank <= 6) {
     uint32_t const pos = (rank - 1u) * 5u;
-    emb::mmio::write(REG.REGSEQ3, 0x1Fu << pos, uint32_t(ch));
+    emb::mmio::write(reg.REGSEQ3, 0x1Fu << pos, uint32_t(ch));
   } else if (rank <= 12) {
     uint32_t const pos = (rank - 7u) * 5u;
-    emb::mmio::write(REG.REGSEQ2, 0x1Fu << pos, uint32_t(ch));
+    emb::mmio::write(reg.REGSEQ2, 0x1Fu << pos, uint32_t(ch));
   } else {
     uint32_t const pos = (rank - 13u) * 5u;
-    emb::mmio::write(REG.REGSEQ1, 0x1Fu << pos, uint32_t(ch));
+    emb::mmio::write(reg.REGSEQ1, 0x1Fu << pos, uint32_t(ch));
   }
 }
 
 // injected sequence: 5 bits per rank, ranks 1-4 at ((rank-1) * 5) bits
-inline void set_injected_sequence(registers& REG, unsigned ch, uint8_t rank) {
+inline void set_injected_sequence(registers& reg, unsigned ch, uint8_t rank) {
   uint32_t const pos = (rank - 1u) * 5u;
-  emb::mmio::write(REG.INJSEQ, 0x1Fu << pos, uint32_t(ch));
+  emb::mmio::write(reg.INJSEQ, 0x1Fu << pos, uint32_t(ch));
 }
 
 // injected offset: INJDOF1-4 registers
-inline void set_injected_offset(registers& REG, uint8_t rank, uint16_t offset) {
+inline void set_injected_offset(registers& reg, uint8_t rank, uint16_t offset) {
   switch (rank) {
   case 1:
-    REG.INJDOF1 = offset;
+    reg.INJDOF1 = offset;
     break;
   case 2:
-    REG.INJDOF2 = offset;
+    reg.INJDOF2 = offset;
     break;
   case 3:
-    REG.INJDOF3 = offset;
+    reg.INJDOF3 = offset;
     break;
   case 4:
-    REG.INJDOF4 = offset;
+    reg.INJDOF4 = offset;
     break;
   }
 }
@@ -290,11 +290,12 @@ struct injected_channel {
   static constexpr auto sampletime = Sampletime;
   static constexpr std::array ranks = {Ranks...};
 
-  static std::optional<gpio::analog_pin_config> init(registers& REG) {
+  static std::optional<gpio::analog_pin_config> init(registers& reg) {
     for (auto rank : ranks) {
-      detail::set_sample_time(REG, channel::idx, static_cast<uint8_t>(sampletime));
-      detail::set_injected_sequence(REG, channel::idx, static_cast<uint8_t>(rank));
-      detail::set_injected_offset(REG, static_cast<uint8_t>(rank), 0);
+      using namespace detail;
+      set_sample_time(reg, channel::idx, static_cast<uint8_t>(sampletime));
+      set_injected_sequence(reg, channel::idx, static_cast<uint8_t>(rank));
+      set_injected_offset(reg, static_cast<uint8_t>(rank), 0);
     }
 
     if constexpr (channel::type == channel_type::external) {
@@ -316,10 +317,11 @@ struct regular_channel {
   static constexpr auto sampletime = Sampletime;
   static constexpr std::array ranks = {Ranks...};
 
-  static std::optional<gpio::analog_pin_config> init(registers& REG) {
+  static std::optional<gpio::analog_pin_config> init(registers& reg) {
     for (auto rank : ranks) {
-      detail::set_sample_time(REG, channel::idx, static_cast<uint8_t>(sampletime));
-      detail::set_regular_sequence(REG, channel::idx, static_cast<uint8_t>(rank));
+      using namespace detail;
+      set_sample_time(reg, channel::idx, static_cast<uint8_t>(sampletime));
+      set_regular_sequence(reg, channel::idx, static_cast<uint8_t>(rank));
     }
 
     if constexpr (channel::type == channel_type::external) {
