@@ -3,7 +3,6 @@
 #include <apm32/f4/tim/tim.hpp>
 
 #include <emb/mmio.hpp>
-#include <emb/singleton.hpp>
 
 #include <cstdint>
 
@@ -26,7 +25,7 @@ void configure_timebase(
 } // namespace detail
 
 template<some_general_purpose_timer Tim>
-class periodic_timer : public emb::singleton<periodic_timer<Tim>> {
+class periodic_timer {
 public:
   using timer_instance = Tim;
 private:
@@ -37,6 +36,11 @@ private:
 
   emb::units::sec_f32 period_;
 public:
+  periodic_timer(periodic_timer const&) = delete;
+  periodic_timer& operator=(periodic_timer const&) = delete;
+  periodic_timer(periodic_timer&&) = delete;
+  periodic_timer& operator=(periodic_timer&&) = delete;
+
   periodic_timer(periodic_timer_config conf) {
     period_ = 1.f / conf.frequency;
     if (!conf.prescaler.has_value()) {

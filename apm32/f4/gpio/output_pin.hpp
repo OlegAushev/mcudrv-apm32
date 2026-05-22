@@ -24,6 +24,8 @@ public:
 
   output_pin(output_pin const& other) = delete;
   output_pin& operator=(output_pin const& other) = delete;
+  output_pin(output_pin&& other) = delete;
+  output_pin& operator=(output_pin&& other) = delete;
 
   emb::gpio::polarity polarity() const {
     return polarity_;

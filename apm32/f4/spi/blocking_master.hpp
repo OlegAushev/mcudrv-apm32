@@ -46,6 +46,11 @@ private:
   std::optional<gpio::alternate_pin> clk_pin_;
   std::array<std::optional<gpio::output_pin>, SlaveCount> ss_pins_;
 public:
+  blocking_master(blocking_master const&) = delete;
+  blocking_master& operator=(blocking_master const&) = delete;
+  blocking_master(blocking_master&&) = delete;
+  blocking_master& operator=(blocking_master&&) = delete;
+
   blocking_master(blocking_master_config<SlaveCount> const& config) {
     spi_instance::enable_clock();
 

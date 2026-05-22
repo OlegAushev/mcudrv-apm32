@@ -117,6 +117,11 @@ private:
   dma_stream_type dma_stream_;
   std::array<std::optional<gpio::analog_pin>, sizeof...(Channels)> pins_;
 public:
+  multi_channel_adc(multi_channel_adc const&) = delete;
+  multi_channel_adc& operator=(multi_channel_adc const&) = delete;
+  multi_channel_adc(multi_channel_adc&&) = delete;
+  multi_channel_adc& operator=(multi_channel_adc&&) = delete;
+
   multi_channel_adc()
     requires(!dma_enabled) {
     adc_instance::enable_clock();

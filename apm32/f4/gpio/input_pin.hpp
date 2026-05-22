@@ -17,6 +17,8 @@ public:
 
   input_pin(input_pin const& other) = delete;
   input_pin& operator=(input_pin const& other) = delete;
+  input_pin(input_pin&& other) = delete;
+  input_pin& operator=(input_pin&& other) = delete;
 
   emb::gpio::polarity polarity() const {
     return polarity_;

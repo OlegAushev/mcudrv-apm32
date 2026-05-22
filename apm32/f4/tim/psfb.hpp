@@ -9,7 +9,6 @@
 #include <emb/chrono.hpp>
 #include <emb/math.hpp>
 #include <emb/mmio.hpp>
-#include <emb/singleton.hpp>
 #include <emb/units.hpp>
 
 #include <cassert>
@@ -110,7 +109,7 @@ void configure_psfb_channel() {
 } // namespace detail
 
 template<some_advanced_timer Tim>
-class psfb : public emb::singleton<psfb<Tim>> {
+class psfb {
 public:
   using timer_instance = Tim;
   using counter_type = Tim::counter_type;
@@ -141,6 +140,11 @@ private:
   std::array<std::optional<gpio::alternate_pin>, LegCount> lo_pins_;
   std::optional<gpio::alternate_pin> bk_pin_;
 public:
+  psfb(psfb const&) = delete;
+  psfb& operator=(psfb const&) = delete;
+  psfb(psfb&&) = delete;
+  psfb& operator=(psfb&&) = delete;
+
   psfb(psfb_config cfg) {
     period_ = 1.f / cfg.pwm.frequency;
     deadtime_ = emb::units::sec_f32{float(cfg.pwm.deadtime.count()) / 1E9f};

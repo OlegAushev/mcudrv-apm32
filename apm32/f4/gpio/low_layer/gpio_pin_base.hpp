@@ -38,6 +38,8 @@ protected:
 public:
   pin_base(pin_base const& other) = delete;
   pin_base& operator=(pin_base const& other) = delete;
+  pin_base(pin_base&& other) = delete;
+  pin_base& operator=(pin_base&& other) = delete;
 
   std::size_t pin_no() const {
     return __CLZ(__RBIT(pin_));

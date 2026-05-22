@@ -115,6 +115,11 @@ private:
   rx_delegate on_rx_fifo0_;
   rx_delegate on_rx_fifo1_;
 public:
+  transceiver(transceiver const&) = delete;
+  transceiver& operator=(transceiver const&) = delete;
+  transceiver(transceiver&&) = delete;
+  transceiver& operator=(transceiver&&) = delete;
+
   transceiver(transceiver_config const& config) {
     Instance::enable_clock();
 

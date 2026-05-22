@@ -70,6 +70,11 @@ private:
   std::array<std::optional<gpio::alternate_pin>, 3> pins_;
   emb::units::sec_f32 counter_period_;
 public:
+  hall_interface(hall_interface const&) = delete;
+  hall_interface& operator=(hall_interface const&) = delete;
+  hall_interface(hall_interface&&) = delete;
+  hall_interface& operator=(hall_interface&&) = delete;
+
   hall_interface(hall_interface_config cfg) {
     timer_instance::enable_clock();
 

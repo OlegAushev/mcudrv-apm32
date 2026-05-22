@@ -9,7 +9,6 @@
 #include <emb/chrono.hpp>
 #include <emb/math.hpp>
 #include <emb/mmio.hpp>
-#include <emb/singleton.hpp>
 #include <emb/units.hpp>
 
 #include <cassert>
@@ -117,7 +116,7 @@ void configure_half_bridge_channel() {
 } // namespace detail
 
 template<some_advanced_timer Tim, std::size_t LegCount = 1>
-class half_bridge : public emb::singleton<half_bridge<Tim, LegCount>> {
+class half_bridge {
 public:
   using timer_instance = Tim;
   using counter_type = Tim::counter_type;
@@ -146,6 +145,11 @@ private:
   std::array<std::optional<gpio::alternate_pin>, LegCount> lo_pins_;
   std::optional<gpio::alternate_pin> bk_pin_;
 public:
+  half_bridge(half_bridge const&) = delete;
+  half_bridge& operator=(half_bridge const&) = delete;
+  half_bridge(half_bridge&&) = delete;
+  half_bridge& operator=(half_bridge&&) = delete;
+
   half_bridge(half_bridge_config<LegCount> conf) {
     period_ = 1.f / conf.pwm.frequency;
     deadtime_ = emb::units::sec_f32{float(conf.pwm.deadtime.count()) / 1E9f};

@@ -15,6 +15,8 @@ public:
 
   alternate_pin(alternate_pin const& other) = delete;
   alternate_pin& operator=(alternate_pin const& other) = delete;
+  alternate_pin(alternate_pin&& other) = delete;
+  alternate_pin& operator=(alternate_pin&& other) = delete;
 
   emb::gpio::level read_level() const {
     if ((regs_->IDATA & pin_) != 0) {

@@ -34,6 +34,13 @@ private:
 
   memory_buffer_type dest_;
 public:
+  peripheral_to_memory_stream(peripheral_to_memory_stream const&) = delete;
+  peripheral_to_memory_stream&
+  operator=(peripheral_to_memory_stream const&) = delete;
+  peripheral_to_memory_stream(peripheral_to_memory_stream&&) = delete;
+  peripheral_to_memory_stream&
+  operator=(peripheral_to_memory_stream&&) = delete;
+
   peripheral_to_memory_stream(
       peripheral_to_memory_stream_config const& conf,
       std::uint32_t volatile* periph_addr

@@ -12,6 +12,8 @@ public:
 
   analog_pin(analog_pin const& other) = delete;
   analog_pin& operator=(analog_pin const& other) = delete;
+  analog_pin(analog_pin&& other) = delete;
+  analog_pin& operator=(analog_pin&& other) = delete;
 };
 
 } // namespace apm32::f4::gpio
