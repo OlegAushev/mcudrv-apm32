@@ -2,9 +2,11 @@
 
 #include <emb/mmio.hpp>
 
+#include <cstdint>
+
 namespace apm32::f4::dma {
 
-void detail::init_pm_stream(stream_registers& STREAM_REG, uint32_t ch) {
+void detail::init_pm_stream(stream_registers& STREAM_REG, std::uint32_t ch) {
   emb::mmio::modify(STREAM_REG.SCFG,
       emb::mmio::bits<DMA_SCFGx_CHSEL>(ch),
       emb::mmio::bits<DMA_SCFGx_DIRCFG>(0b00u),       // periph to memory

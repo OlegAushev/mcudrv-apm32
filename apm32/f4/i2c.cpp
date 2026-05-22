@@ -3,6 +3,8 @@
 
 #include <apm32/f4/i2c.hpp>
 
+#include <cstddef>
+
 namespace mcu {
 inline namespace apm32 {
 inline namespace f4 {
@@ -40,7 +42,7 @@ Module::Module(Peripheral peripheral,
 }
 
 void Module::enable_clk(Peripheral peripheral) {
-  size_t i2c_idx{std::to_underlying(peripheral)};
+  std::size_t i2c_idx{std::to_underlying(peripheral)};
   if (clk_enabled_[i2c_idx]) {
     return;
   }

@@ -7,6 +7,7 @@
 
 #include <emb/mmio.hpp>
 
+#include <cstdint>
 #include <limits>
 #include <optional>
 
@@ -21,7 +22,7 @@ struct input_pin_config {
 struct hall_interface_config {
   clock_division filter_clock_division;
   capture_filter filter;
-  std::optional<uint16_t> counter_prescaler;
+  std::optional<std::uint16_t> counter_prescaler;
   std::optional<emb::units::sec_f32> timeout;
   nvic::irq_priority irq_priority;
   std::array<input_pin_config, 3> pins;
@@ -31,8 +32,8 @@ namespace detail {
 
 struct timebase_config {
   clock_division filter_clock_division;
-  uint16_t counter_prescaler;
-  uint32_t counter_max;
+  std::uint16_t counter_prescaler;
+  std::uint32_t counter_max;
 };
 
 void configure_timebase(registers& REG, timebase_config const& cfg);
@@ -72,16 +73,16 @@ public:
   hall_interface(hall_interface_config cfg) {
     timer_instance::enable_clock();
 
-    for (size_t i = 0; i < 3; ++i) {
+    for (auto i = 0uz; i < 3; ++i) {
       pins_[i].emplace(detail::make_input_config<timer_instance>(cfg.pins[i]));
     }
 
     if (!cfg.counter_prescaler.has_value()) {
-      if constexpr (std::same_as<counter_type, uint32_t>) {
+      if constexpr (std::same_as<counter_type, std::uint32_t>) {
         cfg.counter_prescaler = 0;
       } else {
         auto const clk_freq =
-            timer_instance::template clock_frequency<uint32_t>();
+            timer_instance::template clock_frequency<std::uint32_t>();
         cfg.counter_prescaler = (clk_freq / 1'000u) - 1;
       }
     }
@@ -140,10 +141,10 @@ public:
     };
   }
 
-  uint8_t input_state() const {
-    uint8_t state = uint8_t(pins_[0]->read_level())
-                  | uint8_t(pins_[1]->read_level()) << 1
-                  | uint8_t(pins_[2]->read_level()) << 2;
+  std::uint8_t input_state() const {
+    std::uint8_t state = std::uint8_t(pins_[0]->read_level())
+                       | std::uint8_t(pins_[1]->read_level()) << 1
+                       | std::uint8_t(pins_[2]->read_level()) << 2;
     return state;
   }
 };

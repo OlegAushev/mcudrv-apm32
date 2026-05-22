@@ -3,6 +3,7 @@
 #include <apm32/device.hpp>
 
 #include <array>
+#include <cstddef>
 #include <cstdint>
 
 namespace apm32::f4::gpio {
@@ -14,7 +15,7 @@ inline constexpr std::size_t port_count = 9;
 inline std::array<port_registers*, port_count> const ports =
     {GPIOA, GPIOB, GPIOC, GPIOD, GPIOE, GPIOF, GPIOG, GPIOH, GPIOI};
 
-enum class port : uint32_t {
+enum class port : std::uint32_t {
   gpioa,
   gpiob,
   gpioc,

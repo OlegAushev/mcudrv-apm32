@@ -8,13 +8,14 @@
 #include <emb/mmio.hpp>
 
 #include <chrono>
+#include <cstddef>
 
 namespace apm32::f4::adc {
 
 using common_registers = ADC_Common_TypeDef;
 using registers = ADC_TypeDef;
 
-inline constexpr size_t count = 3;
+inline constexpr std::size_t count = 3;
 
 inline constexpr emb::units::hz_f32 max_clock_frequency{30e6f};
 inline constexpr std::chrono::microseconds powerup_time{3};

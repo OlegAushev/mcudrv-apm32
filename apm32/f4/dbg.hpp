@@ -3,11 +3,13 @@
 #include <apm32/f4/core.hpp>
 #include <apm32/f4/gpio/output_pin.hpp>
 
+#include <cstdint>
+
 namespace apm32::f4::dbg {
 
 enum class probe_mode { level, edge };
 
-enum class probe_channel : uint32_t {
+enum class probe_channel : std::uint32_t {
   ch0,
   ch1,
   ch2,

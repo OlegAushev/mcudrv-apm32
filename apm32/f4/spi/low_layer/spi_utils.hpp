@@ -6,6 +6,8 @@
 #include <emb/mmio.hpp>
 #include <emb/units.hpp>
 
+#include <cstdint>
+
 namespace apm32::f4::spi {
 
 template<some_spi_instance Instance>
@@ -18,18 +20,18 @@ void disable() {
   emb::mmio::clear(Instance::REG.CTRL1, SPI_CTRL1_SPIEN);
 }
 
-inline constexpr std::array<uint32_t, 8> clock_prescalers =
+inline constexpr std::array<std::uint32_t, 8> clock_prescalers =
     {2, 4, 8, 16, 32, 64, 128, 256};
 
 namespace detail {
 
 constexpr baudrate_prescaler
 calculate_prescaler(emb::units::hz_f32 clk_freq, emb::units::hz_f32 spi_freq) {
-  uint32_t clk_freq_u32 = static_cast<uint32_t>(clk_freq.value());
-  uint32_t spi_freq_u32 = static_cast<uint32_t>(spi_freq.value());
+  std::uint32_t clk_freq_u32 = static_cast<std::uint32_t>(clk_freq.value());
+  std::uint32_t spi_freq_u32 = static_cast<std::uint32_t>(spi_freq.value());
 
-  uint32_t ratio = clk_freq_u32 / spi_freq_u32 +
-                   (clk_freq_u32 % spi_freq_u32 != 0);
+  std::uint32_t ratio = clk_freq_u32 / spi_freq_u32
+                      + (clk_freq_u32 % spi_freq_u32 != 0);
   auto it = std::upper_bound(
       clock_prescalers.begin(),
       clock_prescalers.end(),

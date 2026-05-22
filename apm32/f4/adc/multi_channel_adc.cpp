@@ -3,6 +3,8 @@
 
 #include <emb/mmio.hpp>
 
+#include <cstdint>
+
 namespace apm32::f4::adc::detail {
 
 void init_multi_channel_adc(
@@ -21,16 +23,16 @@ void init_multi_channel_adc(
   );
 
   // External trigger for regular channels
-  uint32_t reg_ext_trgen = 0;
-  uint32_t reg_ext_trgsel = 0;
+  std::uint32_t reg_ext_trgen = 0;
+  std::uint32_t reg_ext_trgsel = 0;
   if (conf.regular_trigger.has_value()) {
     reg_ext_trgen = std::to_underlying(conf.regular_trigger->edge);
     reg_ext_trgsel = std::to_underlying(conf.regular_trigger->event);
   }
 
   // External trigger for injected channels
-  uint32_t inj_ext_trgen = 0;
-  uint32_t inj_ext_trgsel = 0;
+  std::uint32_t inj_ext_trgen = 0;
+  std::uint32_t inj_ext_trgsel = 0;
   if (conf.injected_trigger.has_value()) {
     inj_ext_trgen = std::to_underlying(conf.injected_trigger->edge);
     inj_ext_trgsel = std::to_underlying(conf.injected_trigger->event);

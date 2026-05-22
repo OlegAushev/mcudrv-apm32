@@ -10,13 +10,16 @@
 #include <emb/noncopyable.hpp>
 #include <emb/singleton.hpp>
 
+#include <cstddef>
+#include <cstdint>
+
 namespace mcu::inline apm32::inline f4::i2c {
 
 using Regs = I2C_T;
 
-constexpr size_t periph_num{3};
+constexpr std::size_t periph_num{3};
 
-enum class Peripheral : size_t {
+enum class Peripheral : std::size_t {
   i2c1,
   i2c2,
   i2c3
@@ -34,7 +37,7 @@ enum class Direction {
   tx
 };
 
-enum class Event : uint32_t {
+enum class Event : std::uint32_t {
   ev5_master_mode_select =
       0x00030001, /*!< BUSBSYFLG, MSFLG and STARTFLG flag */
   ev6_master_transmitter_mode_selected =
@@ -160,18 +163,18 @@ public:
 
   bool tx_empty() const { return regs_->STS1_B.TXBEFLG == 1; }
 
-  uint32_t read_status_regs() const {
-    uint32_t const sts1{regs_->STS1 & 0x0000FFFF};
-    uint32_t const sts2{regs_->STS2 & 0x000000FF};
+  std::uint32_t read_status_regs() const {
+    std::uint32_t const sts1{regs_->STS1 & 0x0000FFFF};
+    std::uint32_t const sts2{regs_->STS2 & 0x000000FF};
     return sts1 | (sts2 << 16);
   }
 
-  static bool is_event(uint32_t sts_regs, Event event) {
+  static bool is_event(std::uint32_t sts_regs, Event event) {
     return (sts_regs & std::to_underlying(event)) == std::to_underlying(event);
   }
 
-  void put_addr(uint8_t addr, Direction dir) {
-    addr = uint8_t((addr & 0x7F) << 1);
+  void put_addr(std::uint8_t addr, Direction dir) {
+    addr = std::uint8_t((addr & 0x7F) << 1);
     if (dir == Direction::rx) {
       regs_->DATA_B.DATA = addr | 0x01;
     } else {
@@ -179,7 +182,7 @@ public:
     }
   }
 
-  exec_status put_data(uint8_t data) {
+  exec_status put_data(std::uint8_t data) {
     if (!tx_empty()) {
       return exec_status::busy;
     }
@@ -187,11 +190,11 @@ public:
     return exec_status::ok;
   }
 
-  std::optional<uint8_t> get_data() const {
+  std::optional<std::uint8_t> get_data() const {
     if (rx_empty()) {
       return {};
     }
-    uint8_t data = regs_->DATA_B.DATA;
+    std::uint8_t data = regs_->DATA_B.DATA;
     return {data};
   }
 

@@ -4,6 +4,8 @@
 
 #include <emb/mmio.hpp>
 
+#include <cstdint>
+
 namespace apm32::f4::tim::pwm {
 
 void detail::configure_psfb_timebase(
@@ -15,7 +17,10 @@ void detail::configure_psfb_timebase(
 
   auto const timebase_freq = clk_freq / float(conf.prescaler.value() + 1);
 
-  uint32_t const period = uint32_t(timebase_freq / (2 * conf.frequency)) - 1;
+  std::uint32_t const period = std::uint32_t(
+                                   timebase_freq / (2 * conf.frequency)
+                               )
+                             - 1;
   core::ensure(period <= UINT16_MAX);
 
   emb::mmio::modify(REG.CTRL1,

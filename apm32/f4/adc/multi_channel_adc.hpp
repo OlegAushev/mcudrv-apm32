@@ -7,6 +7,8 @@
 
 #include <emb/mmio.hpp>
 
+#include <cstddef>
+#include <cstdint>
 #include <optional>
 
 namespace apm32::f4::adc {
@@ -156,7 +158,7 @@ public:
 
   template<unsigned Channel>
     requires(1 <= Channel && Channel <= injected_count)
-  [[nodiscard]] uint32_t injected_result() const {
+  [[nodiscard]] std::uint32_t injected_result() const {
     if constexpr (Channel == 1) return reg.INJDATA1;
     else if constexpr (Channel == 2) return reg.INJDATA2;
     else if constexpr (Channel == 3) return reg.INJDATA3;
@@ -165,7 +167,7 @@ public:
 
   template<unsigned Channel>
     requires(1 <= Channel && Channel <= injected_count)
-  [[nodiscard]] uint32_t const volatile* injected_storage() const {
+  [[nodiscard]] std::uint32_t const volatile* injected_storage() const {
     if constexpr (Channel == 1) return &reg.INJDATA1;
     else if constexpr (Channel == 2) return &reg.INJDATA2;
     else if constexpr (Channel == 3) return &reg.INJDATA3;
@@ -174,12 +176,12 @@ public:
 
   template<unsigned Rank>
     requires(1 <= Rank && Rank <= regular_count && dma_enabled)
-  [[nodiscard]] uint32_t const volatile* regular_storage() const {
+  [[nodiscard]] std::uint32_t const volatile* regular_storage() const {
     return &dma_stream_.data().data[Rank - 1];
   }
 private:
   void init_channels() {
-    [[maybe_unused]] size_t i = 0;
+    [[maybe_unused]] std::size_t i = 0;
     (
         [&] {
           if (auto conf = Channels::init(reg)) {

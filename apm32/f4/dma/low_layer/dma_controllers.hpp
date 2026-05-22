@@ -5,11 +5,13 @@
 #include <emb/meta.hpp>
 #include <emb/mmio.hpp>
 
+#include <cstddef>
+
 namespace apm32::f4::dma {
 
 using controller_registers = DMA_TypeDef;
 
-inline constexpr size_t controller_count = 2;
+inline constexpr std::size_t controller_count = 2;
 
 struct dma1 {
   static inline controller_registers& REG = *DMA1;

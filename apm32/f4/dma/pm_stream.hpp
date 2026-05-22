@@ -4,6 +4,9 @@
 
 #include <emb/mmio.hpp>
 
+#include <cstddef>
+#include <cstdint>
+
 namespace apm32::f4::dma {
 
 struct peripheral_to_memory_stream_config {
@@ -11,7 +14,7 @@ struct peripheral_to_memory_stream_config {
 };
 
 namespace detail {
-void init_pm_stream(stream_registers& STREAM_REG, uint32_t ch);
+void init_pm_stream(stream_registers& STREAM_REG, std::uint32_t ch);
 } // namespace detail
 
 template<
@@ -33,7 +36,7 @@ private:
 public:
   peripheral_to_memory_stream(
       peripheral_to_memory_stream_config const& conf,
-      uint32_t volatile* periph_addr
+      std::uint32_t volatile* periph_addr
   ) {
     controller_instance::enable_clock();
 
@@ -42,15 +45,15 @@ public:
     if constexpr (!memory_buffer_type::double_buffer_mode) {
       emb::mmio::clear(STREAM_REG.SCFG, DMA_SCFGx_DBM);
       STREAM_REG.NDATA = memory_buffer_type::size;
-      STREAM_REG.M0ADDR = reinterpret_cast<uint32_t>(dest_.data.data());
+      STREAM_REG.M0ADDR = reinterpret_cast<std::uint32_t>(dest_.data.data());
     } else {
       emb::mmio::set(STREAM_REG.SCFG, DMA_SCFGx_DBM);
       STREAM_REG.NDATA = memory_buffer_type::size;
-      STREAM_REG.M0ADDR = reinterpret_cast<uint32_t>(dest_.data1.data());
-      STREAM_REG.M1ADDR = reinterpret_cast<uint32_t>(dest_.data2.data());
+      STREAM_REG.M0ADDR = reinterpret_cast<std::uint32_t>(dest_.data1.data());
+      STREAM_REG.M1ADDR = reinterpret_cast<std::uint32_t>(dest_.data2.data());
     }
 
-    STREAM_REG.PADDR = reinterpret_cast<uint32_t>(periph_addr);
+    STREAM_REG.PADDR = reinterpret_cast<std::uint32_t>(periph_addr);
 
     // Interrupts configuration
     emb::mmio::set(STREAM_REG.SCFG,
@@ -75,11 +78,11 @@ public:
     }
   }
 private:
-  consteval uint32_t get_interrupt_clear_mask() {
-    static constexpr uint32_t mask = 0b101100; // TCIF, TEIF, DMEIF
-    static constexpr std::array<uint32_t, 4> offsets = {0, 6, 16, 22};
-    size_t i = (channel_instance::idx >= 4) ? channel_instance::idx - 4 :
-                                              channel_instance::idx;
+  consteval std::uint32_t get_interrupt_clear_mask() {
+    static constexpr std::uint32_t mask = 0b101100; // TCIF, TEIF, DMEIF
+    static constexpr std::array<std::uint32_t, 4> offsets = {0, 6, 16, 22};
+    std::size_t i = (channel_instance::idx >= 4) ? channel_instance::idx - 4
+                                                 : channel_instance::idx;
     return mask << offsets[i];
   }
 };

@@ -10,12 +10,14 @@
 
 #include <array>
 #include <chrono>
+#include <cstddef>
+#include <cstdint>
 #include <expected>
 #include <optional>
 
 namespace apm32::f4::spi {
 
-template<size_t SlaveCount>
+template<std::size_t SlaveCount>
 struct blocking_master_config {
   mosi_pin_config mosi_pin;
   miso_pin_config miso_pin;
@@ -30,7 +32,7 @@ struct blocking_master_config {
 template<
     some_spi_instance Instance,
     frame_format FrameFormat,
-    size_t SlaveCount>
+    std::size_t SlaveCount>
 class blocking_master {
 public:
   using spi_instance = Instance;
@@ -61,7 +63,7 @@ public:
         emb::mmio::bits<SPI_CTRL1_RXOMEN>(0u),
         emb::mmio::bits<SPI_CTRL1_BMEN>(0u),
         emb::mmio::bits<SPI_CTRL1_DFLSEL>(
-            std::is_same_v<FrameFormat, uint8_t> ? 0u : 1u
+            std::is_same_v<FrameFormat, std::uint8_t> ? 0u : 1u
         )
     );
 
@@ -120,12 +122,12 @@ public:
     ss_pins_[0]->set();
   }
 
-  template<size_t Idx>
+  template<std::size_t Idx>
   void select() {
     std::get<Idx>(ss_pins_)->set();
   }
 
-  void select(size_t idx) {
+  void select(std::size_t idx) {
     ss_pins_[idx]->set();
   }
 
@@ -134,12 +136,12 @@ public:
     ss_pins_[0]->reset();
   }
 
-  template<size_t Idx>
+  template<std::size_t Idx>
   void release() {
     std::get<Idx>(ss_pins_)->reset();
   }
 
-  void release(size_t idx) {
+  void release(std::size_t idx) {
     ss_pins_[idx]->reset();
   }
 
@@ -228,7 +230,7 @@ public:
     return result;
   }
 
-  template<size_t Idx, typename Fn>
+  template<std::size_t Idx, typename Fn>
   auto transaction(Fn&& fn) -> decltype(fn()) {
     select<Idx>();
     auto result = fn();

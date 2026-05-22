@@ -4,24 +4,24 @@
 
 namespace apm32::f4::tim {
 
-enum class clock_division : uint32_t {
+enum class clock_division : std::uint32_t {
   div1 = 0b00u,
   div2 = 0b01u,
   div4 = 0b10u
 };
 
-enum class count_direction : uint32_t {
+enum class count_direction : std::uint32_t {
   up,
   down
 };
 
-enum class counter_mode : uint32_t {
+enum class counter_mode : std::uint32_t {
   up,
   down,
   updown
 };
 
-enum class capture_filter : uint32_t {
+enum class capture_filter : std::uint32_t {
   disabled,
   div1_n2,
   div1_n4,

@@ -4,6 +4,8 @@
 
 #include <emb/mmio.hpp>
 
+#include <cstdint>
+
 namespace apm32::f4::tim::pwm {
 
 void detail::configure_bdt(
@@ -13,8 +15,8 @@ void detail::configure_bdt(
     clock_division clkdiv,
     std::optional<break_pin_config> const& bk_pin
 ) {
-  uint32_t brk_enable = 0;
-  uint32_t brk_polarity = 0;
+  std::uint32_t brk_enable = 0;
+  std::uint32_t brk_polarity = 0;
 
   if (bk_pin.has_value()) {
     brk_enable = 1;

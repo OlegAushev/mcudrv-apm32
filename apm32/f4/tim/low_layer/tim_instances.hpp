@@ -11,18 +11,19 @@
 
 #include <array>
 #include <cstddef>
+#include <cstdint>
 #include <utility>
 
 namespace apm32::f4::tim {
 
 using registers = TMR_TypeDef;
 
-inline constexpr size_t timer_count = 14;
+inline constexpr std::size_t timer_count = 14;
 
 struct tim1 {
   static inline registers& REG = *TMR1;
 
-  using counter_type = uint16_t;
+  using counter_type = std::uint16_t;
   static constexpr unsigned io_channel_count = 4;
 
   static constexpr nvic::irq_number update_irqn = TMR1_UP_TMR10_IRQn;
@@ -36,13 +37,13 @@ struct tim1 {
     emb::mmio::set(RCM->APB2CLKEN, RCM_APB2CLKEN_TMR1EN);
   };
 
-  static constexpr uint32_t gpio_altfunc = gpio::altfunc::tmr1;
+  static constexpr std::uint32_t gpio_altfunc = gpio::altfunc::tmr1;
 };
 
 struct tim2 {
   static inline registers& REG = *TMR2;
 
-  using counter_type = uint32_t;
+  using counter_type = std::uint32_t;
   static constexpr unsigned io_channel_count = 4;
 
   static constexpr nvic::irq_number update_irqn = TMR2_IRQn;
@@ -55,13 +56,13 @@ struct tim2 {
     emb::mmio::set(RCM->APB1CLKEN, RCM_APB1CLKEN_TMR2EN);
   };
 
-  static constexpr uint32_t gpio_altfunc = gpio::altfunc::tmr2;
+  static constexpr std::uint32_t gpio_altfunc = gpio::altfunc::tmr2;
 };
 
 struct tim3 {
   static inline registers& REG = *TMR3;
 
-  using counter_type = uint16_t;
+  using counter_type = std::uint16_t;
   static constexpr unsigned io_channel_count = 4;
 
   static constexpr nvic::irq_number update_irqn = TMR3_IRQn;
@@ -74,13 +75,13 @@ struct tim3 {
     emb::mmio::set(RCM->APB1CLKEN, RCM_APB1CLKEN_TMR3EN);
   };
 
-  static constexpr uint32_t gpio_altfunc = gpio::altfunc::tmr3;
+  static constexpr std::uint32_t gpio_altfunc = gpio::altfunc::tmr3;
 };
 
 struct tim4 {
   static inline registers& REG = *TMR4;
 
-  using counter_type = uint16_t;
+  using counter_type = std::uint16_t;
   static constexpr unsigned io_channel_count = 4;
 
   static constexpr nvic::irq_number update_irqn = TMR4_IRQn;
@@ -93,13 +94,13 @@ struct tim4 {
     emb::mmio::set(RCM->APB1CLKEN, RCM_APB1CLKEN_TMR4EN);
   };
 
-  static constexpr uint32_t gpio_altfunc = gpio::altfunc::tmr4;
+  static constexpr std::uint32_t gpio_altfunc = gpio::altfunc::tmr4;
 };
 
 struct tim5 {
   static inline registers& REG = *TMR5;
 
-  using counter_type = uint32_t;
+  using counter_type = std::uint32_t;
   static constexpr unsigned io_channel_count = 4;
 
   static constexpr nvic::irq_number update_irqn = TMR5_IRQn;
@@ -112,13 +113,13 @@ struct tim5 {
     emb::mmio::set(RCM->APB1CLKEN, RCM_APB1CLKEN_TMR5EN);
   };
 
-  static constexpr uint32_t gpio_altfunc = gpio::altfunc::tmr5;
+  static constexpr std::uint32_t gpio_altfunc = gpio::altfunc::tmr5;
 };
 
 struct tim6 {
   static inline registers& REG = *TMR6;
 
-  using counter_type = uint16_t;
+  using counter_type = std::uint16_t;
   static constexpr unsigned io_channel_count = 0;
 
   static void enable_clock() {
@@ -129,7 +130,7 @@ struct tim6 {
 struct tim7 {
   static inline registers& REG = *TMR7;
 
-  using counter_type = uint16_t;
+  using counter_type = std::uint16_t;
   static constexpr unsigned io_channel_count = 0;
 
   static void enable_clock() {
@@ -140,7 +141,7 @@ struct tim7 {
 struct tim8 {
   static inline registers& REG = *TMR8;
 
-  using counter_type = uint16_t;
+  using counter_type = std::uint16_t;
   static constexpr unsigned io_channel_count = 4;
 
   static constexpr nvic::irq_number update_irqn = TMR8_UP_TMR13_IRQn;
@@ -154,13 +155,13 @@ struct tim8 {
     emb::mmio::set(RCM->APB2CLKEN, RCM_APB2CLKEN_TMR8EN);
   };
 
-  static constexpr uint32_t gpio_altfunc = gpio::altfunc::tmr8;
+  static constexpr std::uint32_t gpio_altfunc = gpio::altfunc::tmr8;
 };
 
 struct tim9 {
   static inline registers& REG = *TMR9;
 
-  using counter_type = uint16_t;
+  using counter_type = std::uint16_t;
   static constexpr unsigned io_channel_count = 2;
 
   static void enable_clock() {
@@ -171,7 +172,7 @@ struct tim9 {
 struct tim10 {
   static inline registers& REG = *TMR10;
 
-  using counter_type = uint16_t;
+  using counter_type = std::uint16_t;
   static constexpr unsigned io_channel_count = 1;
 
   static void enable_clock() {
@@ -182,7 +183,7 @@ struct tim10 {
 struct tim11 {
   static inline registers& REG = *TMR11;
 
-  using counter_type = uint16_t;
+  using counter_type = std::uint16_t;
   static constexpr unsigned io_channel_count = 1;
 
   static void enable_clock() {
@@ -193,7 +194,7 @@ struct tim11 {
 struct tim12 {
   static inline registers& REG = *TMR12;
 
-  using counter_type = uint16_t;
+  using counter_type = std::uint16_t;
   static constexpr unsigned io_channel_count = 2;
 
   static void enable_clock() {
@@ -204,7 +205,7 @@ struct tim12 {
 struct tim13 {
   static inline registers& REG = *TMR13;
 
-  using counter_type = uint16_t;
+  using counter_type = std::uint16_t;
   static constexpr unsigned io_channel_count = 1;
 
   static void enable_clock() {
@@ -215,7 +216,7 @@ struct tim13 {
 struct tim14 {
   static inline registers& REG = *TMR14;
 
-  using counter_type = uint16_t;
+  using counter_type = std::uint16_t;
   static constexpr unsigned io_channel_count = 1;
 
   static void enable_clock() {
@@ -270,7 +271,8 @@ concept some_general_purpose_timer = is_general_purpose_timer<T>::value;
 
 template<typename T>
 struct is_32bit_timer
-    : std::bool_constant<std::same_as<typename T::counter_type, uint32_t>> {};
+    : std::bool_constant<
+          std::same_as<typename T::counter_type, std::uint32_t>> {};
 
 template<typename T>
 concept some_32bit_timer = is_32bit_timer<T>::value;

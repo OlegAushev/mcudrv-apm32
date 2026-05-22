@@ -11,17 +11,19 @@
 #include <emb/delegate.hpp>
 #include <emb/meta.hpp>
 
+#include <cstddef>
+#include <cstdint>
 #include <expected>
 #include <optional>
 #include <utility>
 
 namespace apm32::f4::can {
 
-inline constexpr size_t filter_count_total = 28;
+inline constexpr std::size_t filter_count_total = 28;
 
 struct transceiver_traits {
-  size_t filter_count;
-  size_t tx_queue_size;
+  std::size_t filter_count;
+  std::size_t tx_queue_size;
 };
 
 struct transceiver_config {
@@ -30,10 +32,10 @@ struct transceiver_config {
 
   can::mode mode;
 
-  uint16_t prescaler;      // 1..1024
-  uint8_t sync_jump_width; // 1..4
-  uint8_t time_segment1;   // 1..16
-  uint8_t time_segment2;   // 1..8
+  std::uint16_t prescaler;      // 1..1024
+  std::uint8_t sync_jump_width; // 1..4
+  std::uint8_t time_segment1;   // 1..16
+  std::uint8_t time_segment2;   // 1..8
 
   bool auto_bus_off_management;
   bool auto_wakeup;
@@ -46,7 +48,7 @@ struct transceiver_config {
   nvic::irq_priority tx_irq_priority;
   nvic::irq_priority sce_irq_priority;
 
-  constexpr uint32_t bittim_reg() const {
+  constexpr std::uint32_t bittim_reg() const {
     return ((prescaler - 1u) << CAN_BITTIM_BRPSC_Pos)
          | ((sync_jump_width - 1u) << CAN_BITTIM_RSYNJW_Pos)
          | ((time_segment1 - 1u) << CAN_BITTIM_TIMSEG1_Pos)
@@ -55,7 +57,7 @@ struct transceiver_config {
          | ((std::to_underlying(mode) >> 1) << CAN_BITTIM_SILMEN_Pos);
   }
 
-  constexpr uint32_t mctrl_reg() const {
+  constexpr std::uint32_t mctrl_reg() const {
     return (tx_fifo_priority ? CAN_MCTRL_TXFPCFG : 0u)
          | (rx_fifo_locked ? CAN_MCTRL_RXFLOCK : 0u)
          | (no_auto_retransmit ? CAN_MCTRL_ARTXMD : 0u)
@@ -106,7 +108,7 @@ private:
   std::optional<gpio::alternate_pin> rx_pin_;
   std::optional<gpio::alternate_pin> tx_pin_;
 
-  uint32_t filters_used_ = 0;
+  std::uint32_t filters_used_ = 0;
 
   emb::isr_spsc_inplace_queue<emb::can::frame_t, Traits.tx_queue_size>
       tx_queue_;
@@ -212,7 +214,7 @@ public:
     constexpr auto fifo = std::to_underlying(RxFifo);
     emb::can::frame_t frame;
 
-    uint32_t const rxmid = reg.sFIFOMailBox[fifo].RXMID;
+    std::uint32_t const rxmid = reg.sFIFOMailBox[fifo].RXMID;
     if (!emb::mmio::test_any(rxmid, CAN_RXMID0_IDTYPESEL)) {
       frame.format = emb::can::format_t::standard;
       frame.id = rxmid >> 21;
@@ -221,7 +223,7 @@ public:
       frame.id = rxmid >> 3;
     }
 
-    frame.len = uint8_t(
+    frame.len = std::uint8_t(
         emb::mmio::read(reg.sFIFOMailBox[fifo].RXDLEN, CAN_RXDLEN0_DLCODE)
     );
 
@@ -240,8 +242,8 @@ public:
   }
 
 private:
-  uint32_t get_next_filter_idx() {
-    uint32_t bank_offset = 0;
+  std::uint32_t get_next_filter_idx() {
+    std::uint32_t bank_offset = 0;
     if constexpr (std::same_as<Instance, can2>) {
       bank_offset = emb::mmio::read(can1::reg.FCTRL, CAN_FCTRL_CAN2SB);
     }
@@ -281,9 +283,9 @@ private:
   void add_filter(filter_16_mask const& filter, rx_fifo fifo) {
     core::ensure(filters_used_ < Traits.filter_count);
 
-    uint32_t const bank1 = detail::encode_16bit_mask(filter.mask1) << 16
+    std::uint32_t const bank1 = detail::encode_16bit_mask(filter.mask1) << 16
                          | detail::encode_16bit_id(filter.id1);
-    uint32_t const bank2 = detail::encode_16bit_mask(filter.mask2) << 16
+    std::uint32_t const bank2 = detail::encode_16bit_mask(filter.mask2) << 16
                          | detail::encode_16bit_id(filter.id2);
 
     setup_filter_bank(
@@ -301,9 +303,9 @@ private:
   void add_filter(filter_16_list const& filter, rx_fifo fifo) {
     core::ensure(filters_used_ < Traits.filter_count);
 
-    uint32_t const bank1 = detail::encode_16bit_id(filter.id2) << 16
+    std::uint32_t const bank1 = detail::encode_16bit_id(filter.id2) << 16
                          | detail::encode_16bit_id(filter.id1);
-    uint32_t const bank2 = detail::encode_16bit_id(filter.id4) << 16
+    std::uint32_t const bank2 = detail::encode_16bit_id(filter.id4) << 16
                          | detail::encode_16bit_id(filter.id3);
 
     setup_filter_bank(
@@ -323,7 +325,7 @@ private:
   }
 
   template<rx_fifo RxFifo>
-  size_t rx_messages_pending() const {
+  std::size_t rx_messages_pending() const {
     if constexpr (RxFifo == rx_fifo::_0) {
       return emb::mmio::read(reg.RXF0, CAN_RXF0_FMNUM0);
     } else {
@@ -344,7 +346,7 @@ private:
     if (mailbox > 2) return;
 
     // ID
-    uint32_t txmid;
+    std::uint32_t txmid;
     if (frame.format == emb::can::format_t::standard) {
       txmid = (frame.id << CAN_TXMID0_STDID_Pos);
     } else {
@@ -360,7 +362,7 @@ private:
     );
 
     // data
-    auto const words = std::bit_cast<std::array<uint32_t, 2>>(frame.payload);
+    auto const words = std::bit_cast<std::array<std::uint32_t, 2>>(frame.payload);
     reg.sTxMailBox[mailbox].TXMDL = words[0];
     reg.sTxMailBox[mailbox].TXMDH = words[1];
 

@@ -4,6 +4,8 @@
 
 #include <emb/chrono.hpp>
 
+#include <cstdint>
+
 extern "C" void SysTick_Handler() {
   apm32::f4::chrono::steady_clock::on_interrupt();
 }
@@ -13,7 +15,8 @@ namespace apm32::f4::chrono {
 void steady_clock::init() {
   core::ensure(!initialized_);
 
-  uint32_t const ticks_per_msec = core::clock_frequency<uint32_t>() / 1000u;
+  std::uint32_t const ticks_per_msec = core::clock_frequency<std::uint32_t>()
+                                     / 1000u;
   SysTick->LOAD = ticks_per_msec - 1;
   NVIC_SetPriority(SysTick_IRQn, 0);
   SysTick->VAL = 0;

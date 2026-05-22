@@ -2,6 +2,8 @@
 
 #include <emb/mmio.hpp>
 
+#include <cstdint>
+
 namespace apm32::f4::dac {
 
 peripheral::peripheral(peripheral_id id)
@@ -20,10 +22,10 @@ std::unique_ptr<gpio::analog_pin> peripheral::configure_channel(
       gpio::analog_pin_config{.port = pinconf.port, .pin = pinconf.pin}
   );
 
-  uint32_t const offset = std::to_underlying(ch);
+  std::uint32_t const offset = std::to_underlying(ch);
 
   // configure channel: buffer disable, trigger selection, trigger enable
-  uint32_t ctrl_val = 0;
+  std::uint32_t ctrl_val = 0;
   if (chconf.output_buffer_disable) {
     ctrl_val |= (1u << 1);    // BUFFDCHx
   }
@@ -33,7 +35,7 @@ std::unique_ptr<gpio::analog_pin> peripheral::configure_channel(
   }
 
   // clear the 14 control bits for this channel and set new values
-  uint32_t const ch_mask = 0x3FFFu << offset;
+  std::uint32_t const ch_mask = 0x3FFFu << offset;
   emb::mmio::write(regs_->CTRL, ch_mask, ctrl_val);
 
   // enable channel

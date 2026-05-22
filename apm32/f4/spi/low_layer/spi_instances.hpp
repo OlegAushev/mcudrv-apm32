@@ -10,12 +10,13 @@
 #include <emb/mmio.hpp>
 
 #include <cstddef>
+#include <cstdint>
 
 namespace apm32::f4::spi {
 
 using registers = SPI_TypeDef;
 
-inline constexpr size_t count = 3;
+inline constexpr std::size_t count = 3;
 
 inline constexpr emb::units::hz_f32 max_clock_frequency{42e6f};
 
@@ -29,7 +30,7 @@ struct spi1 {
     emb::mmio::set(RCM->APB2CLKEN, RCM_APB2CLKEN_SPI1EN);
   };
 
-  static constexpr uint32_t gpio_altfunc = gpio::altfunc::spi1;
+  static constexpr std::uint32_t gpio_altfunc = gpio::altfunc::spi1;
 };
 
 struct spi2 {
@@ -42,7 +43,7 @@ struct spi2 {
     emb::mmio::set(RCM->APB1CLKEN, RCM_APB1CLKEN_SPI2EN);
   };
 
-  static constexpr uint32_t gpio_altfunc = gpio::altfunc::spi2;
+  static constexpr std::uint32_t gpio_altfunc = gpio::altfunc::spi2;
 };
 
 struct spi3 {
@@ -55,7 +56,7 @@ struct spi3 {
     emb::mmio::set(RCM->APB1CLKEN, RCM_APB1CLKEN_SPI3EN);
   };
 
-  static constexpr uint32_t gpio_altfunc = gpio::altfunc::spi3;
+  static constexpr std::uint32_t gpio_altfunc = gpio::altfunc::spi3;
 };
 
 template<typename T>

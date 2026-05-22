@@ -8,6 +8,8 @@
 #include <emb/mmio.hpp>
 
 #include <algorithm>
+#include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <utility>
 
@@ -15,16 +17,16 @@ namespace apm32::f4::dac {
 
 using peripheral_registers = DAC_TypeDef;
 
-inline constexpr size_t peripheral_count = 1;
+inline constexpr std::size_t peripheral_count = 1;
 
 inline std::array<peripheral_registers*, peripheral_count> const peripherals = {
     DAC
 };
 
-enum class peripheral_id : uint32_t { dac1 };
+enum class peripheral_id : std::uint32_t { dac1 };
 
 // channel offset in CTRL register: ch1 starts at bit 0, ch2 at bit 16
-enum class channel : uint32_t { ch1 = 0, ch2 = 16 };
+enum class channel : std::uint32_t { ch1 = 0, ch2 = 16 };
 
 struct pin_config {
   gpio::port port;
@@ -33,13 +35,13 @@ struct pin_config {
 
 struct channel_config {
   bool output_buffer_disable;
-  uint32_t trigger_selection;
+  std::uint32_t trigger_selection;
   bool trigger_enable;
 };
 
 namespace detail {
 
-inline constexpr std::array<uint32_t, peripheral_count> clock_bits = {
+inline constexpr std::array<std::uint32_t, peripheral_count> clock_bits = {
     RCM_APB1CLKEN_DACEN,
 };
 

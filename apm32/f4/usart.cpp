@@ -3,6 +3,8 @@
 
 #include <apm32/f4/usart.hpp>
 
+#include <cstddef>
+
 namespace mcu {
 inline namespace apm32 {
 inline namespace f4 {
@@ -40,7 +42,7 @@ Module::Module(Peripheral peripheral,
 }
 
 void Module::enable_clk(Peripheral peripheral) {
-  size_t usart_idx{std::to_underlying(peripheral)};
+  std::size_t usart_idx{std::to_underlying(peripheral)};
   if (clk_enabled_[usart_idx]) {
     return;
   }

@@ -4,6 +4,8 @@
 
 #include <emb/mmio.hpp>
 
+#include <cstdint>
+
 namespace apm32::f4::tim::pwm {
 
 void detail::configure_half_bridge_timebase(
@@ -16,7 +18,7 @@ void detail::configure_half_bridge_timebase(
   auto const timebase_freq = clk_freq
                            / static_cast<float>(conf.prescaler.value() + 1);
 
-  uint32_t const period = static_cast<uint32_t>(
+  std::uint32_t const period = static_cast<std::uint32_t>(
       (timebase_freq / conf.frequency) / 2
   );
   core::ensure(period <= UINT16_MAX);

@@ -6,9 +6,11 @@
 
 #include <emb/can.hpp>
 
+#include <cstdint>
+
 namespace apm32::f4::can {
 
-enum class error : uint8_t { timeout, overflow, internal };
+enum class error : std::uint8_t { timeout, overflow, internal };
 
 struct rx_pin_config {
   gpio::port port;
@@ -20,18 +22,18 @@ struct tx_pin_config {
   gpio::pin pin;
 };
 
-enum class mode : uint32_t {
+enum class mode : std::uint32_t {
   normal = 0b00,
   loopback = 0b01,
   silent = 0b10,
   silent_loopback = 0b11,
 };
 
-enum class rx_fifo : uint32_t { _0, _1 };
+enum class rx_fifo : std::uint32_t { _0, _1 };
 
-enum class filter_scale : uint32_t { _16bit, _32bit };
+enum class filter_scale : std::uint32_t { _16bit, _32bit };
 
-enum class filter_mode : uint32_t { mask, list };
+enum class filter_mode : std::uint32_t { mask, list };
 
 struct filter_32_mask {
   emb::can::format_t format;
@@ -46,17 +48,17 @@ struct filter_32_list {
 };
 
 struct filter_16_mask {
-  uint16_t id1;
-  uint16_t mask1;
-  uint16_t id2;
-  uint16_t mask2;
+  std::uint16_t id1;
+  std::uint16_t mask1;
+  std::uint16_t id2;
+  std::uint16_t mask2;
 };
 
 struct filter_16_list {
-  uint16_t id1;
-  uint16_t id2;
-  uint16_t id3;
-  uint16_t id4;
+  std::uint16_t id1;
+  std::uint16_t id2;
+  std::uint16_t id3;
+  std::uint16_t id4;
 };
 
 } // namespace apm32::f4::can

@@ -4,11 +4,13 @@
 
 #include <apm32/f4/nvic.hpp>
 
+#include <cstddef>
+
 namespace apm32::f4::dma {
 
 using stream_registers = DMA_Stream_TypeDef;
 
-inline constexpr size_t stream_count = 16;
+inline constexpr std::size_t stream_count = 16;
 
 struct dma1_stream0 {
   using controller = dma1;

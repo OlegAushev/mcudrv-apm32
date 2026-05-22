@@ -4,6 +4,7 @@
 
 #include <emb/meta.hpp>
 
+#include <cstddef>
 #include <tuple>
 
 namespace apm32::f4::tim {
@@ -39,7 +40,7 @@ struct is_timer_channel_instance
 template<typename T>
 concept some_timer_channel_instance = is_timer_channel_instance<T>::value;
 
-template<size_t I>
+template<std::size_t I>
   requires(I < 4)
 using channel_at = std::tuple_element_t<
     I,

@@ -11,6 +11,7 @@
 #include <emb/mmio.hpp>
 
 #include <cstddef>
+#include <cstdint>
 
 namespace apm32::f4::can {
 
@@ -18,7 +19,7 @@ using registers = CAN_TypeDef;
 
 using irq_handler = emb::delegate<void(void)>;
 
-inline constexpr size_t count = 2;
+inline constexpr std::size_t count = 2;
 
 struct can1 {
   static inline registers& reg = *CAN1;
@@ -35,7 +36,7 @@ struct can1 {
     emb::mmio::set(RCM->APB1CLKEN, RCM_APB1CLKEN_CAN1EN);
   };
 
-  static constexpr uint32_t gpio_altfunc = gpio::altfunc::can1;
+  static constexpr std::uint32_t gpio_altfunc = gpio::altfunc::can1;
 
   static inline irq_handler on_irq_rx0;
   static inline irq_handler on_irq_rx1;
@@ -58,7 +59,7 @@ struct can2 {
     emb::mmio::set(RCM->APB1CLKEN, RCM_APB1CLKEN_CAN2EN);
   };
 
-  static constexpr uint32_t gpio_altfunc = gpio::altfunc::can2;
+  static constexpr std::uint32_t gpio_altfunc = gpio::altfunc::can2;
 
   static inline irq_handler on_irq_rx0;
   static inline irq_handler on_irq_rx1;

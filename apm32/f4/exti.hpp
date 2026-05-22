@@ -4,11 +4,12 @@
 
 #include <emb/mmio.hpp>
 
+#include <cstdint>
 #include <utility>
 
 namespace apm32::f4::exti {
 
-enum class line : uint32_t {
+enum class line : std::uint32_t {
     line0  = (1u << 0),
     line1  = (1u << 1),
     line2  = (1u << 2),

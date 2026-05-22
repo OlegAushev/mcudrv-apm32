@@ -7,6 +7,7 @@
 #include <emb/concurrent/isr_seqlock.hpp>
 
 #include <chrono>
+#include <cstdint>
 
 extern "C" void SysTick_Handler();
 
@@ -25,7 +26,7 @@ public:
   static constexpr bool is_steady = true;
 private:
   static inline bool initialized_ = false;
-  static inline emb::isr_seqlock<int64_t> time_{};
+  static inline emb::isr_seqlock<std::int64_t> time_{};
 public:
   steady_clock() = delete;
   static void init();
@@ -50,7 +51,7 @@ public:
   }
 protected:
   static void on_interrupt() {
-    time_.update([](int64_t t) { return ++t; });
+    time_.update([](std::int64_t t) { return ++t; });
   }
 };
 
@@ -76,8 +77,8 @@ public:
 
   static std::chrono::time_point<high_resolution_clock> now() {
 #if 1
-    int64_t ms;
-    uint32_t ticks;
+    std::int64_t ms;
+    std::uint32_t ticks;
 
     // Read milliseconds and SysTick value until we get a consistent pair.
     // If SysTick interrupt fires between the two reads of time_, the values
@@ -104,7 +105,7 @@ public:
     // instead of direct cast to int64_t allows use of hardware FPU instruction
     // and avoids software floating-point conversion routine __fixsfdi
     // that would be needed for float-to-int64 conversion.
-    auto const nsec_count = static_cast<int32_t>(
+    auto const nsec_count = static_cast<std::int32_t>(
         static_cast<float>(ticks) * nsec_per_tick_
     );
 
@@ -120,7 +121,7 @@ public:
 
     // intermediate cast to int32 instead of immediate cast to rep (int64)
     // to use FPU and avoid usage of __fixsfdi
-    auto const nsec_count = static_cast<int32_t>(
+    auto const nsec_count = static_cast<std::int32_t>(
         static_cast<float>(SysTick->LOAD - SysTick->VAL) * nsec_per_tick_
     );
 
@@ -142,7 +143,7 @@ static_assert(std::chrono::is_clock_v<high_resolution_clock>);
 
 constexpr float to_float(high_resolution_clock::duration dur) {
   // intermediate cast to int32 instead of immediate cast to float to use FPU
-  int32_t const dur_ = static_cast<int32_t>(dur.count());
+  std::int32_t const dur_ = static_cast<std::int32_t>(dur.count());
   return static_cast<float>(dur_);
 }
 

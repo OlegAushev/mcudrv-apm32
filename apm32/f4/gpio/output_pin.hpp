@@ -6,6 +6,8 @@
 
 #include <emb/gpio.hpp>
 
+#include <cstdint>
+
 namespace apm32::f4::gpio {
 
 class output_pin : public detail::pin_base {
@@ -36,9 +38,9 @@ public:
 
   void set_level(emb::gpio::level lvl) {
     if (lvl == emb::gpio::level::high) {
-      regs_->BSC = uint32_t(pin_);
+      regs_->BSC = std::uint32_t(pin_);
     } else {
-      regs_->BSC = uint32_t(pin_) << 16;
+      regs_->BSC = std::uint32_t(pin_) << 16;
     }
   }
 
@@ -55,8 +57,8 @@ public:
   }
 
   void toggle() {
-    uint16_t const out = static_cast<uint16_t>(regs_->ODATA);
-    regs_->BSC = uint32_t(~out & pin_) | (uint32_t(out & pin_) << 16);
+    std::uint16_t const out = static_cast<std::uint16_t>(regs_->ODATA);
+    regs_->BSC = std::uint32_t(~out & pin_) | (std::uint32_t(out & pin_) << 16);
   }
 };
 

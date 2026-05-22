@@ -2,6 +2,8 @@
 
 #include <emb/mmio.hpp>
 
+#include <cstdint>
+
 namespace apm32::f4::exti {
 
 namespace {
@@ -20,7 +22,7 @@ void configure(line l, mode m, trigger_edge edge) {
     clock_enabled = true;
   }
 
-  uint32_t const line_mask = std::to_underlying(l);
+  std::uint32_t const line_mask = std::to_underlying(l);
 
   // set interrupt or event mask
   if (m == mode::interrupt) {

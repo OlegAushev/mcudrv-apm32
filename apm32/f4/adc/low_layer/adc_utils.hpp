@@ -6,6 +6,7 @@
 #include <emb/units.hpp>
 
 #include <algorithm>
+#include <cstdint>
 
 namespace apm32::f4::adc {
 
@@ -39,12 +40,12 @@ void acknowledge_eoc() {
   emb::mmio::clear_w0(Instance::reg.STS, ADC_STS_EOCFLG);
 }
 
-inline constexpr std::array<uint32_t, 4> clock_prescalers = {2, 4, 6, 8};
+inline constexpr std::array<std::uint32_t, 4> clock_prescalers = {2, 4, 6, 8};
 
 namespace detail {
 
 // prescaler field value: 0=div2, 1=div4, 2=div6, 3=div8
-constexpr uint32_t prescaler_to_field(uint32_t prescaler) {
+constexpr std::uint32_t prescaler_to_field(std::uint32_t prescaler) {
   switch (prescaler) {
   case 2:
     return 0;
@@ -58,12 +59,12 @@ constexpr uint32_t prescaler_to_field(uint32_t prescaler) {
   std::unreachable();
 }
 
-constexpr uint32_t
+constexpr std::uint32_t
 calculate_prescaler(emb::units::hz_f32 clk_freq, emb::units::hz_f32 adc_freq) {
-  uint32_t clk_freq_u32 = static_cast<uint32_t>(clk_freq.value());
-  uint32_t adc_freq_u32 = static_cast<uint32_t>(adc_freq.value());
+  std::uint32_t clk_freq_u32 = static_cast<std::uint32_t>(clk_freq.value());
+  std::uint32_t adc_freq_u32 = static_cast<std::uint32_t>(adc_freq.value());
 
-  uint32_t ratio = clk_freq_u32 / adc_freq_u32 +
+  std::uint32_t ratio = clk_freq_u32 / adc_freq_u32 +
                    (clk_freq_u32 % adc_freq_u32 != 0);
   auto it = std::upper_bound(
       clock_prescalers.begin(),
@@ -76,14 +77,14 @@ calculate_prescaler(emb::units::hz_f32 clk_freq, emb::units::hz_f32 adc_freq) {
 
 } // namespace detail
 
-inline uint32_t calculate_prescaler() {
+inline std::uint32_t calculate_prescaler() {
   return detail::calculate_prescaler(
       core::apb2_timer_frequency<emb::units::hz_f32>(),
       max_clock_frequency
   );
 }
 
-inline float convert_to_mcu_temperature(uint32_t adc_data) {
+inline float convert_to_mcu_temperature(std::uint32_t adc_data) {
   float const volt = static_cast<float>(adc_data) * vref / nmax<float>;
   return (volt - 0.7782f) / 0.0024f + 28.0f;
 }

@@ -46,8 +46,8 @@ inline T apb2_timer_frequency() {
   return clock_frequency<T>();
 }
 
-inline uint32_t serial_number() {
-  uint32_t* uid_ptr{reinterpret_cast<uint32_t*>(0x1FFF7A10)};
+inline std::uint32_t serial_number() {
+  std::uint32_t* uid_ptr{reinterpret_cast<std::uint32_t*>(0x1FFF7A10)};
   return *uid_ptr;
 }
 
@@ -61,13 +61,13 @@ constexpr void ensure(bool pred) {
   }
 }
 
-template<typename Derived, typename Id, size_t Count>
+template<typename Derived, typename Id, std::size_t Count>
 class peripheral {
 private:
   static inline std::array<Derived*, Count> instances_{};
 protected:
   peripheral(Id id) {
-    auto idx = static_cast<size_t>(id);
+    auto idx = static_cast<std::size_t>(id);
     ensure(idx < Count);
     ensure(!initialized(id));
     instances_[idx] = static_cast<Derived*>(this);
@@ -79,14 +79,14 @@ public:
   peripheral& operator=(peripheral&&) = delete;
 
   static Derived* instance(Id id) {
-    auto idx = static_cast<size_t>(id);
+    auto idx = static_cast<std::size_t>(id);
     ensure(idx < Count);
     ensure(initialized(id));
     return instances_[idx];
   }
 
   static bool initialized(Id id) {
-    auto idx = static_cast<size_t>(id);
+    auto idx = static_cast<std::size_t>(id);
     ensure(idx < Count);
     return instances_[idx] != nullptr;
   }

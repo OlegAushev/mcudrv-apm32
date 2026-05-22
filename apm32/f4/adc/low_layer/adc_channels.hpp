@@ -7,6 +7,8 @@
 
 #include <emb/mmio.hpp>
 
+#include <cstdint>
+
 namespace apm32::f4::adc {
 
 enum class channel_type {
@@ -20,13 +22,13 @@ namespace detail {
 // sample time: 3 bits per channel
 // channels 0-9  -> SMPTIM2 at (ch * 3) bits
 // channels 10-17 -> SMPTIM1 at ((ch - 10) * 3) bits
-inline void set_sample_time(registers& reg, unsigned ch, uint8_t smp) {
+inline void set_sample_time(registers& reg, unsigned ch, std::uint8_t smp) {
   if (ch < 10) {
-    uint32_t const pos = ch * 3u;
-    emb::mmio::write(reg.SMPTIM2, 0x7u << pos, uint32_t(smp));
+    std::uint32_t const pos = ch * 3u;
+    emb::mmio::write(reg.SMPTIM2, 0x7u << pos, std::uint32_t(smp));
   } else {
-    uint32_t const pos = (ch - 10u) * 3u;
-    emb::mmio::write(reg.SMPTIM1, 0x7u << pos, uint32_t(smp));
+    std::uint32_t const pos = (ch - 10u) * 3u;
+    emb::mmio::write(reg.SMPTIM1, 0x7u << pos, std::uint32_t(smp));
   }
 }
 
@@ -34,27 +36,30 @@ inline void set_sample_time(registers& reg, unsigned ch, uint8_t smp) {
 // ranks 1-6   -> REGSEQ3 at ((rank-1) * 5) bits
 // ranks 7-12  -> REGSEQ2 at ((rank-7) * 5) bits
 // ranks 13-16 -> REGSEQ1 at ((rank-13) * 5) bits
-inline void set_regular_sequence(registers& reg, unsigned ch, uint8_t rank) {
+inline void
+set_regular_sequence(registers& reg, unsigned ch, std::uint8_t rank) {
   if (rank <= 6) {
-    uint32_t const pos = (rank - 1u) * 5u;
-    emb::mmio::write(reg.REGSEQ3, 0x1Fu << pos, uint32_t(ch));
+    std::uint32_t const pos = (rank - 1u) * 5u;
+    emb::mmio::write(reg.REGSEQ3, 0x1Fu << pos, std::uint32_t(ch));
   } else if (rank <= 12) {
-    uint32_t const pos = (rank - 7u) * 5u;
-    emb::mmio::write(reg.REGSEQ2, 0x1Fu << pos, uint32_t(ch));
+    std::uint32_t const pos = (rank - 7u) * 5u;
+    emb::mmio::write(reg.REGSEQ2, 0x1Fu << pos, std::uint32_t(ch));
   } else {
-    uint32_t const pos = (rank - 13u) * 5u;
-    emb::mmio::write(reg.REGSEQ1, 0x1Fu << pos, uint32_t(ch));
+    std::uint32_t const pos = (rank - 13u) * 5u;
+    emb::mmio::write(reg.REGSEQ1, 0x1Fu << pos, std::uint32_t(ch));
   }
 }
 
 // injected sequence: 5 bits per rank, ranks 1-4 at ((rank-1) * 5) bits
-inline void set_injected_sequence(registers& reg, unsigned ch, uint8_t rank) {
-  uint32_t const pos = (rank - 1u) * 5u;
-  emb::mmio::write(reg.INJSEQ, 0x1Fu << pos, uint32_t(ch));
+inline void
+set_injected_sequence(registers& reg, unsigned ch, std::uint8_t rank) {
+  std::uint32_t const pos = (rank - 1u) * 5u;
+  emb::mmio::write(reg.INJSEQ, 0x1Fu << pos, std::uint32_t(ch));
 }
 
 // injected offset: INJDOF1-4 registers
-inline void set_injected_offset(registers& reg, uint8_t rank, uint16_t offset) {
+inline void
+set_injected_offset(registers& reg, std::uint8_t rank, std::uint16_t offset) {
   switch (rank) {
   case 1:
     reg.INJDOF1 = offset;
@@ -291,9 +296,9 @@ struct injected_channel {
   static std::optional<gpio::analog_pin_config> init(registers& reg) {
     for (auto rank : ranks) {
       using namespace detail;
-      set_sample_time(reg, channel::idx, static_cast<uint8_t>(sampletime));
-      set_injected_sequence(reg, channel::idx, static_cast<uint8_t>(rank));
-      set_injected_offset(reg, static_cast<uint8_t>(rank), 0);
+      set_sample_time(reg, channel::idx, static_cast<std::uint8_t>(sampletime));
+      set_injected_sequence(reg, channel::idx, static_cast<std::uint8_t>(rank));
+      set_injected_offset(reg, static_cast<std::uint8_t>(rank), 0);
     }
 
     if constexpr (channel::type == channel_type::external) {
@@ -318,8 +323,8 @@ struct regular_channel {
   static std::optional<gpio::analog_pin_config> init(registers& reg) {
     for (auto rank : ranks) {
       using namespace detail;
-      set_sample_time(reg, channel::idx, static_cast<uint8_t>(sampletime));
-      set_regular_sequence(reg, channel::idx, static_cast<uint8_t>(rank));
+      set_sample_time(reg, channel::idx, static_cast<std::uint8_t>(sampletime));
+      set_regular_sequence(reg, channel::idx, static_cast<std::uint8_t>(rank));
     }
 
     if constexpr (channel::type == channel_type::external) {

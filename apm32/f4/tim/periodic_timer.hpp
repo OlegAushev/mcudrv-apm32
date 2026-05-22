@@ -5,11 +5,13 @@
 #include <emb/mmio.hpp>
 #include <emb/singleton.hpp>
 
+#include <cstdint>
+
 namespace apm32::f4::tim {
 
 struct periodic_timer_config {
   emb::units::hz_f32 frequency;
-  std::optional<uint16_t> prescaler;
+  std::optional<std::uint16_t> prescaler;
   nvic::irq_priority irq_priority;
 };
 

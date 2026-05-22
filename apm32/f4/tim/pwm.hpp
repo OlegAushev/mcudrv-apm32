@@ -9,6 +9,8 @@
 #include <emb/mmio.hpp>
 #include <emb/units.hpp>
 
+#include <cstdint>
+
 namespace apm32::f4::tim::pwm {
 
 struct output_pin_config {
@@ -56,7 +58,7 @@ make_break_input_gpio_config(break_pin_config const& bk_pin) {
   };
 }
 
-constexpr uint8_t get_deadtime_setup(
+constexpr std::uint8_t get_deadtime_setup(
     emb::units::hz_f32 clk_freq,
     emb::chrono::nanoseconds_i32 const& deadtime,
     clock_division clkdiv
@@ -68,16 +70,13 @@ constexpr uint8_t get_deadtime_setup(
   core::ensure(dt <= (32 + 0x1F) * 16 * t_dts_ns);
 
   if (dt <= 0x7F * t_dts_ns) {
-    return static_cast<uint8_t>(dt / t_dts_ns) & 0x7F;
+    return std::uint8_t(dt / t_dts_ns) & 0x7F;
   } else if (dt <= (64 + 0x3F) * 2 * t_dts_ns) {
-    return static_cast<uint8_t>((dt - 64 * 2 * t_dts_ns) / (2 * t_dts_ns)) |
-           0x80;
+    return std::uint8_t((dt - 64 * 2 * t_dts_ns) / (2 * t_dts_ns)) | 0x80;
   } else if (dt <= (32 + 0x1F) * 8 * t_dts_ns) {
-    return static_cast<uint8_t>((dt - 32 * 8 * t_dts_ns) / (8 * t_dts_ns)) |
-           0xC0;
+    return std::uint8_t((dt - 32 * 8 * t_dts_ns) / (8 * t_dts_ns)) | 0xC0;
   } else {
-    return static_cast<uint8_t>((dt - 32 * 16 * t_dts_ns) / (16 * t_dts_ns)) |
-           0xE0;
+    return std::uint8_t((dt - 32 * 16 * t_dts_ns) / (16 * t_dts_ns)) | 0xE0;
   }
 }
 

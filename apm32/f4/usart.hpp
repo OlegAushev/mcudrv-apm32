@@ -11,13 +11,16 @@
 #include <emb/singleton.hpp>
 #include <emb/uart.hpp>
 
+#include <cstddef>
+#include <cstdint>
+
 namespace mcu::inline apm32::inline f4::usart {
 
 using Regs = USART_T;
 
-constexpr size_t periph_num{6};
+constexpr std::size_t periph_num{6};
 
-enum class Peripheral : size_t {
+enum class Peripheral : std::size_t {
   usart1,
   usart2,
   usart3,
@@ -86,22 +89,22 @@ public:
   }
 
   virtual int getchar() override {
-    if (bit_is_clear<uint32_t>(regs_->STS, USART_FLAG_RXBNE)) {
+    if (bit_is_clear<std::uint32_t>(regs_->STS, USART_FLAG_RXBNE)) {
       return EOF;
     }
     return regs_->DATA_B.DATA;
   }
 
   virtual int putchar(int ch) override {
-    if (bit_is_clear<uint32_t>(regs_->STS, USART_FLAG_TXBE)) {
+    if (bit_is_clear<std::uint32_t>(regs_->STS, USART_FLAG_TXBE)) {
       return EOF;
     }
-    regs_->DATA_B.DATA = static_cast<uint16_t>(ch) & 0x1FF;
+    regs_->DATA_B.DATA = static_cast<std::uint16_t>(ch) & 0x1FF;
     return ch;
   }
 
   // TODO
-  // virtual int recv(char* buf, size_t len) override {
+  // virtual int recv(char* buf, std::size_t len) override {
   //     int i = 0;
   //     char ch = 0;
 
@@ -112,8 +115,8 @@ public:
   // }
 
   // TODO
-  // virtual int send(const char* buf, size_t len) override {
-  //     if (HAL_UART_Transmit(&_handle, reinterpret_cast<const uint8_t*>(buf), static_cast<uint16_t>(len), timeout_ms) != HAL_OK) {
+  // virtual int send(const char* buf, std::size_t len) override {
+  //     if (HAL_UART_Transmit(&_handle, reinterpret_cast<const std::uint8_t*>(buf), static_cast<std::uint16_t>(len), timeout_ms) != HAL_OK) {
   //         return 0;
   //     }
   //     return 1;

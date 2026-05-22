@@ -14,6 +14,8 @@
 
 #include <cassert>
 #include <chrono>
+#include <cstddef>
+#include <cstdint>
 #include <limits>
 #include <optional>
 #include <utility>
@@ -24,7 +26,7 @@ struct psfb_pwm_config {
   emb::units::hz_f32 frequency;
   emb::chrono::nanoseconds_i32 deadtime;
   clock_division clkdiv;
-  std::optional<uint16_t> prescaler;
+  std::optional<std::uint16_t> prescaler;
   nvic::irq_priority update_irq_priority;
   nvic::irq_priority break_irq_priority;
   trigger_output trgo;
@@ -46,8 +48,8 @@ void configure_psfb_timebase(
 );
 
 // Force inactive level = 0b100, Toggle mode = 0b011
-inline constexpr uint32_t oc_mode_force_inactive = 0b100u;
-inline constexpr uint32_t oc_mode_toggle = 0b011u;
+inline constexpr std::uint32_t oc_mode_force_inactive = 0b100u;
+inline constexpr std::uint32_t oc_mode_toggle = 0b011u;
 
 template<some_advanced_timer Tim, some_timer_channel_instance Ch>
   requires(emb::same_as_any<Ch, channel1, channel2>)
@@ -112,7 +114,7 @@ class psfb : public emb::singleton<psfb<Tim>> {
 public:
   using timer_instance = Tim;
   using counter_type = Tim::counter_type;
-  static constexpr size_t LegCount = 2;
+  static constexpr std::size_t LegCount = 2;
   using dutycycle_type = std::array<emb::unsigned_pu, LegCount>;
 private:
   static inline registers& REG = timer_instance::REG;
@@ -123,7 +125,7 @@ private:
   static constexpr nvic::irq_number const break_irqn_ =
       timer_instance::break_irqn;
 
-  static inline std::array<uint32_t volatile*, 4> const CCR_REGS = {
+  static inline std::array<std::uint32_t volatile*, 4> const CCR_REGS = {
       &REG.CC1, &REG.CC2, &REG.CC3, &REG.CC4
   };
 
@@ -181,7 +183,7 @@ public:
         cfg.bk_pin
     );
 
-    emb::unroll<LegCount>([&]<size_t I>() {
+    emb::unroll<LegCount>([&]<std::size_t I>() {
       detail::configure_psfb_channel<
           timer_instance,
           tim::channel_at<I>>();
@@ -234,7 +236,7 @@ public:
   void set_frequency(emb::units::hz_f32 freq) {
     assert(freq >= min_freq_);
     assert(freq <= max_freq_);
-    REG.AUTORLD = uint32_t(timebase_freq_ / (2 * freq)) - 1;
+    REG.AUTORLD = std::uint32_t(timebase_freq_ / (2 * freq)) - 1;
     set_overlap(overlap_);
     period_ = 1.f / freq;
   }
@@ -247,8 +249,8 @@ public:
     if (!bk_pin_) {
       return false;
     }
-    return uint32_t(std::to_underlying(bk_pin_->read_level())) ==
-           emb::mmio::read(REG.BDT, TMR_BDT_BRKPOL);
+    return std::uint32_t(std::to_underlying(bk_pin_->read_level()))
+        == emb::mmio::read(REG.BDT, TMR_BDT_BRKPOL);
   }
 
   void start() {
@@ -269,7 +271,7 @@ public:
   dutycycle_type dutycycle() const {
     dutycycle_type dutycycle;
     float const reload_val = static_cast<float>(REG.AUTORLD);
-    emb::unroll<LegCount>([&]<size_t I>() {
+    emb::unroll<LegCount>([&]<std::size_t I>() {
       dutycycle[I] = emb::unsigned_pu{
           static_cast<float>(*CCR_REGS[I]) / reload_val
       };
@@ -279,9 +281,9 @@ public:
 
   void set_dutycycle(dutycycle_type const& dutycycle) {
     float const reload_val = static_cast<float>(REG.AUTORLD);
-    emb::unroll<LegCount>([&]<size_t I>() {
+    emb::unroll<LegCount>([&]<std::size_t I>() {
       *CCR_REGS[I] =
-          static_cast<uint32_t>(dutycycle[I].value() * reload_val);
+          static_cast<std::uint32_t>(dutycycle[I].value() * reload_val);
     });
   }
 
@@ -320,11 +322,11 @@ public:
     enable_counter<timer_instance>();
   }
 private:
-  static uint32_t min_ccr_v() {
+  static std::uint32_t min_ccr_v() {
     return 1;
   }
 
-  static uint32_t max_ccr_v(uint32_t arr_value) {
+  static std::uint32_t max_ccr_v(std::uint32_t arr_value) {
     return arr_value - 1;
   }
 };

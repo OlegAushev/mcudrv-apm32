@@ -5,9 +5,11 @@
 #include <emb/mmio.hpp>
 #include <emb/units.hpp>
 
+#include <cstdint>
+
 namespace apm32::f4::spi {
 
-enum class error : uint8_t {
+enum class error : std::uint8_t {
   timeout,
   overrun,
   underrun,
@@ -36,15 +38,15 @@ struct ss_pin_config {
   gpio::pin pin;
 };
 
-enum class clock_polarity : uint32_t { low = 0, high = 1 };
+enum class clock_polarity : std::uint32_t { low = 0, high = 1 };
 
-enum class clock_phase : uint32_t { first_edge = 0, second_edge = 1 };
+enum class clock_phase : std::uint32_t { first_edge = 0, second_edge = 1 };
 
-enum class data_length : uint32_t { bits_8 = 0, bits_16 = 1 };
+enum class data_length : std::uint32_t { bits_8 = 0, bits_16 = 1 };
 
-enum class bit_order : uint32_t { msb_first = 0, lsb_first = 1 };
+enum class bit_order : std::uint32_t { msb_first = 0, lsb_first = 1 };
 
-enum class baudrate_prescaler : uint32_t {
+enum class baudrate_prescaler : std::uint32_t {
   div2 = 0b000,
   div4 = 0b001,
   div8 = 0b010,
@@ -56,6 +58,6 @@ enum class baudrate_prescaler : uint32_t {
 };
 
 template<typename T>
-concept frame_format = emb::same_as_any<T, uint8_t, uint16_t>;
+concept frame_format = emb::same_as_any<T, std::uint8_t, std::uint16_t>;
 
 } // namespace apm32::f4::spi

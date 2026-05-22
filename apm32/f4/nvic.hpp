@@ -7,6 +7,7 @@
 #include <emb/math.hpp>
 
 #include <algorithm>
+#include <cstdint>
 
 namespace apm32::f4::nvic {
 
@@ -14,15 +15,22 @@ using irq_number = IRQn_Type;
 
 class irq_priority {
 public:
-  static constexpr uint8_t preempt_priority_max = 15;
-  static constexpr uint8_t sub_priority_max = 0;
+  static constexpr std::uint8_t preempt_priority_max = 15;
+  static constexpr std::uint8_t sub_priority_max = 0;
 private:
-  uint8_t preempt_;
-  uint8_t sub_;
+  std::uint8_t preempt_;
+  std::uint8_t sub_;
 public:
-  explicit constexpr irq_priority(uint8_t preempt_pri, uint8_t sub_pri = 0)
-      : preempt_{std::clamp(preempt_pri, uint8_t{0}, preempt_priority_max)},
-        sub_{std::clamp(sub_pri, uint8_t{0}, sub_priority_max)} {
+  explicit constexpr irq_priority(
+      std::uint8_t preempt_pri,
+      std::uint8_t sub_pri = 0
+  )
+      : preempt_{std::clamp(
+            preempt_pri,
+            std::uint8_t{0},
+            preempt_priority_max
+        )},
+        sub_{std::clamp(sub_pri, std::uint8_t{0}, sub_priority_max)} {
     core::ensure(preempt_pri <= preempt_priority_max);
     core::ensure(sub_pri <= sub_priority_max);
 #ifdef SILICON_REVISION_A
@@ -30,17 +38,17 @@ public:
 #endif
   }
 
-  constexpr uint8_t preempt_priority() const {
+  constexpr std::uint8_t preempt_priority() const {
     return preempt_;
   }
 
-  constexpr uint8_t sub_priority() const {
+  constexpr std::uint8_t sub_priority() const {
     return sub_;
   }
 };
 
 inline void set_irq_priority(irq_number irqn, irq_priority priority) {
-  uint32_t prioritygroup = NVIC_GetPriorityGrouping();
+  std::uint32_t prioritygroup = NVIC_GetPriorityGrouping();
   NVIC_SetPriority(
       irqn,
       NVIC_EncodePriority(
@@ -82,7 +90,7 @@ enum class irq_lock_policy {
 
 template<
     irq_lock_policy Policy = irq_lock_policy::all,
-    uint8_t PreemptThreshold = 0>
+    std::uint8_t PreemptThreshold = 0>
   requires(PreemptThreshold <= irq_priority::preempt_priority_max)
 class irq_guard {
 public:
@@ -116,10 +124,10 @@ public:
     }
   }
 private:
-  uint32_t backup_;
+  std::uint32_t backup_;
   bool locked_ = true;
 
-  static constexpr uint32_t encode_basepri() {
+  static constexpr std::uint32_t encode_basepri() {
     return PreemptThreshold << (8 - __NVIC_PRIO_BITS);
   }
 };

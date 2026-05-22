@@ -4,6 +4,8 @@
 
 #include <emb/mmio.hpp>
 
+#include <cstdint>
+
 namespace apm32::f4::tim {
 
 void detail::configure_timebase(
@@ -16,7 +18,8 @@ void detail::configure_timebase(
   auto const timebase_freq = clk_freq /
                              static_cast<float>(conf.prescaler.value() + 1);
 
-  uint32_t const period = uint32_t(timebase_freq / conf.frequency) - 1;
+  std::uint32_t const period = std::uint32_t(timebase_freq / conf.frequency)
+                             - 1;
   core::ensure(period <= UINT16_MAX);
 
   emb::mmio::modify(REG.CTRL1,

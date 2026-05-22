@@ -7,6 +7,8 @@
 #include <emb/mmio.hpp>
 #include <emb/units.hpp>
 
+#include <cstdint>
+
 namespace apm32::f4::tim {
 
 template<some_timer_instance Tim>
@@ -72,33 +74,34 @@ void acknowledge_capture_compare() {
 namespace detail {
 
 template<some_timer_instance Tim>
-constexpr uint16_t calculate_prescaler(
+constexpr std::uint16_t calculate_prescaler(
     emb::units::hz_f32 clk_freq,
     emb::units::hz_f32 tim_freq,
     counter_mode mode
 ) {
-  uint32_t clk_freq_u32 = static_cast<uint32_t>(clk_freq.value());
-  uint32_t tim_freq_u32 = static_cast<uint32_t>(tim_freq.value());
+  std::uint32_t clk_freq_u32 = static_cast<std::uint32_t>(clk_freq.value());
+  std::uint32_t tim_freq_u32 = static_cast<std::uint32_t>(tim_freq.value());
 
   // constexpr replacement for std::div (must be constrexpr since c++23, but...)
-  uint32_t total_ticks = clk_freq_u32 / tim_freq_u32 +
-                         (clk_freq_u32 % tim_freq_u32 != 0) -
-                         1;
+  std::uint32_t total_ticks = clk_freq_u32 / tim_freq_u32
+                            + (clk_freq_u32 % tim_freq_u32 != 0)
+                            - 1;
   if (mode == counter_mode::updown) {
     total_ticks = (total_ticks + 1) / 2;
   }
 
-  uint32_t ret = total_ticks /
-                 std::numeric_limits<typename Tim::counter_type>::max();
+  std::uint32_t ret = total_ticks
+                    / std::numeric_limits<typename Tim::counter_type>::max();
   core::ensure(ret <= UINT16_MAX);
 
-  return static_cast<uint16_t>(ret);
+  return static_cast<std::uint16_t>(ret);
 }
 
 } // namespace detail
 
 template<some_timer_instance Tim>
-uint16_t calculate_prescaler(emb::units::hz_f32 tim_freq, counter_mode mode) {
+std::uint16_t
+calculate_prescaler(emb::units::hz_f32 tim_freq, counter_mode mode) {
   return detail::calculate_prescaler<Tim>(
       Tim::template clock_frequency<emb::units::hz_f32>(),
       tim_freq,

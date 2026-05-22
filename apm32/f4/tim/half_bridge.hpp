@@ -14,6 +14,8 @@
 
 #include <cassert>
 #include <chrono>
+#include <cstddef>
+#include <cstdint>
 #include <limits>
 #include <optional>
 #include <utility>
@@ -24,13 +26,13 @@ struct half_bridge_pwm_config {
   emb::units::hz_f32 frequency;
   emb::chrono::nanoseconds_i32 deadtime;
   clock_division clkdiv;
-  std::optional<uint16_t> prescaler;
+  std::optional<std::uint16_t> prescaler;
   nvic::irq_priority update_irq_priority;
   nvic::irq_priority break_irq_priority;
   trigger_output trgo;
 };
 
-template<size_t LegCount = 1>
+template<std::size_t LegCount = 1>
 struct half_bridge_config {
   half_bridge_pwm_config pwm;
   std::array<output_pin_config, LegCount> hi_pins;
@@ -47,7 +49,7 @@ void configure_half_bridge_timebase(
 );
 
 // PWM1 mode = 0b110
-inline constexpr uint32_t oc_mode_pwm1 = 0b110u;
+inline constexpr std::uint32_t oc_mode_pwm1 = 0b110u;
 
 template<some_advanced_timer Tim, some_timer_channel_instance Ch>
   requires(!std::same_as<Ch, channel4>)
@@ -114,7 +116,7 @@ void configure_half_bridge_channel() {
 
 } // namespace detail
 
-template<some_advanced_timer Tim, size_t LegCount = 1>
+template<some_advanced_timer Tim, std::size_t LegCount = 1>
 class half_bridge : public emb::singleton<half_bridge<Tim, LegCount>> {
 public:
   using timer_instance = Tim;
@@ -129,7 +131,7 @@ private:
   static constexpr nvic::irq_number const break_irqn_ =
       timer_instance::break_irqn;
 
-  static inline std::array<uint32_t volatile*, 4> const CCR_REGS = {
+  static inline std::array<std::uint32_t volatile*, 4> const CCR_REGS = {
       &REG.CC1, &REG.CC2, &REG.CC3, &REG.CC4
   };
 
@@ -187,7 +189,7 @@ public:
         conf.bk_pin
     );
 
-    emb::unroll<LegCount>([&]<size_t I>() {
+    emb::unroll<LegCount>([&]<std::size_t I>() {
       detail::configure_half_bridge_channel<
           timer_instance,
           tim::channel_at<I>>();
@@ -240,7 +242,7 @@ public:
   void set_frequency(emb::units::hz_f32 freq) {
     assert(freq >= min_freq_);
     assert(freq <= max_freq_);
-    REG.AUTORLD = static_cast<uint32_t>((timebase_freq_ / freq) / 2);
+    REG.AUTORLD = static_cast<std::uint32_t>((timebase_freq_ / freq) / 2);
     period_ = 1.f / freq;
   }
 
@@ -252,7 +254,7 @@ public:
     if (!bk_pin_) {
       return false;
     }
-    return uint32_t(std::to_underlying(bk_pin_->read_level())) ==
+    return std::uint32_t(std::to_underlying(bk_pin_->read_level())) ==
            emb::mmio::read(REG.BDT, TMR_BDT_BRKPOL);
   }
 
@@ -281,7 +283,7 @@ public:
   dutycycle_type dutycycle() const {
     dutycycle_type dutycycle;
     float const reload_val = static_cast<float>(REG.AUTORLD);
-    emb::unroll<LegCount>([&]<size_t I>() {
+    emb::unroll<LegCount>([&]<std::size_t I>() {
       dutycycle[I] = emb::unsigned_pu{
           static_cast<float>(*CCR_REGS[I]) / reload_val
       };
@@ -291,9 +293,9 @@ public:
 
   void set_dutycycle(dutycycle_type const& dutycycle) {
     float const reload_val = static_cast<float>(REG.AUTORLD);
-    emb::unroll<LegCount>([&]<size_t I>() {
+    emb::unroll<LegCount>([&]<std::size_t I>() {
       *CCR_REGS[I] =
-          static_cast<uint32_t>(dutycycle[I].value() * reload_val);
+          static_cast<std::uint32_t>(dutycycle[I].value() * reload_val);
     });
   }
 public:
