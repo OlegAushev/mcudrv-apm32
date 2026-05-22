@@ -1,8 +1,11 @@
-#include <apm32/f4/gpio.hpp>
+#include <apm32/f4/gpio/low_layer/gpio_pin_base.hpp>
 
 #include <apm32/f4/core.hpp>
 
 #include <emb/mmio.hpp>
+
+#include <bit>
+#include <utility>
 
 namespace apm32::f4::gpio {
 
@@ -25,7 +28,7 @@ detail::pin_base::pin_base(
     is_clock_enabled_[port_idx] = true;
   }
 
-  auto const pin_no = bit_position(pin_);
+  auto const pin_no = static_cast<uint32_t>(std::countr_zero(pin_));
   auto const pin2 = pin_no * 2u;
 
   // configure alternate function (before setting mode)

@@ -3,7 +3,7 @@
 #include <apm32/f4/tim/tim.hpp>
 
 #include <apm32/f4/core.hpp>
-#include <apm32/f4/gpio.hpp>
+#include <apm32/f4/gpio/alternate_pin.hpp>
 
 #include <emb/chrono.hpp>
 #include <emb/mmio.hpp>

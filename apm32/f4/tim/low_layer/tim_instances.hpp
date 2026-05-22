@@ -1,10 +1,9 @@
 #pragma once
 
 #include <apm32/device.hpp>
-#include <apm32/utility.hpp>
 
 #include <apm32/f4/core.hpp>
-#include <apm32/f4/gpio.hpp>
+#include <apm32/f4/gpio/gpio.hpp>
 #include <apm32/f4/nvic.hpp>
 
 #include <emb/meta.hpp>

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <apm32/device.hpp>
-#include <apm32/utility.hpp>
 
 #include <emb/meta.hpp>
 #include <emb/mmio.hpp>

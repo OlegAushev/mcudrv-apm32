@@ -1,7 +1,7 @@
 #pragma once
 
 #include <apm32/f4/core.hpp>
-#include <apm32/f4/gpio.hpp>
+#include <apm32/f4/gpio/output_pin.hpp>
 
 namespace apm32::f4::dbg {
 

@@ -3,6 +3,7 @@
 #include <apm32/f4/can/can.hpp>
 
 #include <apm32/f4/chrono.hpp>
+#include <apm32/f4/gpio/alternate_pin.hpp>
 
 #include <emb/can.hpp>
 #include <emb/chrono.hpp>

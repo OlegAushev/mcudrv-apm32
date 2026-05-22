@@ -2,7 +2,7 @@
 
 #include <apm32/f4/tim/tim.hpp>
 
-#include <apm32/f4/gpio.hpp>
+#include <apm32/f4/gpio/alternate_pin.hpp>
 #include <apm32/f4/nvic.hpp>
 
 #include <emb/mmio.hpp>

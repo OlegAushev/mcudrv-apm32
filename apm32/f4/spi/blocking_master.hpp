@@ -3,6 +3,8 @@
 #include <apm32/f4/spi/spi.hpp>
 
 #include <apm32/f4/chrono.hpp>
+#include <apm32/f4/gpio/alternate_pin.hpp>
+#include <apm32/f4/gpio/output_pin.hpp>
 
 #include <emb/chrono.hpp>
 

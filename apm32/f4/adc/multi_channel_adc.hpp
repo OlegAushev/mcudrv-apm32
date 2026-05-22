@@ -3,6 +3,7 @@
 #include <apm32/f4/adc/adc.hpp>
 #include <apm32/f4/adc/common_adc.hpp>
 #include <apm32/f4/dma/pm_stream.hpp>
+#include <apm32/f4/gpio/analog_pin.hpp>
 
 #include <emb/mmio.hpp>
 
