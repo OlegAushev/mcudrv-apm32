@@ -1,5 +1,5 @@
 #if 0
-#ifdef APM32F4XX
+#ifdef APM32F4
 
 #include <apm32/f4/usart.hpp>
 
