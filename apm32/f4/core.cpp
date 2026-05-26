@@ -9,9 +9,8 @@ __attribute__((weak)) void init_clock() {
   }
 }
 
-__attribute__((weak)) void update_clock() {
-  while (true) {
-  }
+void update_clock() {
+  SystemCoreClockUpdate();
 }
 
 void init_core() {
