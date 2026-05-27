@@ -3,6 +3,7 @@
 #include <apm32/f4/core.hpp>
 #include <apm32/f4/rcc/rcc.hpp>
 
+#include <emb/assert.hpp>
 #include <emb/chrono.hpp>
 
 #include <cstdint>
@@ -14,7 +15,7 @@ extern "C" void SysTick_Handler() {
 namespace apm32::f4::chrono {
 
 void steady_clock::init() {
-  core::ensure(!initialized_);
+  emb::ensure(!initialized_);
 
   std::uint32_t const ticks_per_msec = rcc::hclk_frequency<std::uint32_t>()
                                      / 1000u;
@@ -32,7 +33,7 @@ void steady_clock::init() {
 }
 
 void high_resolution_clock::init() {
-  core::ensure(steady_clock::initialized() && !initialized_);
+  emb::ensure(steady_clock::initialized() && !initialized_);
   nsec_per_tick_ = 1'000'000'000.0f / rcc::hclk_frequency<float>();
   initialized_ = true;
 }

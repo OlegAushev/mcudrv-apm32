@@ -3,6 +3,7 @@
 #include <apm32/f4/spi/low_layer/spi_instances.hpp>
 #include <apm32/f4/spi/low_layer/spi_types.hpp>
 
+#include <emb/assert.hpp>
 #include <emb/mmio.hpp>
 #include <emb/units.hpp>
 
@@ -38,7 +39,7 @@ calculate_prescaler(emb::units::hz_f32 clk_freq, emb::units::hz_f32 spi_freq) {
       ratio
   );
 
-  core::ensure(it != clock_prescalers.end());
+  emb::ensure(it != clock_prescalers.end());
 
   return static_cast<baudrate_prescaler>(
       std::distance(clock_prescalers.begin(), it)

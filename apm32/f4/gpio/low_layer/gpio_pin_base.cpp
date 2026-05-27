@@ -2,6 +2,7 @@
 
 #include <apm32/f4/core.hpp>
 
+#include <emb/assert.hpp>
 #include <emb/mmio.hpp>
 
 #include <bit>
@@ -22,7 +23,7 @@ detail::pin_base::pin_base(
 )
     : port_(p), pin_(pin_mask), regs_(ports[std::to_underlying(p)]) {
   std::size_t const port_idx = std::to_underlying(port_);
-  core::ensure(!(used_pins_[port_idx] & pin_));
+  emb::ensure(!(used_pins_[port_idx] & pin_));
   used_pins_[port_idx] |= std::uint16_t(pin_);
 
   if (!is_clock_enabled_[port_idx]) {

@@ -4,6 +4,7 @@
 
 #include <apm32/f4/core.hpp>
 
+#include <emb/assert.hpp>
 #include <emb/math.hpp>
 
 #include <algorithm>
@@ -31,10 +32,10 @@ public:
             preempt_priority_max
         )},
         sub_{std::clamp(sub_pri, std::uint8_t{0}, sub_priority_max)} {
-    core::ensure(preempt_pri <= preempt_priority_max);
-    core::ensure(sub_pri <= sub_priority_max);
+    emb::ensure(preempt_pri <= preempt_priority_max);
+    emb::ensure(sub_pri <= sub_priority_max);
 #ifdef SILICON_REVISION_A
-    core::ensure(emb::iseven(preempt_pri));
+    emb::ensure(emb::iseven(preempt_pri));
 #endif
   }
 

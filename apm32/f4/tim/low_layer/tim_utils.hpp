@@ -4,6 +4,7 @@
 #include <apm32/f4/tim/low_layer/tim_instances.hpp>
 #include <apm32/f4/tim/low_layer/tim_types.hpp>
 
+#include <emb/assert.hpp>
 #include <emb/mmio.hpp>
 #include <emb/units.hpp>
 
@@ -92,7 +93,7 @@ constexpr std::uint16_t calculate_prescaler(
 
   std::uint32_t ret = total_ticks
                     / std::numeric_limits<typename Tim::counter_type>::max();
-  core::ensure(ret <= UINT16_MAX);
+  emb::ensure(ret <= UINT16_MAX);
 
   return static_cast<std::uint16_t>(ret);
 }

@@ -5,6 +5,7 @@
 #include <apm32/f4/chrono.hpp>
 #include <apm32/f4/gpio/alternate_pin.hpp>
 
+#include <emb/assert.hpp>
 #include <emb/can.hpp>
 #include <emb/chrono.hpp>
 #include <emb/concurrent/isr_spsc_inplace_queue.hpp>
@@ -127,14 +128,14 @@ public:
     emb::mmio::set(reg.MCTRL, CAN_MCTRL_INITREQ);
     timeout_t init_timeout(std::chrono::milliseconds(2));
     while (!emb::mmio::test_any(reg.MSTS, CAN_MSTS_INITFLG)) {
-      core::ensure(!init_timeout.expired());
+      emb::ensure(!init_timeout.expired());
     }
 
     // exit sleep mode
     emb::mmio::clear(reg.MCTRL, CAN_MCTRL_SLEEPREQ);
     timeout_t sleep_timeout(std::chrono::milliseconds(2));
     while (emb::mmio::test_any(reg.MSTS, CAN_MSTS_SLEEPFLG)) {
-      core::ensure(!sleep_timeout.expired());
+      emb::ensure(!sleep_timeout.expired());
     }
 
     // configure
@@ -192,7 +193,7 @@ public:
     emb::mmio::clear(reg.MCTRL, CAN_MCTRL_INITREQ);
     timeout_t start_timeout(std::chrono::milliseconds(2));
     while (emb::mmio::test_any(reg.MSTS, CAN_MSTS_INITFLG)) {
-      core::ensure(!start_timeout.expired());
+      emb::ensure(!start_timeout.expired());
     }
   }
 
@@ -256,7 +257,7 @@ private:
   }
 
   void add_filter(filter_32_mask const& filter, rx_fifo fifo) {
-    core::ensure(filters_used_ < Traits.filter_count);
+    emb::ensure(filters_used_ < Traits.filter_count);
 
     setup_filter_bank(
         filter_scale::_32bit,
@@ -271,7 +272,7 @@ private:
   }
 
   void add_filter(filter_32_list const& filter, rx_fifo fifo) {
-    core::ensure(filters_used_ < Traits.filter_count);
+    emb::ensure(filters_used_ < Traits.filter_count);
 
     setup_filter_bank(
         filter_scale::_32bit,
@@ -286,7 +287,7 @@ private:
   }
 
   void add_filter(filter_16_mask const& filter, rx_fifo fifo) {
-    core::ensure(filters_used_ < Traits.filter_count);
+    emb::ensure(filters_used_ < Traits.filter_count);
 
     std::uint32_t const bank1 = detail::encode_16bit_mask(filter.mask1) << 16
                          | detail::encode_16bit_id(filter.id1);
@@ -306,7 +307,7 @@ private:
   }
 
   void add_filter(filter_16_list const& filter, rx_fifo fifo) {
-    core::ensure(filters_used_ < Traits.filter_count);
+    emb::ensure(filters_used_ < Traits.filter_count);
 
     std::uint32_t const bank1 = detail::encode_16bit_id(filter.id2) << 16
                          | detail::encode_16bit_id(filter.id1);

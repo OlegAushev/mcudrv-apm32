@@ -2,6 +2,7 @@
 
 #include <apm32/f4/core.hpp>
 
+#include <emb/assert.hpp>
 #include <emb/mmio.hpp>
 
 #include <cstdint>
@@ -13,7 +14,7 @@ void detail::configure_psfb_timebase(
     emb::units::hz_f32 clk_freq,
     psfb_pwm_config const& conf
 ) {
-  core::ensure(conf.prescaler.has_value());
+  emb::ensure(conf.prescaler.has_value());
 
   auto const timebase_freq = clk_freq / float(conf.prescaler.value() + 1);
 
@@ -21,7 +22,7 @@ void detail::configure_psfb_timebase(
                                    timebase_freq / (2 * conf.frequency)
                                )
                              - 1;
-  core::ensure(period <= UINT16_MAX);
+  emb::ensure(period <= UINT16_MAX);
 
   emb::mmio::modify(REG.CTRL1,
       emb::mmio::bits<TMR_CTRL1_CNTDIR>(0u),

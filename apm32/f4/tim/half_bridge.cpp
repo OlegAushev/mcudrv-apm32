@@ -2,6 +2,7 @@
 
 #include <apm32/f4/core.hpp>
 
+#include <emb/assert.hpp>
 #include <emb/mmio.hpp>
 
 #include <cstdint>
@@ -13,7 +14,7 @@ void detail::configure_half_bridge_timebase(
     emb::units::hz_f32 clk_freq,
     half_bridge_pwm_config const& conf
 ) {
-  core::ensure(conf.prescaler.has_value());
+  emb::ensure(conf.prescaler.has_value());
 
   auto const timebase_freq = clk_freq
                            / static_cast<float>(conf.prescaler.value() + 1);
@@ -21,7 +22,7 @@ void detail::configure_half_bridge_timebase(
   std::uint32_t const period = static_cast<std::uint32_t>(
       (timebase_freq / conf.frequency) / 2
   );
-  core::ensure(period <= UINT16_MAX);
+  emb::ensure(period <= UINT16_MAX);
 
   emb::mmio::modify(REG.CTRL1,
       emb::mmio::bits<TMR_CTRL1_CNTDIR>(0),

@@ -5,6 +5,7 @@
 #include <apm32/f4/core.hpp>
 #include <apm32/f4/gpio/alternate_pin.hpp>
 
+#include <emb/assert.hpp>
 #include <emb/chrono.hpp>
 #include <emb/mmio.hpp>
 #include <emb/units.hpp>
@@ -67,7 +68,7 @@ constexpr std::uint8_t get_deadtime_setup(
   float const t_dts_ns = mul * 1E9f / clk_freq.value();
   float const dt = static_cast<float>(deadtime.count());
 
-  core::ensure(dt <= (32 + 0x1F) * 16 * t_dts_ns);
+  emb::ensure(dt <= (32 + 0x1F) * 16 * t_dts_ns);
 
   if (dt <= 0x7F * t_dts_ns) {
     return std::uint8_t(dt / t_dts_ns) & 0x7F;

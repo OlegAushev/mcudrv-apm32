@@ -6,6 +6,7 @@
 #include <apm32/f4/nvic.hpp>
 
 #include <emb/mmio.hpp>
+#include <emb/units.hpp>
 
 #include <chrono>
 #include <cstddef>

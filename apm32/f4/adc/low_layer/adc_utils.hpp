@@ -3,6 +3,7 @@
 #include <apm32/f4/adc/low_layer/adc_instances.hpp>
 #include <apm32/f4/rcc/rcc.hpp>
 
+#include <emb/assert.hpp>
 #include <emb/mmio.hpp>
 #include <emb/units.hpp>
 
@@ -72,7 +73,7 @@ calculate_prescaler(emb::units::hz_f32 clk_freq, emb::units::hz_f32 adc_freq) {
       clock_prescalers.end(),
       ratio
   );
-  core::ensure(it != clock_prescalers.end());
+  emb::ensure(it != clock_prescalers.end());
   return *it;
 }
 
