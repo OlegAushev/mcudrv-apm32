@@ -4,9 +4,16 @@
 
 namespace apm32::f4::rcc {
 
-enum class sysclk_src : std::uint32_t { hse, hsi, pll };
+enum class sysclk_src : std::uint32_t {
+  hsi = 0b00,
+  hse = 0b01,
+  pll = 0b10,
+};
 
-enum class pll_src : std::uint32_t { hse, hsi };
+enum class pll_src : std::uint32_t {
+  hsi = 0,
+  hse = 1,
+};
 
 enum class pll1c_div : std::uint32_t {
   _2 = 0b00,
