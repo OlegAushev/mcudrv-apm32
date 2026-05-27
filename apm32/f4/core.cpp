@@ -4,15 +4,6 @@
 
 namespace apm32::f4::core {
 
-__attribute__((weak)) void init_clock() {
-  while (true) {
-  }
-}
-
-void update_clock() {
-  SystemCoreClockUpdate();
-}
-
 void init_core() {
   // assign all the interrupt priority bits to the group (preempt) priority
   // s. PM0214

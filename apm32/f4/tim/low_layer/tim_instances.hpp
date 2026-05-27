@@ -5,6 +5,7 @@
 #include <apm32/f4/core.hpp>
 #include <apm32/f4/gpio/gpio.hpp>
 #include <apm32/f4/nvic.hpp>
+#include <apm32/f4/rcc/rcc.hpp>
 
 #include <emb/meta.hpp>
 #include <emb/mmio.hpp>
@@ -31,7 +32,7 @@ struct tim1 {
   static constexpr nvic::irq_number capture_compare_irqn = TMR1_CC_IRQn;
 
   template<typename T>
-  static constexpr auto clock_frequency = core::apb2_timer_frequency<T>;
+  static constexpr auto clock_frequency = rcc::pclk2_timer_frequency<T>;
 
   static constexpr auto enable_clock = []() {
     emb::mmio::set(RCM->APB2CLKEN, RCM_APB2CLKEN_TMR1EN);
@@ -50,7 +51,7 @@ struct tim2 {
   static constexpr nvic::irq_number capture_compare_irqn = TMR2_IRQn;
 
   template<typename T>
-  static constexpr auto clock_frequency = core::apb1_timer_frequency<T>;
+  static constexpr auto clock_frequency = rcc::pclk1_timer_frequency<T>;
 
   static constexpr auto enable_clock = []() {
     emb::mmio::set(RCM->APB1CLKEN, RCM_APB1CLKEN_TMR2EN);
@@ -69,7 +70,7 @@ struct tim3 {
   static constexpr nvic::irq_number capture_compare_irqn = TMR3_IRQn;
 
   template<typename T>
-  static constexpr auto clock_frequency = core::apb1_timer_frequency<T>;
+  static constexpr auto clock_frequency = rcc::pclk1_timer_frequency<T>;
 
   static constexpr auto enable_clock = []() {
     emb::mmio::set(RCM->APB1CLKEN, RCM_APB1CLKEN_TMR3EN);
@@ -88,7 +89,7 @@ struct tim4 {
   static constexpr nvic::irq_number capture_compare_irqn = TMR4_IRQn;
 
   template<typename T>
-  static constexpr auto clock_frequency = core::apb1_timer_frequency<T>;
+  static constexpr auto clock_frequency = rcc::pclk1_timer_frequency<T>;
 
   static constexpr auto enable_clock = []() {
     emb::mmio::set(RCM->APB1CLKEN, RCM_APB1CLKEN_TMR4EN);
@@ -107,7 +108,7 @@ struct tim5 {
   static constexpr nvic::irq_number capture_compare_irqn = TMR5_IRQn;
 
   template<typename T>
-  static constexpr auto clock_frequency = core::apb1_timer_frequency<T>;
+  static constexpr auto clock_frequency = rcc::pclk1_timer_frequency<T>;
 
   static constexpr auto enable_clock = []() {
     emb::mmio::set(RCM->APB1CLKEN, RCM_APB1CLKEN_TMR5EN);
@@ -149,7 +150,7 @@ struct tim8 {
   static constexpr nvic::irq_number capture_compare_irqn = TMR8_CC_IRQn;
 
   template<typename T>
-  static constexpr auto clock_frequency = core::apb2_timer_frequency<T>;
+  static constexpr auto clock_frequency = rcc::pclk2_timer_frequency<T>;
 
   static constexpr auto enable_clock = []() {
     emb::mmio::set(RCM->APB2CLKEN, RCM_APB2CLKEN_TMR8EN);

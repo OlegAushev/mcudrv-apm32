@@ -1,6 +1,7 @@
 #include <apm32/f4/chrono.hpp>
 
 #include <apm32/f4/core.hpp>
+#include <apm32/f4/rcc/rcc.hpp>
 
 #include <emb/chrono.hpp>
 
@@ -15,20 +16,24 @@ namespace apm32::f4::chrono {
 void steady_clock::init() {
   core::ensure(!initialized_);
 
-  std::uint32_t const ticks_per_msec = core::clock_frequency<std::uint32_t>()
+  std::uint32_t const ticks_per_msec = rcc::hclk_frequency<std::uint32_t>()
                                      / 1000u;
   SysTick->LOAD = ticks_per_msec - 1;
   NVIC_SetPriority(SysTick_IRQn, 0);
   SysTick->VAL = 0;
-  SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_TICKINT_Msk |
-                  SysTick_CTRL_ENABLE_Msk;
+  emb::mmio::set(
+      SysTick->CTRL,
+      SysTick_CTRL_CLKSOURCE_Msk
+          | SysTick_CTRL_TICKINT_Msk
+          | SysTick_CTRL_ENABLE_Msk
+  );
 
   initialized_ = true;
 }
 
 void high_resolution_clock::init() {
   core::ensure(steady_clock::initialized() && !initialized_);
-  nsec_per_tick_ = 1'000'000'000.0f / core::clock_frequency<float>();
+  nsec_per_tick_ = 1'000'000'000.0f / rcc::hclk_frequency<float>();
   initialized_ = true;
 }
 

@@ -5,6 +5,7 @@
 #include <apm32/f4/core.hpp>
 #include <apm32/f4/gpio/gpio.hpp>
 #include <apm32/f4/nvic.hpp>
+#include <apm32/f4/rcc/rcc.hpp>
 
 #include <emb/delegate.hpp>
 #include <emb/meta.hpp>
@@ -30,7 +31,7 @@ struct can1 {
   static constexpr nvic::irq_number sce_irqn = CAN1_SCE_IRQn;
 
   template<typename T>
-  static constexpr auto clock_frequency = core::apb1_frequency<T>;
+  static constexpr auto clock_frequency = rcc::pclk1_frequency<T>;
 
   static constexpr auto enable_clock = []() {
     emb::mmio::set(RCM->APB1CLKEN, RCM_APB1CLKEN_CAN1EN);
@@ -53,7 +54,7 @@ struct can2 {
   static constexpr nvic::irq_number sce_irqn = CAN2_SCE_IRQn;
 
   template<typename T>
-  static constexpr auto clock_frequency = core::apb1_frequency<T>;
+  static constexpr auto clock_frequency = rcc::pclk1_frequency<T>;
 
   static constexpr auto enable_clock = []() {
     emb::mmio::set(RCM->APB1CLKEN, RCM_APB1CLKEN_CAN2EN);

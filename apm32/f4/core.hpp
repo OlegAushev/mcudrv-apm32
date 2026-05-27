@@ -11,40 +11,9 @@
 
 namespace apm32::f4::core {
 
-void init_clock();
-void update_clock();
 void init_core();
 void reset_device();
 [[noreturn]] void halt_device();
-
-template<typename T>
-inline T clock_frequency() {
-  if constexpr (requires { typename T::value_type; }) {
-    return T{static_cast<typename T::value_type>(SystemCoreClock)};
-  } else {
-    return static_cast<T>(SystemCoreClock);
-  }
-}
-
-template<typename T>
-inline T apb1_frequency() {
-  return clock_frequency<T>() / 4;
-}
-
-template<typename T>
-inline T apb1_timer_frequency() {
-  return clock_frequency<T>() / 2;
-}
-
-template<typename T>
-inline T apb2_frequency() {
-  return clock_frequency<T>() / 2;
-}
-
-template<typename T>
-inline T apb2_timer_frequency() {
-  return clock_frequency<T>();
-}
 
 inline std::uint32_t serial_number() {
   std::uint32_t* uid_ptr{reinterpret_cast<std::uint32_t*>(0x1FFF7A10)};
@@ -60,36 +29,5 @@ constexpr void ensure(bool pred) {
     assert(pred);
   }
 }
-
-template<typename Derived, typename Id, std::size_t Count>
-class peripheral {
-private:
-  static inline std::array<Derived*, Count> instances_{};
-protected:
-  peripheral(Id id) {
-    auto idx = static_cast<std::size_t>(id);
-    ensure(idx < Count);
-    ensure(!initialized(id));
-    instances_[idx] = static_cast<Derived*>(this);
-  }
-public:
-  peripheral(peripheral const&) = delete;
-  peripheral& operator=(peripheral const&) = delete;
-  peripheral(peripheral&&) = delete;
-  peripheral& operator=(peripheral&&) = delete;
-
-  static Derived* instance(Id id) {
-    auto idx = static_cast<std::size_t>(id);
-    ensure(idx < Count);
-    ensure(initialized(id));
-    return instances_[idx];
-  }
-
-  static bool initialized(Id id) {
-    auto idx = static_cast<std::size_t>(id);
-    ensure(idx < Count);
-    return instances_[idx] != nullptr;
-  }
-};
 
 } // namespace apm32::f4::core

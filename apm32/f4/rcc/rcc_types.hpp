@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <utility>
 
 namespace apm32::f4::rcc {
 
@@ -63,16 +64,18 @@ constexpr std::uint32_t to_divisor(ahb_div v) {
     case ahb_div::_256: return 256;
     case ahb_div::_512: return 512;
   }
+  std::unreachable();
 }
 
 constexpr std::uint32_t to_divisor(apb_div v) {
   switch (v) {
-    case apb_div::_1: return 1;
-    case apb_div::_2: return 2;
-    case apb_div::_4: return 4;
-    case apb_div::_8: return 8;
+    case apb_div::_1:  return 1;
+    case apb_div::_2:  return 2;
+    case apb_div::_4:  return 4;
+    case apb_div::_8:  return 8;
     case apb_div::_16: return 16;
   }
+  std::unreachable();
 }
 
 } // namespace apm32::f4::rcc

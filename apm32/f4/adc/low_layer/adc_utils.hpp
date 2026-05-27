@@ -1,6 +1,7 @@
 #pragma once
 
 #include <apm32/f4/adc/low_layer/adc_instances.hpp>
+#include <apm32/f4/rcc/rcc.hpp>
 
 #include <emb/mmio.hpp>
 #include <emb/units.hpp>
@@ -79,7 +80,7 @@ calculate_prescaler(emb::units::hz_f32 clk_freq, emb::units::hz_f32 adc_freq) {
 
 inline std::uint32_t calculate_prescaler() {
   return detail::calculate_prescaler(
-      core::apb2_timer_frequency<emb::units::hz_f32>(),
+      rcc::pclk2_timer_frequency<emb::units::hz_f32>(),
       max_clock_frequency
   );
 }

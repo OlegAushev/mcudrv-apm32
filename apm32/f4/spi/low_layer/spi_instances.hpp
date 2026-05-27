@@ -5,6 +5,7 @@
 #include <apm32/f4/core.hpp>
 #include <apm32/f4/gpio/gpio.hpp>
 #include <apm32/f4/nvic.hpp>
+#include <apm32/f4/rcc/rcc.hpp>
 
 #include <emb/meta.hpp>
 #include <emb/mmio.hpp>
@@ -24,7 +25,7 @@ struct spi1 {
   static inline registers& REG = *SPI1;
 
   template<typename T>
-  static constexpr auto clock_frequency = core::apb2_frequency<T>;
+  static constexpr auto clock_frequency = rcc::pclk2_frequency<T>;
 
   static constexpr auto enable_clock = []() {
     emb::mmio::set(RCM->APB2CLKEN, RCM_APB2CLKEN_SPI1EN);
@@ -37,7 +38,7 @@ struct spi2 {
   static inline registers& REG = *SPI2;
 
   template<typename T>
-  static constexpr auto clock_frequency = core::apb1_frequency<T>;
+  static constexpr auto clock_frequency = rcc::pclk1_frequency<T>;
 
   static constexpr auto enable_clock = []() {
     emb::mmio::set(RCM->APB1CLKEN, RCM_APB1CLKEN_SPI2EN);
@@ -50,7 +51,7 @@ struct spi3 {
   static inline registers& REG = *SPI3;
 
   template<typename T>
-  static constexpr auto clock_frequency = core::apb1_frequency<T>;
+  static constexpr auto clock_frequency = rcc::pclk1_frequency<T>;
 
   static constexpr auto enable_clock = []() {
     emb::mmio::set(RCM->APB1CLKEN, RCM_APB1CLKEN_SPI3EN);

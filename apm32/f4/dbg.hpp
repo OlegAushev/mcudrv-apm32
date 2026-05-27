@@ -4,6 +4,7 @@
 #include <apm32/f4/gpio/output_pin.hpp>
 
 #include <cstdint>
+#include <utility>
 
 namespace apm32::f4::dbg {
 
