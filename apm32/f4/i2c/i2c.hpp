@@ -5,7 +5,7 @@
 #include <apm32f4xx_i2c.h>
 
 #include <apm32/f4/gpio.hpp>
-#include <apm32/f4/core.hpp>
+#include <apm32/f4/core/core.hpp>
 
 #include <emb/noncopyable.hpp>
 #include <emb/singleton.hpp>

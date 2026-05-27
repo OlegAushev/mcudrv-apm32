@@ -1,6 +1,6 @@
-#include <apm32/f4/chrono.hpp>
+#include <apm32/f4/chrono/chrono.hpp>
 
-#include <apm32/f4/core.hpp>
+#include <apm32/f4/core/core.hpp>
 #include <apm32/f4/rcc/rcc.hpp>
 
 #include <emb/assert.hpp>

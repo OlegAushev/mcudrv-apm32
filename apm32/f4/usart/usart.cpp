@@ -1,7 +1,7 @@
 #if 0
 #ifdef APM32F4
 
-#include <apm32/f4/usart.hpp>
+#include <apm32/f4/usart/usart.hpp>
 
 #include <cstddef>
 

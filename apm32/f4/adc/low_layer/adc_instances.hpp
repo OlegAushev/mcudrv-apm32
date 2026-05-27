@@ -3,7 +3,7 @@
 #include <apm32/device.hpp>
 
 #include <apm32/f4/dma/dma.hpp>
-#include <apm32/f4/nvic.hpp>
+#include <apm32/f4/nvic/nvic.hpp>
 
 #include <emb/mmio.hpp>
 #include <emb/units.hpp>

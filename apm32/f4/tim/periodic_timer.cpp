@@ -1,6 +1,6 @@
 #include <apm32/f4/tim/periodic_timer.hpp>
 
-#include <apm32/f4/core.hpp>
+#include <apm32/f4/core/core.hpp>
 
 #include <emb/assert.hpp>
 #include <emb/mmio.hpp>

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <apm32/f4/core.hpp>
+#include <apm32/f4/core/core.hpp>
 #include <apm32/f4/gpio/output_pin.hpp>
 
 #include <cstdint>

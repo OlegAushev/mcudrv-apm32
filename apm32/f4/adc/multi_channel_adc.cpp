@@ -1,5 +1,5 @@
 #include <apm32/f4/adc/multi_channel_adc.hpp>
-#include <apm32/f4/chrono.hpp>
+#include <apm32/f4/chrono/chrono.hpp>
 
 #include <emb/mmio.hpp>
 

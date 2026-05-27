@@ -1,7 +1,7 @@
 #if 0
 #ifdef APM32F4
 
-#include <apm32/f4/i2c.hpp>
+#include <apm32/f4/i2c/i2c.hpp>
 
 #include <cstddef>
 

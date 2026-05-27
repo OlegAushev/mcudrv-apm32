@@ -1,4 +1,4 @@
-#include <apm32/f4/exti.hpp>
+#include <apm32/f4/exti/exti.hpp>
 
 #include <emb/mmio.hpp>
 

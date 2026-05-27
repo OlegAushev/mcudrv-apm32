@@ -2,7 +2,7 @@
 
 #include <apm32/device.hpp>
 
-#include <apm32/f4/nvic.hpp>
+#include <apm32/f4/nvic/nvic.hpp>
 
 #include <emb/concurrent/isr_seqlock.hpp>
 

@@ -2,9 +2,9 @@
 
 #include <apm32/device.hpp>
 
-#include <apm32/f4/core.hpp>
+#include <apm32/f4/core/core.hpp>
 #include <apm32/f4/gpio/gpio.hpp>
-#include <apm32/f4/nvic.hpp>
+#include <apm32/f4/nvic/nvic.hpp>
 #include <apm32/f4/rcc/rcc.hpp>
 
 #include <emb/meta.hpp>

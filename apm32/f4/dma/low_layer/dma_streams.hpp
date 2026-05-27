@@ -2,7 +2,7 @@
 
 #include <apm32/f4/dma/low_layer/dma_controllers.hpp>
 
-#include <apm32/f4/nvic.hpp>
+#include <apm32/f4/nvic/nvic.hpp>
 
 #include <cstddef>
 

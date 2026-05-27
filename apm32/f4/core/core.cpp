@@ -1,6 +1,6 @@
-#include <apm32/f4/core.hpp>
+#include <apm32/f4/core/core.hpp>
 
-#include <apm32/f4/nvic.hpp>
+#include <apm32/f4/nvic/nvic.hpp>
 
 namespace apm32::f4::core {
 

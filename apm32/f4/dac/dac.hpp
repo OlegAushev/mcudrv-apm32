@@ -2,7 +2,7 @@
 
 #include <apm32/device.hpp>
 
-#include <apm32/f4/core.hpp>
+#include <apm32/f4/core/core.hpp>
 #include <apm32/f4/gpio/analog_pin.hpp>
 
 #include <emb/mmio.hpp>

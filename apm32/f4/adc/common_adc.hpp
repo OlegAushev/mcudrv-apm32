@@ -1,7 +1,7 @@
 #pragma once
 
 #include <apm32/f4/adc/low_layer/adc_types.hpp>
-#include <apm32/f4/nvic.hpp>
+#include <apm32/f4/nvic/nvic.hpp>
 
 namespace apm32::f4::adc {
 
