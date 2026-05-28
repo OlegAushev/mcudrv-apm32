@@ -5,6 +5,7 @@
 
 #include <emb/assert.hpp>
 #include <emb/chrono.hpp>
+#include <emb/mmio.hpp>
 
 #include <cstdint>
 

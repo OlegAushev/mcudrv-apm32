@@ -1,12 +1,10 @@
 #pragma once
 
-#include <apm32/device.hpp>
-
-#include <emb/mmio.hpp>
-
-#include <apm32/f4/flash/flash.hpp>
+#include <apm32/f4/rcc/rcc_limits.hpp>
 #include <apm32/f4/rcc/rcc_types.hpp>
 #include <rcc_config.hpp>
+
+#include <cstdint>
 
 #ifndef HSE_VALUE
 #error "HSE_VALUE not defined"
@@ -17,16 +15,7 @@ namespace apm32::f4::rcc {
 inline constexpr std::uint64_t hse_value = HSE_VALUE;
 inline constexpr std::uint64_t hsi_value = 16'000'000;
 
-inline constexpr std::uint64_t hse_min = 4'000'000;
-inline constexpr std::uint64_t hse_max = 26'000'000;
-inline constexpr std::uint64_t vco_in_min = 1'000'000;
-inline constexpr std::uint64_t vco_in_max = 2'000'000;
-inline constexpr std::uint64_t vco_out_min = 100'000'000;
-inline constexpr std::uint64_t vco_out_max = 432'000'000;
-inline constexpr std::uint64_t sysclk_max = 168'000'000;
-inline constexpr std::uint64_t hclk_max = 168'000'000;
-inline constexpr std::uint64_t pclk1_max = 42'000'000;
-inline constexpr std::uint64_t pclk2_max = 84'000'000;
+void init_clock();
 
 template<typename T>
 constexpr T hse_frequency() {
@@ -110,74 +99,6 @@ constexpr T pclk2_timer_frequency() {
   using C = clock_config;
   return C::apb2_div == apb_div::_1 ? pclk2_frequency<T>()
                                     : pclk2_frequency<T>() * 2;
-}
-
-inline void init_clock() {
-  using C = clock_config;
-
-  // Enable HSE if it is required as SYSCLK source or PLL input
-  if constexpr (C::sysclk_src == sysclk_src::hse
-                || (C::sysclk_src == sysclk_src::pll
-                    && C::pll_src == pll_src::hse)) {
-    emb::mmio::set(RCM->CTRL, RCM_CTRL_HSEEN);
-    while (!emb::mmio::test_any(RCM->CTRL, RCM_CTRL_HSERDYFLG)) {}
-  }
-  // HSI is enabled by hardware after reset
-
-  // Enable PMU clock and select voltage regulator scale 1
-  // (required for SYSCLK > 144 MHz; safe at any frequency)
-  emb::mmio::set(RCM->APB1CLKEN, RCM_APB1CLKEN_PMUEN);
-  emb::mmio::set(PMU->CTRL, PMU_CTRL_VOSSEL);
-
-  // Configure bus prescalers
-  emb::mmio::write(
-      RCM->CFG,
-      RCM_CFG_AHBPSC,
-      static_cast<std::uint32_t>(C::ahb_div)
-  );
-  emb::mmio::write(
-      RCM->CFG,
-      RCM_CFG_APB2PSC,
-      static_cast<std::uint32_t>(C::apb2_div)
-  );
-  emb::mmio::write(
-      RCM->CFG,
-      RCM_CFG_APB1PSC,
-      static_cast<std::uint32_t>(C::apb1_div)
-  );
-
-  // Configure and enable PLL when selected as SYSCLK source
-  if constexpr (C::sysclk_src == sysclk_src::pll) {
-    emb::mmio::modify(
-        RCM->PLL1CFG,
-        emb::mmio::bits<RCM_PLL1CFG_PLLB>{C::pllb_div},
-        emb::mmio::bits<RCM_PLL1CFG_PLL1A>{C::pll1a_mult},
-        emb::mmio::bits<RCM_PLL1CFG_PLL1C>{
-            static_cast<std::uint32_t>(C::pll1c_div)
-        },
-        emb::mmio::bits<RCM_PLL1CFG_PLLD>{C::plld_div},
-        emb::mmio::bits<RCM_PLL1CFG_PLL1CLKS>{
-            static_cast<std::uint32_t>(C::pll_src)
-        }
-    );
-    emb::mmio::set(RCM->CTRL, RCM_CTRL_PLL1EN);
-    while (!emb::mmio::test_any(RCM->CTRL, RCM_CTRL_PLL1RDYFLG)) {}
-  }
-
-  // Set Flash wait states based on the target HCLK frequency
-  emb::mmio::write(
-      FLASH->ACCTRL,
-      FLASH_ACCTRL_WAITP,
-      flash::wait_states(hclk_frequency<std::uint64_t>())
-  );
-
-  // Switch SYSCLK to the configured source
-  constexpr auto sclk_field = static_cast<std::uint32_t>(C::sysclk_src);
-  emb::mmio::write(RCM->CFG, RCM_CFG_SCLKSEL, sclk_field);
-  while (emb::mmio::read(RCM->CFG, RCM_CFG_SCLKSELSTS) != sclk_field) {}
-
-  // Sync the runtime SystemCoreClock variable from configured registers
-  SystemCoreClockUpdate();
 }
 
 // ---- Clock Config Validation ----
