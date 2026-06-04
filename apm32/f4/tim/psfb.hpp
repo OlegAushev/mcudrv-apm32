@@ -28,7 +28,7 @@ struct psfb_pwm_config {
   std::optional<std::uint16_t> prescaler;
   nvic::irq_priority update_irq_priority;
   nvic::irq_priority break_irq_priority;
-  trigger_output trgo;
+  std::optional<trigger_output> trgo;
 };
 
 struct psfb_config {
@@ -200,12 +200,12 @@ public:
     });
 
     // Trigger output
-    switch (cfg.pwm.trgo) {
-    case trigger_output::none:
-      break;
-    case trigger_output::update:
-      emb::mmio::write(REG.CTRL2, TMR_CTRL2_MMSEL, 0b010u);
-      break;
+    if (cfg.pwm.trgo) {
+      emb::mmio::write(
+          REG.CTRL2,
+          TMR_CTRL2_MMSEL,
+          std::to_underlying(*cfg.pwm.trgo)
+      );
     }
 
     // Interrupt configuration

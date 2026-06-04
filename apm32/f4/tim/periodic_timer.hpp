@@ -5,6 +5,7 @@
 #include <emb/mmio.hpp>
 
 #include <cstdint>
+#include <utility>
 
 namespace apm32::f4::tim {
 
@@ -12,6 +13,7 @@ struct periodic_timer_config {
   emb::units::hz_f32 frequency;
   std::optional<std::uint16_t> prescaler;
   nvic::irq_priority irq_priority;
+  std::optional<trigger_output> trgo;
 };
 
 namespace detail {
@@ -57,6 +59,17 @@ public:
         timer_instance::template clock_frequency<emb::units::hz_f32>(),
         conf
     );
+
+    // Trigger output
+    if constexpr (some_master_timer_instance<Tim>) {
+      if (conf.trgo) {
+        emb::mmio::write(
+            REG.CTRL2,
+            TMR_CTRL2_MMSEL,
+            std::to_underlying(*conf.trgo)
+        );
+      }
+    }
 
     // Interrupt configuration
     emb::mmio::set(REG.DIEN, TMR_DIEN_UIEN);

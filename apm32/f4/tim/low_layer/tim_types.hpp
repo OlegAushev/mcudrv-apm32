@@ -40,4 +40,15 @@ enum class capture_filter : std::uint32_t {
   div32_n8,
 };
 
+enum class trigger_output : std::uint32_t {
+  reset,
+  enable,
+  update,
+  compare_pulse,
+  oc1ref,
+  oc2ref,
+  oc3ref,
+  oc4ref
+};
+
 } // namespace apm32::f4::tim

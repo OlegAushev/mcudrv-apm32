@@ -284,4 +284,19 @@ struct is_basic_timer : std::bool_constant<emb::same_as_any<T, tim6, tim7>> {};
 template<typename T>
 concept some_basic_timer = is_basic_timer<T>::value;
 
+template<typename T>
+struct is_master_timer_instance : std::bool_constant<emb::same_as_any<
+                               T,
+                               tim1,
+                               tim2,
+                               tim3,
+                               tim4,
+                               tim5,
+                               tim6,
+                               tim7,
+                               tim8>> {};
+
+template<typename T>
+concept some_master_timer_instance = is_master_timer_instance<T>::value;
+
 } // namespace apm32::f4::tim

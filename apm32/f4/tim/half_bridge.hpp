@@ -28,7 +28,7 @@ struct half_bridge_pwm_config {
   std::optional<std::uint16_t> prescaler;
   nvic::irq_priority update_irq_priority;
   nvic::irq_priority break_irq_priority;
-  trigger_output trgo;
+  std::optional<trigger_output> trgo;
 };
 
 template<std::size_t LegCount = 1>
@@ -206,12 +206,12 @@ public:
     });
 
     // Trigger output
-    switch (conf.pwm.trgo) {
-    case trigger_output::none:
-      break;
-    case trigger_output::update:
-      emb::mmio::write(REG.CTRL2, TMR_CTRL2_MMSEL, 0b010u);
-      break;
+    if (conf.pwm.trgo) {
+      emb::mmio::write(
+          REG.CTRL2,
+          TMR_CTRL2_MMSEL,
+          std::to_underlying(*conf.pwm.trgo)
+      );
     }
 
     // Interrupt configuration

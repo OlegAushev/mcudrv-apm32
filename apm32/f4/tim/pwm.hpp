@@ -26,11 +26,6 @@ struct break_pin_config {
   emb::gpio::polarity polarity;
 };
 
-enum class trigger_output {
-  none,
-  update
-};
-
 namespace detail {
 
 template<some_advanced_timer Tim>
