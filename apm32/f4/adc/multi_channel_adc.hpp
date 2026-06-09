@@ -189,7 +189,7 @@ private:
     [[maybe_unused]] std::size_t i = 0;
     (
         [&] {
-          if (auto conf = Channels::init(reg)) {
+          if (auto conf = Channels::init(reg, injected_count)) {
             pins_[i].emplace(*conf);
           }
           ++i;

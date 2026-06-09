@@ -57,8 +57,12 @@ void init_multi_channel_adc(
     emb::mmio::write(REG.REGSEQ1, ADC_REGSEQ1_REGSEQLEN, 0u);
   }
 
-  // Injected sequence length
-  emb::mmio::write(REG.INJSEQ, ADC_INJSEQ_INJSEQLEN, conf.injected_count);
+  // Injected sequence length (INJSEQLEN = number of conversions - 1)
+  if (conf.injected_count > 0) {
+    emb::mmio::write(REG.INJSEQ, ADC_INJSEQ_INJSEQLEN, conf.injected_count - 1);
+  } else {
+    emb::mmio::write(REG.INJSEQ, ADC_INJSEQ_INJSEQLEN, 0u);
+  }
 
   // Enable ADC
   emb::mmio::set(REG.CTRL2, ADC_CTRL2_ADCEN);

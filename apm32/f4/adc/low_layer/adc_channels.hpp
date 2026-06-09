@@ -11,6 +11,30 @@
 
 namespace apm32::f4::adc {
 
+template<unsigned... Ranks>
+  requires (sizeof...(Ranks) >= 1) && ((1 <= Ranks && Ranks <= 4) && ...)
+struct injected_rank_sequence {
+  static constexpr std::array values = {Ranks...};
+};
+
+template<unsigned... Ranks>
+  requires (sizeof...(Ranks) >= 1) && ((1 <= Ranks && Ranks <= 16) && ...)
+struct regular_rank_sequence {
+  static constexpr std::array values = {Ranks...};
+};
+
+template<typename T>
+inline constexpr bool is_injected_sequence = false;
+
+template<unsigned... R>
+inline constexpr bool is_injected_sequence<injected_rank_sequence<R...>> = true;
+
+template<typename T>
+inline constexpr bool is_regular_sequence = false;
+
+template<unsigned... R>
+inline constexpr bool is_regular_sequence<regular_rank_sequence<R...>> = true;
+
 enum class channel_type {
   external,
   internal_temp,
@@ -50,10 +74,11 @@ set_regular_sequence(registers& reg, unsigned ch, std::uint8_t rank) {
   }
 }
 
-// injected sequence: 5 bits per rank, ranks 1-4 at ((rank-1) * 5) bits
+// injected sequence: 5 bits per slot, slots 1-4 at ((slot-1) * 5) bits
+// (right-alignment by sequence length is handled by the caller)
 inline void
-set_injected_sequence(registers& reg, unsigned ch, std::uint8_t rank) {
-  std::uint32_t const pos = (rank - 1u) * 5u;
+set_injected_sequence(registers& reg, unsigned ch, std::uint8_t slot) {
+  std::uint32_t const pos = (slot - 1u) * 5u;
   emb::mmio::write(reg.INJSEQ, 0x1Fu << pos, std::uint32_t(ch));
 }
 
@@ -286,18 +311,23 @@ struct adc1_in17 {
   using adc_instances = emb::typelist<adc1>;
 };
 
-template<typename Channel, sampletime Sampletime, unsigned... Ranks>
-  requires((1 <= Ranks && Ranks <= 4) && ...)
+template<typename Channel, sampletime Sampletime, typename Ranks>
+  requires is_injected_sequence<Ranks>
 struct injected_channel {
   using channel = Channel;
   static constexpr auto sampletime = Sampletime;
-  static constexpr std::array ranks = {Ranks...};
+  static constexpr std::array ranks = Ranks::values;
 
-  static std::optional<gpio::analog_pin_config> init(registers& reg) {
+  static std::optional<gpio::analog_pin_config>
+  init(registers& reg, unsigned injected_count) {
+    using namespace detail;
+    set_sample_time(reg, channel::idx, static_cast<std::uint8_t>(sampletime));
     for (auto rank : ranks) {
-      using namespace detail;
-      set_sample_time(reg, channel::idx, static_cast<std::uint8_t>(sampletime));
-      set_injected_sequence(reg, channel::idx, static_cast<std::uint8_t>(rank));
+      // INJSEQ is right-aligned: for N conversions the sequence occupies
+      // slots INJSEQC(4-N+1)..INJSEQC4, so conversion order `rank` (1..N)
+      // maps to slot (4 - N + rank). Result lands in INJDATA[rank].
+      auto const slot = static_cast<std::uint8_t>(4u - injected_count + rank);
+      set_injected_sequence(reg, channel::idx, slot);
       set_injected_offset(reg, static_cast<std::uint8_t>(rank), 0);
     }
 
@@ -307,23 +337,24 @@ struct injected_channel {
           .pin = channel::pin
       };
     } else {
-      detail::enable_temp_sensor_vrefint();
+      enable_temp_sensor_vrefint();
       return std::nullopt;
     }
   }
 };
 
-template<typename Channel, sampletime Sampletime, unsigned... Ranks>
-  requires((1 <= Ranks && Ranks <= 16) && ...)
+template<typename Channel, sampletime Sampletime, typename Ranks>
+  requires is_regular_sequence<Ranks>
 struct regular_channel {
   using channel = Channel;
   static constexpr auto sampletime = Sampletime;
-  static constexpr std::array ranks = {Ranks...};
+  static constexpr std::array ranks = Ranks::values;
 
-  static std::optional<gpio::analog_pin_config> init(registers& reg) {
+  static std::optional<gpio::analog_pin_config>
+  init(registers& reg, [[maybe_unused]] unsigned injected_count) {
+    using namespace detail;
+    set_sample_time(reg, channel::idx, static_cast<std::uint8_t>(sampletime));
     for (auto rank : ranks) {
-      using namespace detail;
-      set_sample_time(reg, channel::idx, static_cast<std::uint8_t>(sampletime));
       set_regular_sequence(reg, channel::idx, static_cast<std::uint8_t>(rank));
     }
 
@@ -333,7 +364,7 @@ struct regular_channel {
           .pin = channel::pin
       };
     } else {
-      detail::enable_temp_sensor_vrefint();
+      enable_temp_sensor_vrefint();
       return std::nullopt;
     }
   }
