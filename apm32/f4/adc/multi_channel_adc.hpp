@@ -7,6 +7,7 @@
 
 #include <emb/mmio.hpp>
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <optional>
@@ -92,9 +93,34 @@ void init_multi_channel_adc(
     detail::milti_channel_adc_config const& conf
 );
 
+// Cross-channel check: the ranks of all channels of the given kind must
+// cover positions 1..count exactly — every position assigned once, no
+// gaps, duplicates, or out-of-range ranks.
+template<bool Injected, some_adc_channel... Channels>
+consteval bool ranks_cover_exactly(unsigned count) {
+  std::array<unsigned, 17> tally{};   // tally[rank], rank in 1..16
+  (
+      [&] {
+        if constexpr (Channels::injected == Injected) {
+          for (auto rank : Channels::ranks) {
+            ++tally[rank];
+          }
+        }
+      }(),
+      ...
+  );
+  for (unsigned rank = 1; rank <= 16; ++rank) {
+    unsigned const expected = (rank <= count) ? 1u : 0u;
+    if (tally[rank] != expected) {
+      return false;
+    }
+  }
+  return true;
+}
+
 } // namespace detail
 
-template<some_multi_channel_adc_traits Traits, typename... Channels>
+template<some_multi_channel_adc_traits Traits, some_adc_channel... Channels>
 class multi_channel_adc {
 public:
   using adc_instance = Traits::adc_instance;
@@ -112,6 +138,15 @@ public:
       Traits::regular_trigger;
   static constexpr bool eoc_on_each = Traits::eoc_on_each;
   static constexpr bool auto_injconv = Traits::auto_injconv;
+
+  static_assert(
+      detail::ranks_cover_exactly<true, Channels...>(injected_count),
+      "injected channel ranks must cover 1..injected_count exactly "
+      "(no gaps, duplicates, or out-of-range positions)");
+  static_assert(
+      detail::ranks_cover_exactly<false, Channels...>(regular_count),
+      "regular channel ranks must cover 1..regular_count exactly "
+      "(no gaps, duplicates, or out-of-range positions)");
 private:
   static inline registers& reg = adc_instance::reg;
   dma_stream_type dma_stream_;

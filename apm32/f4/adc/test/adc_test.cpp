@@ -61,35 +61,40 @@ struct adc_traits_2 {
 static_assert(some_multi_channel_adc_traits<adc_traits_1>);
 static_assert(some_multi_channel_adc_traits<adc_traits_2>);
 
-using testing_extinj_channel = channel<
-    adc123_in0,
-    sampletime::cycles_3,
-    injected_rank_sequence<1, 2, 3, 4>>;
-using testing_extreg_channel =
-    channel<adc123_in1, sampletime::cycles_3, regular_rank_sequence<1>>;
-using testing_intinj_channel =
-    channel<adc1_in16, sampletime::cycles_144, injected_rank_sequence<2>>;
+// adc_1: injected ranks cover {1, 2}, regular ranks cover {1, 2, 3, 4}
+using adc1_inj1 = channel<adc123_in0, sampletime::cycles_3, injected_rank_sequence<1>>;
+using adc1_inj2 = channel<adc1_in16, sampletime::cycles_144, injected_rank_sequence<2>>;
+using adc1_reg1 = channel<adc123_in1, sampletime::cycles_3, regular_rank_sequence<1>>;
+using adc1_reg2 = channel<adc123_in2, sampletime::cycles_3, regular_rank_sequence<2>>;
+using adc1_reg3 = channel<adc123_in3, sampletime::cycles_3, regular_rank_sequence<3>>;
+using adc1_reg4 = channel<adc123_in10, sampletime::cycles_3, regular_rank_sequence<4>>;
+
+// adc_2: injected ranks cover {1}, regular ranks cover {1, 2}
+using adc2_inj1 = channel<adc12_in4, sampletime::cycles_3, injected_rank_sequence<1>>;
+using adc2_reg1 = channel<adc12_in5, sampletime::cycles_3, regular_rank_sequence<1>>;
+using adc2_reg2 = channel<adc12_in6, sampletime::cycles_3, regular_rank_sequence<2>>;
 
 [[maybe_unused]] void test() {
   multi_channel_adc<
       adc_traits_1,
-      testing_extinj_channel,
-      testing_extreg_channel,
-      testing_intinj_channel>
+      adc1_inj1,
+      adc1_inj2,
+      adc1_reg1,
+      adc1_reg2,
+      adc1_reg3,
+      adc1_reg4>
       adc_1;
-  multi_channel_adc<adc_traits_2> adc_2;
+  multi_channel_adc<adc_traits_2, adc2_inj1, adc2_reg1, adc2_reg2> adc_2;
 
   adc_1.enable();
   adc_2.enable();
 
-  // adc_1.start_injected();
+  // adc_1 uses external triggers, so software start is constrained out
   adc_2.start_injected();
-
-  // adc_1.start_regular();
   adc_2.start_regular();
 
   [[maybe_unused]] auto res1 = adc_1.injected_result<1>();
-  // [[maybe_unused]] auto res2 = adc_2.injected_result<2>();
+  [[maybe_unused]] auto res2 = adc_2.injected_result<1>();
 }
 
 } // namespace

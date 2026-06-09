@@ -362,6 +362,7 @@ template<typename Channel, sampletime Sampletime, typename Ranks>
   requires (is_injected_sequence<Ranks> || is_regular_sequence<Ranks>)
 struct channel {
   using descriptor = Channel;
+  static constexpr bool injected = is_injected_sequence<Ranks>;
   static constexpr auto sampletime = Sampletime;
   static constexpr std::array ranks = Ranks::values;
 
@@ -404,5 +405,14 @@ private:
     }
   }
 };
+
+template<typename T>
+inline constexpr bool is_adc_channel = false;
+
+template<typename Channel, sampletime Sampletime, typename Ranks>
+inline constexpr bool is_adc_channel<channel<Channel, Sampletime, Ranks>> = true;
+
+template<typename T>
+concept some_adc_channel = is_adc_channel<T>;
 
 } // namespace apm32::f4::adc
