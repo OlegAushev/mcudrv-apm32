@@ -7,20 +7,67 @@
 
 #include <emb/mmio.hpp>
 
+#include <array>
+#include <cstddef>
 #include <cstdint>
 
 namespace apm32::f4::adc {
 
+namespace detail {
+
+template<std::size_t N>
+constexpr bool
+ranks_in_range(std::array<unsigned, N> const& ranks, unsigned lo, unsigned hi) {
+  for (auto rank : ranks) {
+    if (rank < lo || rank > hi) {
+      return false;
+    }
+  }
+  return true;
+}
+
+template<std::size_t N>
+constexpr bool ranks_unique(std::array<unsigned, N> const& ranks) {
+  for (std::size_t i = 0; i < N; ++i) {
+    for (std::size_t j = i + 1; j < N; ++j) {
+      if (ranks[i] == ranks[j]) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+} // namespace detail
+
 template<unsigned... Ranks>
-  requires (sizeof...(Ranks) >= 1) && ((1 <= Ranks && Ranks <= 4) && ...)
 struct injected_rank_sequence {
-  static constexpr std::array values = {Ranks...};
+  static constexpr std::array<unsigned, sizeof...(Ranks)> values{Ranks...};
+
+  static_assert(
+      sizeof...(Ranks) >= 1,
+      "injected_rank_sequence must contain at least one rank");
+  static_assert(
+      detail::ranks_in_range(values, 1u, 4u),
+      "injected ranks must be in [1, 4]");
+  static_assert(
+      detail::ranks_unique(values),
+      "injected ranks must be unique (no slot may be assigned twice)");
 };
 
 template<unsigned... Ranks>
-  requires (sizeof...(Ranks) >= 1) && ((1 <= Ranks && Ranks <= 16) && ...)
 struct regular_rank_sequence {
-  static constexpr std::array values = {Ranks...};
+  static constexpr std::array<unsigned, sizeof...(Ranks)> values{Ranks...};
+
+  static_assert(
+      sizeof...(Ranks) >= 1,
+      "regular_rank_sequence must contain at least one rank");
+  static_assert(
+      detail::ranks_in_range(values, 1u, 16u),
+      "regular ranks must be in [1, 16]");
+  static_assert(
+      detail::ranks_unique(values),
+      "regular ranks must be unique (no slot may be assigned twice)");
 };
 
 template<typename T>
