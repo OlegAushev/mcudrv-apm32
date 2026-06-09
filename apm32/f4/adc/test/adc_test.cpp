@@ -61,16 +61,14 @@ struct adc_traits_2 {
 static_assert(some_multi_channel_adc_traits<adc_traits_1>);
 static_assert(some_multi_channel_adc_traits<adc_traits_2>);
 
-using testing_extinj_channel = injected_channel<
+using testing_extinj_channel = channel<
     adc123_in0,
     sampletime::cycles_3,
     injected_rank_sequence<1, 2, 3, 4>>;
 using testing_extreg_channel =
-    regular_channel<adc123_in1, sampletime::cycles_3, regular_rank_sequence<1>>;
-using testing_intinj_channel = injected_channel<
-    adc1_in16,
-    sampletime::cycles_144,
-    injected_rank_sequence<2>>;
+    channel<adc123_in1, sampletime::cycles_3, regular_rank_sequence<1>>;
+using testing_intinj_channel =
+    channel<adc1_in16, sampletime::cycles_144, injected_rank_sequence<2>>;
 
 [[maybe_unused]] void test() {
   multi_channel_adc<

@@ -189,7 +189,13 @@ private:
     [[maybe_unused]] std::size_t i = 0;
     (
         [&] {
-          if (auto conf = Channels::init(reg, injected_count)) {
+          std::optional<gpio::analog_pin_config> conf;
+          if constexpr (requires { Channels::init(reg, injected_count); }) {
+            conf = Channels::init(reg, injected_count);   // injected channel
+          } else {
+            conf = Channels::init(reg);                   // regular channel
+          }
+          if (conf) {
             pins_[i].emplace(*conf);
           }
           ++i;

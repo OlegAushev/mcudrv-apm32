@@ -359,59 +359,47 @@ struct adc1_in17 {
 };
 
 template<typename Channel, sampletime Sampletime, typename Ranks>
-  requires is_injected_sequence<Ranks>
-struct injected_channel {
-  using channel = Channel;
+  requires (is_injected_sequence<Ranks> || is_regular_sequence<Ranks>)
+struct channel {
+  using descriptor = Channel;
   static constexpr auto sampletime = Sampletime;
   static constexpr std::array ranks = Ranks::values;
 
-  static std::optional<gpio::analog_pin_config>
-  init(registers& reg, unsigned injected_count) {
+  static std::optional<gpio::analog_pin_config> init(registers& reg)
+    requires is_regular_sequence<Ranks> {
     using namespace detail;
-    set_sample_time(reg, channel::idx, static_cast<std::uint8_t>(sampletime));
+    set_sample_time(reg, Channel::idx, static_cast<std::uint8_t>(sampletime));
+    for (auto rank : ranks) {
+      set_regular_sequence(reg, Channel::idx, static_cast<std::uint8_t>(rank));
+    }
+    return finalize();
+  }
+
+  static std::optional<gpio::analog_pin_config>
+  init(registers& reg, unsigned injected_count)
+    requires is_injected_sequence<Ranks> {
+    using namespace detail;
+    set_sample_time(reg, Channel::idx, static_cast<std::uint8_t>(sampletime));
     for (auto rank : ranks) {
       // INJSEQ is right-aligned: for N conversions the sequence occupies
       // slots INJSEQC(4-N+1)..INJSEQC4, so conversion order `rank` (1..N)
       // maps to slot (4 - N + rank). Result lands in INJDATA[rank].
       auto const slot = static_cast<std::uint8_t>(4u - injected_count + rank);
-      set_injected_sequence(reg, channel::idx, slot);
+      set_injected_sequence(reg, Channel::idx, slot);
       set_injected_offset(reg, static_cast<std::uint8_t>(rank), 0);
     }
-
-    if constexpr (channel::type == channel_type::external) {
-      return gpio::analog_pin_config{
-          .port = channel::port,
-          .pin = channel::pin
-      };
-    } else {
-      enable_temp_sensor_vrefint();
-      return std::nullopt;
-    }
+    return finalize();
   }
-};
 
-template<typename Channel, sampletime Sampletime, typename Ranks>
-  requires is_regular_sequence<Ranks>
-struct regular_channel {
-  using channel = Channel;
-  static constexpr auto sampletime = Sampletime;
-  static constexpr std::array ranks = Ranks::values;
-
-  static std::optional<gpio::analog_pin_config>
-  init(registers& reg, [[maybe_unused]] unsigned injected_count) {
-    using namespace detail;
-    set_sample_time(reg, channel::idx, static_cast<std::uint8_t>(sampletime));
-    for (auto rank : ranks) {
-      set_regular_sequence(reg, channel::idx, static_cast<std::uint8_t>(rank));
-    }
-
-    if constexpr (channel::type == channel_type::external) {
+private:
+  static std::optional<gpio::analog_pin_config> finalize() {
+    if constexpr (Channel::type == channel_type::external) {
       return gpio::analog_pin_config{
-          .port = channel::port,
-          .pin = channel::pin
+          .port = Channel::port,
+          .pin = Channel::pin
       };
     } else {
-      enable_temp_sensor_vrefint();
+      detail::enable_temp_sensor_vrefint();
       return std::nullopt;
     }
   }
