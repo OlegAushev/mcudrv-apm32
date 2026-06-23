@@ -46,13 +46,16 @@ struct injected_rank_sequence {
 
   static_assert(
       sizeof...(Ranks) >= 1,
-      "injected_rank_sequence must contain at least one rank");
+      "injected_rank_sequence must contain at least one rank"
+  );
   static_assert(
       detail::ranks_in_range(values, 1u, 4u),
-      "injected ranks must be in [1, 4]");
+      "injected ranks must be in [1, 4]"
+  );
   static_assert(
       detail::ranks_unique(values),
-      "injected ranks must be unique (no slot may be assigned twice)");
+      "injected ranks must be unique (no slot may be assigned twice)"
+  );
 };
 
 template<unsigned... Ranks>
@@ -61,13 +64,16 @@ struct regular_rank_sequence {
 
   static_assert(
       sizeof...(Ranks) >= 1,
-      "regular_rank_sequence must contain at least one rank");
+      "regular_rank_sequence must contain at least one rank"
+  );
   static_assert(
       detail::ranks_in_range(values, 1u, 16u),
-      "regular ranks must be in [1, 16]");
+      "regular ranks must be in [1, 16]"
+  );
   static_assert(
       detail::ranks_unique(values),
-      "regular ranks must be unique (no slot may be assigned twice)");
+      "regular ranks must be unique (no slot may be assigned twice)"
+  );
 };
 
 template<typename T>
@@ -82,11 +88,7 @@ inline constexpr bool is_regular_sequence = false;
 template<unsigned... R>
 inline constexpr bool is_regular_sequence<regular_rank_sequence<R...>> = true;
 
-enum class channel_type {
-  external,
-  internal_temp,
-  internal_vref
-};
+enum class channel_type { external, internal_temp, internal_vref };
 
 namespace detail {
 
@@ -133,18 +135,10 @@ set_injected_sequence(registers& reg, unsigned ch, std::uint8_t slot) {
 inline void
 set_injected_offset(registers& reg, std::uint8_t rank, std::uint16_t offset) {
   switch (rank) {
-  case 1:
-    reg.INJDOF1 = offset;
-    break;
-  case 2:
-    reg.INJDOF2 = offset;
-    break;
-  case 3:
-    reg.INJDOF3 = offset;
-    break;
-  case 4:
-    reg.INJDOF4 = offset;
-    break;
+  case 1: reg.INJDOF1 = offset; break;
+  case 2: reg.INJDOF2 = offset; break;
+  case 3: reg.INJDOF3 = offset; break;
+  case 4: reg.INJDOF4 = offset; break;
   }
 }
 
@@ -359,12 +353,17 @@ struct adc1_in17 {
 };
 
 template<typename Channel, sampletime Sampletime, typename Ranks>
-  requires (is_injected_sequence<Ranks> || is_regular_sequence<Ranks>)
+  requires(is_injected_sequence<Ranks> || is_regular_sequence<Ranks>)
 struct channel {
   using descriptor = Channel;
   static constexpr bool injected = is_injected_sequence<Ranks>;
   static constexpr auto sampletime = Sampletime;
   static constexpr std::array ranks = Ranks::values;
+
+  static constexpr unsigned rank()
+    requires(Ranks::values.size() == 1) {
+    return ranks[0];
+  }
 
   static std::optional<gpio::analog_pin_config> init(registers& reg)
     requires is_regular_sequence<Ranks> {
@@ -410,7 +409,8 @@ template<typename T>
 inline constexpr bool is_adc_channel = false;
 
 template<typename Channel, sampletime Sampletime, typename Ranks>
-inline constexpr bool is_adc_channel<channel<Channel, Sampletime, Ranks>> = true;
+inline constexpr bool is_adc_channel<channel<Channel, Sampletime, Ranks>> =
+    true;
 
 template<typename T>
 concept some_adc_channel = is_adc_channel<T>;
