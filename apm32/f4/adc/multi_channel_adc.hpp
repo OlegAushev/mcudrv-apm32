@@ -1,6 +1,7 @@
 #pragma once
 
 #include <apm32/f4/adc/adc.hpp>
+#include <apm32/f4/adc/adc_sequence.hpp>
 #include <apm32/f4/adc/common_adc.hpp>
 #include <apm32/f4/dma/pm_stream.hpp>
 #include <apm32/f4/gpio/analog_pin.hpp>
@@ -76,50 +77,6 @@ concept some_multi_channel_adc_traits = requires {
   { T::auto_injconv } -> std::convertible_to<bool>;
 };
 
-namespace detail {
-
-struct milti_channel_adc_config {
-  unsigned injected_count;
-  unsigned regular_count;
-  bool dma_enabled;
-  std::optional<inj_trigger> injected_trigger;
-  std::optional<reg_trigger> regular_trigger;
-  bool eoc_on_each_conversion;
-  bool auto_injected_conversion;
-};
-
-void init_multi_channel_adc(
-    registers& reg,
-    detail::milti_channel_adc_config const& conf
-);
-
-// Cross-channel check: the ranks of all channels of the given kind must
-// cover positions 1..count exactly — every position assigned once, no
-// gaps, duplicates, or out-of-range ranks.
-template<bool Injected, some_adc_channel... Channels>
-consteval bool ranks_cover_exactly(unsigned count) {
-  std::array<unsigned, 17> tally{};   // tally[rank], rank in 1..16
-  (
-      [&] {
-        if constexpr (Channels::injected == Injected) {
-          for (auto rank : Channels::ranks) {
-            ++tally[rank];
-          }
-        }
-      }(),
-      ...
-  );
-  for (unsigned rank = 1; rank <= 16; ++rank) {
-    unsigned const expected = (rank <= count) ? 1u : 0u;
-    if (tally[rank] != expected) {
-      return false;
-    }
-  }
-  return true;
-}
-
-} // namespace detail
-
 template<some_multi_channel_adc_traits Traits, some_adc_channel... Channels>
 class multi_channel_adc {
 public:
@@ -142,11 +99,13 @@ public:
   static_assert(
       detail::ranks_cover_exactly<true, Channels...>(injected_count),
       "injected channel ranks must cover 1..injected_count exactly "
-      "(no gaps, duplicates, or out-of-range positions)");
+      "(no gaps, duplicates, or out-of-range positions)"
+  );
   static_assert(
       detail::ranks_cover_exactly<false, Channels...>(regular_count),
       "regular channel ranks must cover 1..regular_count exactly "
-      "(no gaps, duplicates, or out-of-range positions)");
+      "(no gaps, duplicates, or out-of-range positions)"
+  );
 private:
   static inline registers& reg = adc_instance::reg;
   dma_stream_type dma_stream_;
@@ -160,7 +119,7 @@ public:
   multi_channel_adc()
     requires(!dma_enabled) {
     adc_instance::enable_clock();
-    detail::init_multi_channel_adc(reg, get_config());
+    detail::init_sequence(reg, get_config());
     init_channels();
   }
 
@@ -173,7 +132,7 @@ public:
             &reg.REGDATA
         ) {
     adc_instance::enable_clock();
-    detail::init_multi_channel_adc(reg, get_config());
+    detail::init_sequence(reg, get_config());
     init_channels();
   }
 
@@ -199,19 +158,27 @@ public:
   template<unsigned Channel>
     requires(1 <= Channel && Channel <= injected_count)
   [[nodiscard]] std::uint32_t injected_result() const {
-    if constexpr (Channel == 1) return reg.INJDATA1;
-    else if constexpr (Channel == 2) return reg.INJDATA2;
-    else if constexpr (Channel == 3) return reg.INJDATA3;
-    else if constexpr (Channel == 4) return reg.INJDATA4;
+    if constexpr (Channel == 1)
+      return reg.INJDATA1;
+    else if constexpr (Channel == 2)
+      return reg.INJDATA2;
+    else if constexpr (Channel == 3)
+      return reg.INJDATA3;
+    else if constexpr (Channel == 4)
+      return reg.INJDATA4;
   }
 
   template<unsigned Channel>
     requires(1 <= Channel && Channel <= injected_count)
   [[nodiscard]] std::uint32_t const volatile* injected_storage() const {
-    if constexpr (Channel == 1) return &reg.INJDATA1;
-    else if constexpr (Channel == 2) return &reg.INJDATA2;
-    else if constexpr (Channel == 3) return &reg.INJDATA3;
-    else if constexpr (Channel == 4) return &reg.INJDATA4;
+    if constexpr (Channel == 1)
+      return &reg.INJDATA1;
+    else if constexpr (Channel == 2)
+      return &reg.INJDATA2;
+    else if constexpr (Channel == 3)
+      return &reg.INJDATA3;
+    else if constexpr (Channel == 4)
+      return &reg.INJDATA4;
   }
 
   template<unsigned Rank>
@@ -226,9 +193,9 @@ private:
         [&] {
           std::optional<gpio::analog_pin_config> conf;
           if constexpr (requires { Channels::init(reg, injected_count); }) {
-            conf = Channels::init(reg, injected_count);   // injected channel
+            conf = Channels::init(reg, injected_count); // injected channel
           } else {
-            conf = Channels::init(reg);                   // regular channel
+            conf = Channels::init(reg); // regular channel
           }
           if (conf) {
             pins_[i].emplace(*conf);
@@ -239,8 +206,8 @@ private:
     );
   }
 
-  detail::milti_channel_adc_config get_config() const {
-    return detail::milti_channel_adc_config{
+  detail::sequence_config get_config() const {
+    return detail::sequence_config{
         .injected_count = injected_count,
         .regular_count = regular_count,
         .dma_enabled = dma_enabled,

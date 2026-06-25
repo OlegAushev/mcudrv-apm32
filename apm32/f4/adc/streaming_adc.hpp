@@ -1,8 +1,8 @@
 #pragma once
 
 #include <apm32/f4/adc/adc.hpp>
+#include <apm32/f4/adc/adc_sequence.hpp>
 #include <apm32/f4/adc/common_adc.hpp>
-#include <apm32/f4/adc/multi_channel_adc.hpp>
 #include <apm32/f4/dma/pm_stream.hpp>
 #include <apm32/f4/gpio/analog_pin.hpp>
 
@@ -70,17 +70,17 @@ public:
   static constexpr reg_trigger regular_trigger = Traits::regular_trigger;
   static constexpr nvic::irq_priority dma_irq_priority =
       Traits::dma_irq_priority;
-  // Debug knob: raise EOC on every conversion and enable the ADC EOC
-  // interrupt. The app must provide an ADC IRQ handler when this is set.
   static constexpr bool eoc_on_each = Traits::eoc_on_each;
 
   static_assert(
       ((!Channels::injected) && ...),
-      "streaming_adc supports regular channels only");
+      "streaming_adc supports regular channels only"
+  );
   static_assert(
       detail::ranks_cover_exactly<false, Channels...>(regular_count),
       "regular channel ranks must cover 1..regular_count exactly "
-      "(no gaps, duplicates, or out-of-range positions)");
+      "(no gaps, duplicates, or out-of-range positions)"
+  );
 private:
   static inline registers& reg = adc_instance::reg;
   dma_stream_type dma_stream_;
@@ -100,14 +100,11 @@ public:
             &reg.REGDATA
         ) {
     adc_instance::enable_clock();
-    detail::init_multi_channel_adc(reg, get_config());
+    detail::init_sequence(reg, get_config());
     init_channels();
   }
 
   void enable() {
-    // The DMA stream's transfer-complete interrupt drives processing.
-    // Conversions start on regular_trigger. The ADC EOC interrupt stays off
-    // unless eoc_on_each is set for debugging.
     dma_stream_.enable();
     if constexpr (eoc_on_each) {
       nvic::set_irq_priority(adc_instance::irqn, common_irq_priority);
@@ -121,8 +118,7 @@ public:
     completed_.store(true, std::memory_order::release);
   }
 
-  // Returns the just-completed window (frame-major interleaved: stride
-  // regular_count to walk one channel) once a half has filled, else nullopt.
+  // Returns the just-completed window once it was filled, else nullopt.
   [[nodiscard]] std::optional<std::span<element_type const>> completed() const {
     if (!completed_.load(std::memory_order::acquire)) {
       return std::nullopt;
@@ -148,8 +144,8 @@ private:
     );
   }
 
-  detail::milti_channel_adc_config get_config() const {
-    return detail::milti_channel_adc_config{
+  detail::sequence_config get_config() const {
+    return detail::sequence_config{
         .injected_count = 0,
         .regular_count = regular_count,
         .dma_enabled = true,
