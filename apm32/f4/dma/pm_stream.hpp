@@ -14,25 +14,36 @@ struct peripheral_to_memory_stream_config {
 };
 
 namespace detail {
-void init_pm_stream(stream_registers& STREAM_REG, std::uint32_t ch);
+// DMA PSIZE/MSIZE field encoding: 0b00 byte, 0b01 half-word, 0b10 word.
+template<dma_data_type T>
+consteval std::uint32_t dma_size_cfg() {
+  if constexpr (sizeof(T) == 1) {
+    return 0b00u;
+  } else if constexpr (sizeof(T) == 2) {
+    return 0b01u;
+  } else {
+    return 0b10u;
+  }
+}
 } // namespace detail
 
 template<
     some_dma_stream_instance Stream,
     some_dma_channel_instance Channel,
-    typename MemoryBuffer>
+    typename Storage>
 class peripheral_to_memory_stream {
 public:
   using controller_instance = Stream::controller;
   using stream_instance = Stream;
   using channel_instance = Channel;
-  using memory_buffer_type = MemoryBuffer;
+  using storage_type = Storage;
+  using memory_buffer_type = typename Storage::buffer_type;
 private:
   static inline controller_registers& DMA_REG = controller_instance::REG;
   static inline stream_registers& STREAM_REG = stream_instance::REG;
   static constexpr nvic::irq_number const irqn_ = stream_instance::irqn;
 
-  memory_buffer_type dest_;
+  Storage storage_;
 public:
   peripheral_to_memory_stream(peripheral_to_memory_stream const&) = delete;
   peripheral_to_memory_stream&
@@ -47,17 +58,37 @@ public:
   ) {
     controller_instance::enable_clock();
 
-    detail::init_pm_stream(STREAM_REG, channel_instance::idx);
+    emb::mmio::modify(
+        STREAM_REG.SCFG,
+        emb::mmio::bits<DMA_SCFGx_CHSEL>(channel_instance::idx),
+        emb::mmio::bits<DMA_SCFGx_DIRCFG>(0b00u), // periph to memory
+        emb::mmio::bits<DMA_SCFGx_CIRCMEN>(1u),   // circular mode
+        emb::mmio::bits<DMA_SCFGx_PERIM>(0u),     // no periph increment
+        emb::mmio::bits<DMA_SCFGx_MEMIM>(1u),     // memory increment
+        emb::mmio::bits<DMA_SCFGx_PERSIZECFG>(
+            detail::dma_size_cfg<typename memory_buffer_type::element_type>()
+        ),
+        emb::mmio::bits<DMA_SCFGx_MEMSIZECFG>(
+            detail::dma_size_cfg<typename memory_buffer_type::element_type>()
+        ),
+        emb::mmio::bits<DMA_SCFGx_PRILCFG>(0b10u) // high priority
+    );
 
     if constexpr (!memory_buffer_type::double_buffer_mode) {
       emb::mmio::clear(STREAM_REG.SCFG, DMA_SCFGx_DBM);
       STREAM_REG.NDATA = memory_buffer_type::size;
-      STREAM_REG.M0ADDR = reinterpret_cast<std::uint32_t>(dest_.data.data());
+      STREAM_REG.M0ADDR = reinterpret_cast<std::uint32_t>(
+          storage_.get().data.data()
+      );
     } else {
       emb::mmio::set(STREAM_REG.SCFG, DMA_SCFGx_DBM);
       STREAM_REG.NDATA = memory_buffer_type::size;
-      STREAM_REG.M0ADDR = reinterpret_cast<std::uint32_t>(dest_.data1.data());
-      STREAM_REG.M1ADDR = reinterpret_cast<std::uint32_t>(dest_.data2.data());
+      STREAM_REG.M0ADDR = reinterpret_cast<std::uint32_t>(
+          storage_.get().data1.data()
+      );
+      STREAM_REG.M1ADDR = reinterpret_cast<std::uint32_t>(
+          storage_.get().data2.data()
+      );
     }
 
     STREAM_REG.PADDR = reinterpret_cast<std::uint32_t>(periph_addr);
@@ -69,7 +100,7 @@ public:
   }
 
   memory_buffer_type const& data() const {
-    return dest_;
+    return storage_.get();
   }
 
   void enable() {

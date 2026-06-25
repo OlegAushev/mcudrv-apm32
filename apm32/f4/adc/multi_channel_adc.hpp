@@ -216,7 +216,7 @@ public:
 
   template<unsigned Rank>
     requires(1 <= Rank && Rank <= regular_count && dma_enabled)
-  [[nodiscard]] std::uint32_t const volatile* regular_storage() const {
+  [[nodiscard]] auto const volatile* regular_storage() const {
     return &dma_stream_.data().data[Rank - 1];
   }
 private:
