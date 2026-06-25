@@ -37,6 +37,15 @@ consteval bool is_valid_dma_irq_priority() {
   }
 }
 
+template<typename T>
+consteval bool uses_single_buffer() {
+  if constexpr (T::dma_enabled) {
+    return !T::stream_type::memory_buffer_type::double_buffer_mode;
+  } else {
+    return true;
+  }
+}
+
 } // namespace detail
 
 template<typename T>
@@ -105,6 +114,10 @@ public:
       detail::ranks_cover_exactly<false, Channels...>(regular_count),
       "regular channel ranks must cover 1..regular_count exactly "
       "(no gaps, duplicates, or out-of-range positions)"
+  );
+  static_assert(
+      detail::uses_single_buffer<Traits>(),
+      "multi_channel_adc requires a single-buffer DMA stream"
   );
 private:
   static inline registers& reg = adc_instance::reg;
