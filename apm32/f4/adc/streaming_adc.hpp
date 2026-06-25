@@ -33,21 +33,10 @@ consteval bool is_valid_stream_buffer() {
 template<typename T>
 concept some_streaming_adc_traits = requires {
   requires some_adc_instance<typename T::adc_instance>;
-
   { T::regular_count } -> std::convertible_to<unsigned>;
-
-  requires dma::some_dma_stream_instance<typename T::dma_stream>;
-  requires dma::some_dma_channel_instance<typename T::dma_channel>;
-
-  requires is_compatible_dma_stream<
-      typename T::adc_instance,
-      typename T::dma_stream>();
-  requires is_compatible_dma_channel<
-      typename T::adc_instance,
-      typename T::dma_channel>();
-
-  requires detail::is_valid_stream_buffer<T>();
-
+  typename T::dma_stream;
+  typename T::dma_channel;
+  typename T::stream_type;
   { T::regular_trigger } -> std::convertible_to<reg_trigger>;
   { T::dma_irq_priority } -> std::convertible_to<nvic::irq_priority>;
   { T::eoc_on_each } -> std::convertible_to<bool>;
@@ -80,6 +69,19 @@ public:
       detail::ranks_cover_exactly<false, Channels...>(regular_count),
       "regular channel ranks must cover 1..regular_count exactly "
       "(no gaps, duplicates, or out-of-range positions)"
+  );
+  static_assert(
+      is_compatible_dma_stream<adc_instance, dma_stream>(),
+      "dma_stream is not wired to this ADC instance"
+  );
+  static_assert(
+      is_compatible_dma_channel<adc_instance, dma_channel>(),
+      "dma_channel is not the DMA request channel for this ADC instance"
+  );
+  static_assert(
+      detail::is_valid_stream_buffer<Traits>(),
+      "streaming_adc needs a double buffer whose size is a multiple of "
+      "regular_count"
   );
 private:
   static inline registers& reg = adc_instance::reg;

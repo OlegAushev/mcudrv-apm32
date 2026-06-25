@@ -46,40 +46,31 @@ consteval bool uses_single_buffer() {
   }
 }
 
+template<typename T>
+consteval bool is_compatible_dma() {
+  if constexpr (T::dma_enabled) {
+    return is_compatible_dma_stream<
+               typename T::adc_instance,
+               typename T::dma_stream>()
+        && is_compatible_dma_channel<
+               typename T::adc_instance,
+               typename T::dma_channel>();
+  } else {
+    return true;
+  }
+}
+
 } // namespace detail
 
 template<typename T>
 concept some_multi_channel_adc_traits = requires {
   requires some_adc_instance<typename T::adc_instance>;
-
   { T::injected_count } -> std::convertible_to<unsigned>;
   { T::regular_count } -> std::convertible_to<unsigned>;
   { T::dma_enabled } -> std::convertible_to<bool>;
-
-  requires(
-      T::dma_enabled ? dma::some_dma_stream_instance<typename T::dma_stream>
-                     : true
-  );
-
-  requires(
-      T::dma_enabled ? dma::some_dma_channel_instance<typename T::dma_channel>
-                     : true
-  );
-
-  requires is_compatible_dma_stream<
-               typename T::adc_instance,
-               typename T::dma_stream>()
-               || std::is_void_v<typename T::dma_stream>;
-
-  requires is_compatible_dma_channel<
-               typename T::adc_instance,
-               typename T::dma_channel>()
-               || std::is_void_v<typename T::dma_channel>;
-
-  requires detail::is_valid_dma_buffer_size<T>();
-
-  requires detail::is_valid_dma_irq_priority<T>();
-
+  typename T::dma_stream;
+  typename T::dma_channel;
+  typename T::stream_type;
   { T::injected_trigger } -> std::convertible_to<std::optional<inj_trigger>>;
   { T::regular_trigger } -> std::convertible_to<std::optional<reg_trigger>>;
   { T::eoc_on_each } -> std::convertible_to<bool>;
@@ -114,6 +105,18 @@ public:
       detail::ranks_cover_exactly<false, Channels...>(regular_count),
       "regular channel ranks must cover 1..regular_count exactly "
       "(no gaps, duplicates, or out-of-range positions)"
+  );
+  static_assert(
+      detail::is_compatible_dma<Traits>(),
+      "dma_stream and dma_channel must be wired to this ADC instance"
+  );
+  static_assert(
+      detail::is_valid_dma_buffer_size<Traits>(),
+      "DMA buffer size must equal regular_count"
+  );
+  static_assert(
+      detail::is_valid_dma_irq_priority<Traits>(),
+      "dma_irq_priority must be convertible to nvic::irq_priority"
   );
   static_assert(
       detail::uses_single_buffer<Traits>(),
