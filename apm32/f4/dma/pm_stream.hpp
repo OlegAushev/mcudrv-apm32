@@ -6,6 +6,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <span>
 
 namespace apm32::f4::dma {
 
@@ -101,6 +102,19 @@ public:
 
   memory_buffer_type const& data() const {
     return storage_.get();
+  }
+
+  // Returns a view over the buffer the DMA is NOT currently writing (the just
+  // completed half). The CT (current target) bit selects the active buffer:
+  // CT=1 -> DMA writes M1 (data2) -> data1 is complete; CT=0 -> data2 complete.
+  std::span<typename memory_buffer_type::element_type const>
+  completed_buffer() const
+    requires(memory_buffer_type::double_buffer_mode) {
+    using element = typename memory_buffer_type::element_type;
+    auto const& b = storage_.get();
+    return emb::mmio::test_any(STREAM_REG.SCFG, DMA_SCFGx_CTARG)
+               ? std::span<element const>{b.data1.data(), b.data1.size()}
+               : std::span<element const>{b.data2.data(), b.data2.size()};
   }
 
   void enable() {
