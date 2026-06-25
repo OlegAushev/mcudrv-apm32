@@ -50,6 +50,7 @@ concept some_streaming_adc_traits = requires {
 
   { T::regular_trigger } -> std::convertible_to<reg_trigger>;
   { T::dma_irq_priority } -> std::convertible_to<nvic::irq_priority>;
+  { T::eoc_on_each } -> std::convertible_to<bool>;
 };
 
 template<some_streaming_adc_traits Traits, some_adc_channel... Channels>
@@ -69,6 +70,9 @@ public:
   static constexpr reg_trigger regular_trigger = Traits::regular_trigger;
   static constexpr nvic::irq_priority dma_irq_priority =
       Traits::dma_irq_priority;
+  // Debug knob: raise EOC on every conversion and enable the ADC EOC
+  // interrupt. The app must provide an ADC IRQ handler when this is set.
+  static constexpr bool eoc_on_each = Traits::eoc_on_each;
 
   static_assert(
       ((!Channels::injected) && ...),
@@ -101,9 +105,14 @@ public:
   }
 
   void enable() {
-    // The DMA stream's transfer-complete interrupt drives processing; the ADC
-    // EOC interrupt is left disabled. Conversions start on regular_trigger.
+    // The DMA stream's transfer-complete interrupt drives processing.
+    // Conversions start on regular_trigger. The ADC EOC interrupt stays off
+    // unless eoc_on_each is set for debugging.
     dma_stream_.enable();
+    if constexpr (eoc_on_each) {
+      nvic::set_irq_priority(adc_instance::irqn, common_irq_priority);
+      nvic::enable_irq(adc_instance::irqn);
+    }
   }
 
   // Call from the DMA stream's transfer-complete ISR.
@@ -146,7 +155,7 @@ private:
         .dma_enabled = true,
         .injected_trigger = std::nullopt,
         .regular_trigger = regular_trigger,
-        .eoc_on_each_conversion = false,
+        .eoc_on_each_conversion = eoc_on_each,
         .auto_injected_conversion = false,
     };
   }

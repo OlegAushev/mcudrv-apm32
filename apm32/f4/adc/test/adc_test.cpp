@@ -79,6 +79,7 @@ struct stream_traits_3 {
       .edge = trigger_edge::rising,
       .event = reg_trigger_event::tim3_trgo
   };
+  static constexpr bool eoc_on_each = true;
 };
 
 static_assert(some_streaming_adc_traits<stream_traits_3>);
