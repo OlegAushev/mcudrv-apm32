@@ -14,7 +14,7 @@ concept dma_data_type =
     emb::same_as_any<T, std::uint8_t, std::uint16_t, std::uint32_t>;
 
 template<dma_data_type ElementType, std::size_t Size>
-struct memory_buffer {
+struct buffer {
   using element_type = ElementType;
   static constexpr bool double_buffer_mode = false;
   static constexpr std::size_t size = Size;
@@ -22,7 +22,7 @@ struct memory_buffer {
 };
 
 template<std::unsigned_integral ElementType, std::size_t Size>
-struct memory_double_buffer {
+struct double_buffer {
   using element_type = ElementType;
   static constexpr bool double_buffer_mode = true;
   static constexpr std::size_t size = Size;

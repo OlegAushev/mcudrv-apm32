@@ -31,7 +31,7 @@ struct adc_traits_1 {
   using stream_type = dma::peripheral_to_memory_stream<
       dma_stream,
       dma_channel,
-      dma::owned_storage<dma::memory_buffer<std::uint32_t, regular_count>>>;
+      dma::owned_storage<dma::buffer<std::uint32_t, regular_count>>>;
   static constexpr nvic::irq_priority dma_irq_priority{4};
   static constexpr auto injected_trigger = inj_trigger{
       .edge = trigger_edge::rising,
@@ -72,8 +72,7 @@ struct stream_traits_3 {
   using stream_type = dma::peripheral_to_memory_stream<
       dma_stream,
       dma_channel,
-      dma::owned_storage<
-          dma::memory_double_buffer<std::uint16_t, regular_count * 4>>>;
+      dma::owned_storage<dma::double_buffer<std::uint16_t, regular_count * 4>>>;
   static constexpr nvic::irq_priority dma_irq_priority{4};
   static constexpr auto regular_trigger = reg_trigger{
       .edge = trigger_edge::rising,
