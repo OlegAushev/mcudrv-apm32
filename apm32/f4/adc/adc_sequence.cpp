@@ -54,20 +54,19 @@ void init_sequence(registers& REG, sequence_config const& conf) {
 
   // Regular channel sequence length
   if (conf.regular_count > 0) {
-    emb::mmio::write(
+    emb::mmio::write<ADC_REGSEQ1_REGSEQLEN>(
         REG.REGSEQ1,
-        ADC_REGSEQ1_REGSEQLEN,
         conf.regular_count - 1
     );
   } else {
-    emb::mmio::write(REG.REGSEQ1, ADC_REGSEQ1_REGSEQLEN, 0u);
+    emb::mmio::write<ADC_REGSEQ1_REGSEQLEN>(REG.REGSEQ1, 0u);
   }
 
   // Injected sequence length (INJSEQLEN = number of conversions - 1)
   if (conf.injected_count > 0) {
-    emb::mmio::write(REG.INJSEQ, ADC_INJSEQ_INJSEQLEN, conf.injected_count - 1);
+    emb::mmio::write<ADC_INJSEQ_INJSEQLEN>(REG.INJSEQ, conf.injected_count - 1);
   } else {
-    emb::mmio::write(REG.INJSEQ, ADC_INJSEQ_INJSEQLEN, 0u);
+    emb::mmio::write<ADC_INJSEQ_INJSEQLEN>(REG.INJSEQ, 0u);
   }
 
   // Enable ADC

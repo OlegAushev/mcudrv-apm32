@@ -38,20 +38,24 @@ detail::pin_base::pin_base(
   if (mode_val == mode::alternate && altfunc.has_value()) {
     std::uint32_t const alf_idx = pin_no / 8u;
     std::uint32_t const alf_pos = (pin_no % 8u) * 4u;
-    emb::mmio::write(regs_->ALF[alf_idx], 0xFu << alf_pos, altfunc.value());
+    emb::mmio::runtime::write(
+        regs_->ALF[alf_idx],
+        0xFu << alf_pos,
+        altfunc.value()
+    );
   }
 
   // MODE register (2 bits per pin)
-  emb::mmio::write(regs_->MODE, 0x3u << pin2, mode_val);
+  emb::mmio::runtime::write(regs_->MODE, 0x3u << pin2, mode_val);
 
   // OMODE register (1 bit per pin)
-  emb::mmio::write(regs_->OMODE, 0x1u << pin_no, otype_val);
+  emb::mmio::runtime::write(regs_->OMODE, 0x1u << pin_no, otype_val);
 
   // OSSEL register (2 bits per pin)
-  emb::mmio::write(regs_->OSSEL, 0x3u << pin2, speed_val);
+  emb::mmio::runtime::write(regs_->OSSEL, 0x3u << pin2, speed_val);
 
   // PUPD register (2 bits per pin)
-  emb::mmio::write(regs_->PUPD, 0x3u << pin2, pupd_val);
+  emb::mmio::runtime::write(regs_->PUPD, 0x3u << pin2, pupd_val);
 }
 
 detail::pin_base::~pin_base() {

@@ -230,7 +230,7 @@ public:
     }
 
     frame.len = std::uint8_t(
-        emb::mmio::read(reg.sFIFOMailBox[fifo].RXDLEN, CAN_RXDLEN0_DLCODE)
+        emb::mmio::read<CAN_RXDLEN0_DLCODE>(reg.sFIFOMailBox[fifo].RXDLEN)
     );
 
     frame.payload = std::bit_cast<emb::can::payload_t>(
@@ -251,7 +251,7 @@ private:
   std::uint32_t get_next_filter_idx() {
     std::uint32_t bank_offset = 0;
     if constexpr (std::same_as<Instance, can2>) {
-      bank_offset = emb::mmio::read(can1::reg.FCTRL, CAN_FCTRL_CAN2SB);
+      bank_offset = emb::mmio::read<CAN_FCTRL_CAN2SB>(can1::reg.FCTRL);
     }
     return bank_offset + filters_used_;
   }
@@ -333,9 +333,9 @@ private:
   template<rx_fifo RxFifo>
   std::size_t rx_messages_pending() const {
     if constexpr (RxFifo == rx_fifo::_0) {
-      return emb::mmio::read(reg.RXF0, CAN_RXF0_FMNUM0);
+      return emb::mmio::read<CAN_RXF0_FMNUM0>(reg.RXF0);
     } else {
-      return emb::mmio::read(reg.RXF1, CAN_RXF1_FMNUM1);
+      return emb::mmio::read<CAN_RXF1_FMNUM1>(reg.RXF1);
     }
   }
 
@@ -348,7 +348,7 @@ private:
   }
 
   void put_into_mailbox(emb::can::frame_t const& frame) {
-    auto mailbox = emb::mmio::read(reg.TXSTS, CAN_TXSTS_EMNUM);
+    auto mailbox = emb::mmio::read<CAN_TXSTS_EMNUM>(reg.TXSTS);
     if (mailbox > 2) return;
 
     // ID
@@ -361,9 +361,8 @@ private:
     reg.sTxMailBox[mailbox].TXMID = txmid;
 
     // DLC
-    emb::mmio::write(
+    emb::mmio::write<CAN_TXDLEN0_DLCODE>(
         reg.sTxMailBox[mailbox].TXDLEN,
-        CAN_TXDLEN0_DLCODE,
         frame.len
     );
 
@@ -452,7 +451,7 @@ template<transceiver_traits Traits>
 [[nodiscard]] auto init_filter_banks(transceiver<can1, Traits>& can1_xcvr)
     -> filter_setup<can1, Traits> {
   filter_init_session fg;
-  emb::mmio::write(can1::reg.FCTRL, CAN_FCTRL_CAN2SB, Traits.filter_count);
+  emb::mmio::write<CAN_FCTRL_CAN2SB>(can1::reg.FCTRL, Traits.filter_count);
   return filter_setup<can1, Traits>{can1_xcvr};
 }
 
@@ -462,7 +461,7 @@ template<transceiver_traits Traits>
     -> filter_setup<can2, Traits> {
   can1::enable_clock();
   filter_init_session fg;
-  emb::mmio::write(can1::reg.FCTRL, CAN_FCTRL_CAN2SB, 0u);
+  emb::mmio::write<CAN_FCTRL_CAN2SB>(can1::reg.FCTRL, 0u);
   // leave CAN1 in init mode
   emb::mmio::set(can1::reg.MCTRL, CAN_MCTRL_INITREQ);
   return filter_setup<can2, Traits>{can2_xcvr};
@@ -475,7 +474,7 @@ template<transceiver_traits Traits1, transceiver_traits Traits2>
     transceiver<can2, Traits2>& can2_xcvr
 ) -> std::pair<filter_setup<can1, Traits1>, filter_setup<can2, Traits2>> {
   filter_init_session fg;
-  emb::mmio::write(can1::reg.FCTRL, CAN_FCTRL_CAN2SB, Traits1.filter_count);
+  emb::mmio::write<CAN_FCTRL_CAN2SB>(can1::reg.FCTRL, Traits1.filter_count);
   return {
       filter_setup<can1, Traits1>{can1_xcvr},
       filter_setup<can2, Traits2>{can2_xcvr}

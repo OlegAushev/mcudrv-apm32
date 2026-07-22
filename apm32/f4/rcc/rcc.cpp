@@ -24,19 +24,18 @@ void init_clock() {
   emb::mmio::set(PMU->CTRL, PMU_CTRL_VOSSEL);
 
   // Configure bus prescalers
-  emb::mmio::write(
+  emb::mmio::write<RCM_CFG_AHBPSC>(
       RCM->CFG,
-      RCM_CFG_AHBPSC,
       static_cast<std::uint32_t>(C::ahb_div)
   );
-  emb::mmio::write(
+
+  emb::mmio::write<RCM_CFG_APB2PSC>(
       RCM->CFG,
-      RCM_CFG_APB2PSC,
       static_cast<std::uint32_t>(C::apb2_div)
   );
-  emb::mmio::write(
+
+  emb::mmio::write<RCM_CFG_APB1PSC>(
       RCM->CFG,
-      RCM_CFG_APB1PSC,
       static_cast<std::uint32_t>(C::apb1_div)
   );
 
@@ -59,16 +58,15 @@ void init_clock() {
   }
 
   // Set Flash wait states based on the target HCLK frequency
-  emb::mmio::write(
+  emb::mmio::write<FLASH_ACCTRL_WAITP>(
       FLASH->ACCTRL,
-      FLASH_ACCTRL_WAITP,
       flash::wait_states(hclk_frequency<std::uint64_t>())
   );
 
   // Switch SYSCLK to the configured source
   constexpr auto sclk_field = static_cast<std::uint32_t>(C::sysclk_src);
-  emb::mmio::write(RCM->CFG, RCM_CFG_SCLKSEL, sclk_field);
-  while (emb::mmio::read(RCM->CFG, RCM_CFG_SCLKSELSTS) != sclk_field) {}
+  emb::mmio::write<RCM_CFG_SCLKSEL>(RCM->CFG, sclk_field);
+  while (emb::mmio::read<RCM_CFG_SCLKSELSTS>(RCM->CFG) != sclk_field) {}
 
   // Sync the runtime SystemCoreClock variable from configured registers
   SystemCoreClockUpdate();

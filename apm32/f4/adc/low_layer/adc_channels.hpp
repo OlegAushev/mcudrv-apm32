@@ -98,10 +98,10 @@ namespace detail {
 inline void set_sample_time(registers& reg, unsigned ch, std::uint8_t smp) {
   if (ch < 10) {
     std::uint32_t const pos = ch * 3u;
-    emb::mmio::write(reg.SMPTIM2, 0x7u << pos, std::uint32_t(smp));
+    emb::mmio::runtime::write(reg.SMPTIM2, 0x7u << pos, std::uint32_t(smp));
   } else {
     std::uint32_t const pos = (ch - 10u) * 3u;
-    emb::mmio::write(reg.SMPTIM1, 0x7u << pos, std::uint32_t(smp));
+    emb::mmio::runtime::write(reg.SMPTIM1, 0x7u << pos, std::uint32_t(smp));
   }
 }
 
@@ -113,13 +113,13 @@ inline void
 set_regular_sequence(registers& reg, unsigned ch, std::uint8_t rank) {
   if (rank <= 6) {
     std::uint32_t const pos = (rank - 1u) * 5u;
-    emb::mmio::write(reg.REGSEQ3, 0x1Fu << pos, std::uint32_t(ch));
+    emb::mmio::runtime::write(reg.REGSEQ3, 0x1Fu << pos, std::uint32_t(ch));
   } else if (rank <= 12) {
     std::uint32_t const pos = (rank - 7u) * 5u;
-    emb::mmio::write(reg.REGSEQ2, 0x1Fu << pos, std::uint32_t(ch));
+    emb::mmio::runtime::write(reg.REGSEQ2, 0x1Fu << pos, std::uint32_t(ch));
   } else {
     std::uint32_t const pos = (rank - 13u) * 5u;
-    emb::mmio::write(reg.REGSEQ1, 0x1Fu << pos, std::uint32_t(ch));
+    emb::mmio::runtime::write(reg.REGSEQ1, 0x1Fu << pos, std::uint32_t(ch));
   }
 }
 
@@ -128,7 +128,7 @@ set_regular_sequence(registers& reg, unsigned ch, std::uint8_t rank) {
 inline void
 set_injected_sequence(registers& reg, unsigned ch, std::uint8_t slot) {
   std::uint32_t const pos = (slot - 1u) * 5u;
-  emb::mmio::write(reg.INJSEQ, 0x1Fu << pos, std::uint32_t(ch));
+  emb::mmio::runtime::write(reg.INJSEQ, 0x1Fu << pos, std::uint32_t(ch));
 }
 
 // injected offset: INJDOF1-4 registers

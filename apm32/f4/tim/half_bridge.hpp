@@ -207,9 +207,8 @@ public:
 
     // Trigger output
     if (conf.pwm.trgo) {
-      emb::mmio::write(
+      emb::mmio::write<TMR_CTRL2_MMSEL>(
           REG.CTRL2,
-          TMR_CTRL2_MMSEL,
           std::to_underlying(*conf.pwm.trgo)
       );
     }
@@ -258,8 +257,8 @@ public:
     if (!bk_pin_) {
       return false;
     }
-    return std::uint32_t(std::to_underlying(bk_pin_->read_level())) ==
-           emb::mmio::read(REG.BDT, TMR_BDT_BRKPOL);
+    return std::uint32_t(std::to_underlying(bk_pin_->read_level()))
+        == emb::mmio::read<TMR_BDT_BRKPOL>(REG.BDT);
   }
 
   void start() {
