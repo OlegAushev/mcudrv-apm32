@@ -151,15 +151,15 @@ public:
   }
 
   bool busy() const {
-    return emb::mmio::test_any(REG.STS, SPI_STS_BSYFLG);
+    return emb::mmio::test<SPI_STS_BSYFLG>(REG.STS);
   }
 
   bool rx_empty() const {
-    return !emb::mmio::test_any(REG.STS, SPI_STS_RXBNEFLG);
+    return !emb::mmio::test<SPI_STS_RXBNEFLG>(REG.STS);
   }
 
   bool tx_empty() const {
-    return emb::mmio::test_any(REG.STS, SPI_STS_TXBEFLG);
+    return emb::mmio::test<SPI_STS_TXBEFLG>(REG.STS);
   }
 
   bool can_get() const {
@@ -187,7 +187,7 @@ public:
 
   auto get(std::chrono::milliseconds timeout) const
       -> std::expected<FrameFormat, error> {
-    if (emb::mmio::test_any(REG.STS, SPI_STS_OVRFLG)) {
+    if (emb::mmio::test<SPI_STS_OVRFLG>(REG.STS)) {
       clear_overrun();
       return std::unexpected(error::overrun);
     }
@@ -200,7 +200,7 @@ public:
 
   auto put(FrameFormat data, std::chrono::milliseconds timeout)
       -> std::expected<void, error> {
-    if (emb::mmio::test_any(REG.STS, SPI_STS_OVRFLG)) {
+    if (emb::mmio::test<SPI_STS_OVRFLG>(REG.STS)) {
       clear_overrun();
       return std::unexpected(error::overrun);
     }

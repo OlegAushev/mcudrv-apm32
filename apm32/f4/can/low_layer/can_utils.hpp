@@ -35,9 +35,9 @@ inline void setup_filter_bank(
   // deactivate filter
   emb::mmio::runtime::clear(reg.FACT, filter_bit);
 
-  emb::mmio::set_or_clear(reg.FSCFG, filter_bit, scale == filter_scale::_32bit);
-  emb::mmio::set_or_clear(reg.FMCFG, filter_bit, mode == filter_mode::list);
-  emb::mmio::set_or_clear(reg.FFASS, filter_bit, fifo == rx_fifo::_1);
+  emb::mmio::runtime::set_or_clear(reg.FSCFG, filter_bit, scale == filter_scale::_32bit);
+  emb::mmio::runtime::set_or_clear(reg.FMCFG, filter_bit, mode == filter_mode::list);
+  emb::mmio::runtime::set_or_clear(reg.FFASS, filter_bit, fifo == rx_fifo::_1);
 
   reg.sFilterRegister[filter_idx].FBANK1 = bank1;
   reg.sFilterRegister[filter_idx].FBANK2 = bank2;

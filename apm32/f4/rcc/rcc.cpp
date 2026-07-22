@@ -14,7 +14,7 @@ void init_clock() {
                 || (C::sysclk_src == sysclk_src::pll
                     && C::pll_src == pll_src::hse)) {
     emb::mmio::set<RCM_CTRL_HSEEN>(RCM->CTRL);
-    while (!emb::mmio::test_any(RCM->CTRL, RCM_CTRL_HSERDYFLG)) {}
+    while (!emb::mmio::test<RCM_CTRL_HSERDYFLG>(RCM->CTRL)) {}
   }
   // HSI is enabled by hardware after reset
 
@@ -54,7 +54,7 @@ void init_clock() {
         }
     );
     emb::mmio::set<RCM_CTRL_PLL1EN>(RCM->CTRL);
-    while (!emb::mmio::test_any(RCM->CTRL, RCM_CTRL_PLL1RDYFLG)) {}
+    while (!emb::mmio::test<RCM_CTRL_PLL1RDYFLG>(RCM->CTRL)) {}
   }
 
   // Set Flash wait states based on the target HCLK frequency

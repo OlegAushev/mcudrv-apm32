@@ -250,7 +250,7 @@ public:
   }
 
   bool active() const {
-    return emb::mmio::test_any(REG.BDT, TMR_BDT_MOEN);
+    return emb::mmio::test<TMR_BDT_MOEN>(REG.BDT);
   }
 
   bool bad() const {
@@ -278,7 +278,7 @@ public:
   }
 
   count_direction timer_count_direction() const {
-    return emb::mmio::test_any(REG.CTRL1, TMR_CTRL1_CNTDIR)
+    return emb::mmio::test<TMR_CTRL1_CNTDIR>(REG.CTRL1)
                ? count_direction::down
                : count_direction::up;
   }

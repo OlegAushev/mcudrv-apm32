@@ -245,7 +245,7 @@ public:
   }
 
   bool active() const {
-    return emb::mmio::test_any(REG.BDT, TMR_BDT_MOEN);
+    return emb::mmio::test<TMR_BDT_MOEN>(REG.BDT);
   }
 
   bool bad() const {

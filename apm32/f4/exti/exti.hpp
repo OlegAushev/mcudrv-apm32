@@ -59,7 +59,7 @@ inline void trigger_software_interrupt(line l) {
 
 inline void ack_interrupt(line l) {
   // IPEND is rc_w1: writing 1 clears the pending bit
-  emb::mmio::clear_w1(EINT->IPEND, std::to_underlying(l));
+  emb::mmio::runtime::clear_w1(EINT->IPEND, std::to_underlying(l));
 }
 
 } // namespace apm32::f4::exti

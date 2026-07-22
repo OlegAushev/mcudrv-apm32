@@ -113,7 +113,7 @@ public:
     requires(memory_buffer_type::double_buffer_mode) {
     using element = typename memory_buffer_type::element_type;
     auto const& b = storage_.get();
-    return emb::mmio::test_any(STREAM_REG.SCFG, DMA_SCFGx_CTARG)
+    return emb::mmio::test<DMA_SCFGx_CTARG>(STREAM_REG.SCFG)
                ? std::span<element const>{b.data1.data(), b.data1.size()}
                : std::span<element const>{b.data2.data(), b.data2.size()};
   }

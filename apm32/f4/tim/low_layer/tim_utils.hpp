@@ -24,34 +24,34 @@ void disable_counter() {
 
 template<some_timer_instance Tim>
 bool update_flag() {
-  return emb::mmio::test_any(Tim::REG.STS, TMR_STS_UIFLG);
+  return emb::mmio::test<TMR_STS_UIFLG>(Tim::REG.STS);
 }
 
 template<some_timer_instance Tim>
 void acknowledge_update() {
-  emb::mmio::clear_w0(Tim::REG.STS, TMR_STS_UIFLG);
+  emb::mmio::clear_w0<TMR_STS_UIFLG>(Tim::REG.STS);
 }
 
 template<some_timer_instance Tim>
 bool break_flag() {
-  return emb::mmio::test_any(Tim::REG.STS, TMR_STS_BRKIFLG);
+  return emb::mmio::test<TMR_STS_BRKIFLG>(Tim::REG.STS);
 }
 
 template<some_timer_instance Tim>
 void acknowledge_break() {
-  emb::mmio::clear_w0(Tim::REG.STS, TMR_STS_BRKIFLG);
+  emb::mmio::clear_w0<TMR_STS_BRKIFLG>(Tim::REG.STS);
 }
 
 template<some_timer_instance Tim, some_timer_channel_instance Ch>
 bool capture_compare_flag() {
   if constexpr (std::same_as<Ch, channel1>) {
-    return emb::mmio::test_any(Tim::REG.STS, TMR_STS_CC1IFLG);
+    return emb::mmio::test<TMR_STS_CC1IFLG>(Tim::REG.STS);
   } else if constexpr (std::same_as<Ch, channel2>) {
-    return emb::mmio::test_any(Tim::REG.STS, TMR_STS_CC2IFLG);
+    return emb::mmio::test<TMR_STS_CC2IFLG>(Tim::REG.STS);
   } else if constexpr (std::same_as<Ch, channel3>) {
-    return emb::mmio::test_any(Tim::REG.STS, TMR_STS_CC3IFLG);
+    return emb::mmio::test<TMR_STS_CC3IFLG>(Tim::REG.STS);
   } else if constexpr (std::same_as<Ch, channel4>) {
-    return emb::mmio::test_any(Tim::REG.STS, TMR_STS_CC4IFLG);
+    return emb::mmio::test<TMR_STS_CC4IFLG>(Tim::REG.STS);
   } else {
     std::unreachable();
   }
@@ -60,13 +60,13 @@ bool capture_compare_flag() {
 template<some_timer_instance Tim, some_timer_channel_instance Ch>
 void acknowledge_capture_compare() {
   if constexpr (std::same_as<Ch, channel1>) {
-    emb::mmio::clear_w0(Tim::REG.STS, TMR_STS_CC1IFLG);
+    emb::mmio::clear_w0<TMR_STS_CC1IFLG>(Tim::REG.STS);
   } else if constexpr (std::same_as<Ch, channel2>) {
-    emb::mmio::clear_w0(Tim::REG.STS, TMR_STS_CC2IFLG);
+    emb::mmio::clear_w0<TMR_STS_CC2IFLG>(Tim::REG.STS);
   } else if constexpr (std::same_as<Ch, channel3>) {
-    emb::mmio::clear_w0(Tim::REG.STS, TMR_STS_CC3IFLG);
+    emb::mmio::clear_w0<TMR_STS_CC3IFLG>(Tim::REG.STS);
   } else if constexpr (std::same_as<Ch, channel4>) {
-    emb::mmio::clear_w0(Tim::REG.STS, TMR_STS_CC4IFLG);
+    emb::mmio::clear_w0<TMR_STS_CC4IFLG>(Tim::REG.STS);
   } else {
     std::unreachable();
   }

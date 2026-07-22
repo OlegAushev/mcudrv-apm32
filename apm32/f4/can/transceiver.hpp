@@ -127,14 +127,14 @@ public:
     // enter init mode
     emb::mmio::set<CAN_MCTRL_INITREQ>(reg.MCTRL);
     timeout_t init_timeout(std::chrono::milliseconds(2));
-    while (!emb::mmio::test_any(reg.MSTS, CAN_MSTS_INITFLG)) {
+    while (!emb::mmio::test<CAN_MSTS_INITFLG>(reg.MSTS)) {
       emb::ensure(!init_timeout.expired());
     }
 
     // exit sleep mode
     emb::mmio::clear<CAN_MCTRL_SLEEPREQ>(reg.MCTRL);
     timeout_t sleep_timeout(std::chrono::milliseconds(2));
-    while (emb::mmio::test_any(reg.MSTS, CAN_MSTS_SLEEPFLG)) {
+    while (emb::mmio::test<CAN_MSTS_SLEEPFLG>(reg.MSTS)) {
       emb::ensure(!sleep_timeout.expired());
     }
 
@@ -191,7 +191,7 @@ public:
 
     emb::mmio::clear<CAN_MCTRL_INITREQ>(reg.MCTRL);
     timeout_t start_timeout(std::chrono::milliseconds(2));
-    while (emb::mmio::test_any(reg.MSTS, CAN_MSTS_INITFLG)) {
+    while (emb::mmio::test<CAN_MSTS_INITFLG>(reg.MSTS)) {
       emb::ensure(!start_timeout.expired());
     }
   }
@@ -220,7 +220,7 @@ public:
     emb::can::frame_t frame;
 
     std::uint32_t const rxmid = reg.sFIFOMailBox[fifo].RXMID;
-    if (!emb::mmio::test_any(rxmid, CAN_RXMID0_IDTYPESEL)) {
+    if (!emb::mmio::test<CAN_RXMID0_IDTYPESEL>(rxmid)) {
       frame.format = emb::can::format_t::standard;
       frame.id = rxmid >> 21;
     } else {
@@ -326,7 +326,7 @@ private:
   }
 
   bool all_mailboxes_busy() const {
-    return !emb::mmio::test_any(reg.TXSTS, CAN_TXSTS_TXMEFLG);
+    return !emb::mmio::test_any<CAN_TXSTS_TXMEFLG>(reg.TXSTS);
   }
 
   template<rx_fifo RxFifo>
@@ -388,9 +388,9 @@ private:
   }
 
   void on_irq_tx() {
-    emb::mmio::clear_w1(
-        reg.TXSTS,
-        CAN_TXSTS_REQCFLG0 | CAN_TXSTS_REQCFLG1 | CAN_TXSTS_REQCFLG2
+    emb::mmio::clear_w1<
+        CAN_TXSTS_REQCFLG0 | CAN_TXSTS_REQCFLG1 | CAN_TXSTS_REQCFLG2>(
+        reg.TXSTS
     );
 
     populate_mailboxes();

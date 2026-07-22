@@ -24,22 +24,22 @@ void start_regular() {
 
 template<some_adc_instance Instance>
 bool jeoc_flag() {
-  return emb::mmio::test_any(Instance::reg.STS, ADC_STS_INJEOCFLG);
+  return emb::mmio::test<ADC_STS_INJEOCFLG>(Instance::reg.STS);
 }
 
 template<some_adc_instance Instance>
 void acknowledge_jeoc() {
-  emb::mmio::clear_w0(Instance::reg.STS, ADC_STS_INJEOCFLG);
+  emb::mmio::clear_w0<ADC_STS_INJEOCFLG>(Instance::reg.STS);
 }
 
 template<some_adc_instance Instance>
 bool eoc_flag() {
-  return emb::mmio::test_any(Instance::reg.STS, ADC_STS_EOCFLG);
+  return emb::mmio::test<ADC_STS_EOCFLG>(Instance::reg.STS);
 }
 
 template<some_adc_instance Instance>
 void acknowledge_eoc() {
-  emb::mmio::clear_w0(Instance::reg.STS, ADC_STS_EOCFLG);
+  emb::mmio::clear_w0<ADC_STS_EOCFLG>(Instance::reg.STS);
 }
 
 inline constexpr std::array<std::uint32_t, 4> clock_prescalers = {2, 4, 6, 8};

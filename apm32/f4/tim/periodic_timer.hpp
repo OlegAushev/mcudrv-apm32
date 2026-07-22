@@ -87,7 +87,7 @@ public:
   }
 
   void ack_update_interrupt() {
-    emb::mmio::clear_w0(REG.STS, TMR_STS_UIFLG);
+    emb::mmio::clear_w0<TMR_STS_UIFLG>(REG.STS);
   }
 private:
   void enable_counter() {
