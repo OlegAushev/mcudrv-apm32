@@ -32,8 +32,8 @@ void detail::configure_half_bridge_timebase(
   REG.AUTORLD = period;
   REG.PSC = conf.prescaler.value();
   REG.REPCNT = 0;
-  emb::mmio::set(REG.CEG, TMR_CEG_UEG);
-  emb::mmio::set(REG.CTRL1, TMR_CTRL1_ARPEN);
+  emb::mmio::set<TMR_CEG_UEG>(REG.CEG);
+  emb::mmio::set<TMR_CTRL1_ARPEN>(REG.CTRL1);
 }
 
 } // namespace apm32::f4::tim::pwm

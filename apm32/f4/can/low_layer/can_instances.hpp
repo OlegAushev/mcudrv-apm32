@@ -34,7 +34,7 @@ struct can1 {
   static constexpr auto clock_frequency = rcc::pclk1_frequency<T>;
 
   static constexpr auto enable_clock = []() {
-    emb::mmio::set(RCM->APB1CLKEN, RCM_APB1CLKEN_CAN1EN);
+    emb::mmio::set<RCM_APB1CLKEN_CAN1EN>(RCM->APB1CLKEN);
   };
 
   static constexpr std::uint32_t gpio_altfunc = gpio::altfunc::can1;
@@ -57,7 +57,7 @@ struct can2 {
   static constexpr auto clock_frequency = rcc::pclk1_frequency<T>;
 
   static constexpr auto enable_clock = []() {
-    emb::mmio::set(RCM->APB1CLKEN, RCM_APB1CLKEN_CAN2EN);
+    emb::mmio::set<RCM_APB1CLKEN_CAN2EN>(RCM->APB1CLKEN);
   };
 
   static constexpr std::uint32_t gpio_altfunc = gpio::altfunc::can2;

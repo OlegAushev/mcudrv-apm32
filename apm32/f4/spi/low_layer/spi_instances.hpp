@@ -28,7 +28,7 @@ struct spi1 {
   static constexpr auto clock_frequency = rcc::pclk2_frequency<T>;
 
   static constexpr auto enable_clock = []() {
-    emb::mmio::set(RCM->APB2CLKEN, RCM_APB2CLKEN_SPI1EN);
+    emb::mmio::set<RCM_APB2CLKEN_SPI1EN>(RCM->APB2CLKEN);
   };
 
   static constexpr std::uint32_t gpio_altfunc = gpio::altfunc::spi1;
@@ -41,7 +41,7 @@ struct spi2 {
   static constexpr auto clock_frequency = rcc::pclk1_frequency<T>;
 
   static constexpr auto enable_clock = []() {
-    emb::mmio::set(RCM->APB1CLKEN, RCM_APB1CLKEN_SPI2EN);
+    emb::mmio::set<RCM_APB1CLKEN_SPI2EN>(RCM->APB1CLKEN);
   };
 
   static constexpr std::uint32_t gpio_altfunc = gpio::altfunc::spi2;
@@ -54,7 +54,7 @@ struct spi3 {
   static constexpr auto clock_frequency = rcc::pclk1_frequency<T>;
 
   static constexpr auto enable_clock = []() {
-    emb::mmio::set(RCM->APB1CLKEN, RCM_APB1CLKEN_SPI3EN);
+    emb::mmio::set<RCM_APB1CLKEN_SPI3EN>(RCM->APB1CLKEN);
   };
 
   static constexpr std::uint32_t gpio_altfunc = gpio::altfunc::spi3;

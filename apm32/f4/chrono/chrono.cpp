@@ -23,12 +23,10 @@ void steady_clock::init() {
   SysTick->LOAD = ticks_per_msec - 1;
   NVIC_SetPriority(SysTick_IRQn, 0);
   SysTick->VAL = 0;
-  emb::mmio::set(
-      SysTick->CTRL,
+  emb::mmio::set<
       SysTick_CTRL_CLKSOURCE_Msk
-          | SysTick_CTRL_TICKINT_Msk
-          | SysTick_CTRL_ENABLE_Msk
-  );
+      | SysTick_CTRL_TICKINT_Msk
+      | SysTick_CTRL_ENABLE_Msk>(SysTick->CTRL);
 
   initialized_ = true;
 }

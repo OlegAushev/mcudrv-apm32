@@ -70,7 +70,7 @@ void init_sequence(registers& REG, sequence_config const& conf) {
   }
 
   // Enable ADC
-  emb::mmio::set(REG.CTRL2, ADC_CTRL2_ADCEN);
+  emb::mmio::set<ADC_CTRL2_ADCEN>(REG.CTRL2);
   chrono::high_resolution_clock::delay(powerup_time);
 
   // Clear status flags
@@ -78,11 +78,11 @@ void init_sequence(registers& REG, sequence_config const& conf) {
 
   // Interrupts configuration
   if (conf.injected_count > 0) {
-    emb::mmio::set(REG.CTRL1, ADC_CTRL1_INJEOCIEN);
+    emb::mmio::set<ADC_CTRL1_INJEOCIEN>(REG.CTRL1);
   }
 
   if (conf.regular_count > 0 && conf.eoc_on_each_conversion) {
-    emb::mmio::set(REG.CTRL1, ADC_CTRL1_EOCIEN);
+    emb::mmio::set<ADC_CTRL1_EOCIEN>(REG.CTRL1);
   }
 }
 

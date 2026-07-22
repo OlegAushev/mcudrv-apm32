@@ -125,14 +125,14 @@ public:
     Instance::enable_clock();
 
     // enter init mode
-    emb::mmio::set(reg.MCTRL, CAN_MCTRL_INITREQ);
+    emb::mmio::set<CAN_MCTRL_INITREQ>(reg.MCTRL);
     timeout_t init_timeout(std::chrono::milliseconds(2));
     while (!emb::mmio::test_any(reg.MSTS, CAN_MSTS_INITFLG)) {
       emb::ensure(!init_timeout.expired());
     }
 
     // exit sleep mode
-    emb::mmio::clear(reg.MCTRL, CAN_MCTRL_SLEEPREQ);
+    emb::mmio::clear<CAN_MCTRL_SLEEPREQ>(reg.MCTRL);
     timeout_t sleep_timeout(std::chrono::milliseconds(2));
     while (emb::mmio::test_any(reg.MSTS, CAN_MSTS_SLEEPFLG)) {
       emb::ensure(!sleep_timeout.expired());
@@ -170,9 +170,8 @@ public:
     Instance::on_irq_sce = emb::make_delegate<&transceiver::on_irq_sce>(this);
 
     // interrupt configuration
-    emb::mmio::set(
-        reg.INTEN,
-        CAN_INTEN_FMIEN0 | CAN_INTEN_FMIEN1 | CAN_INTEN_TXMEIEN
+    emb::mmio::set<CAN_INTEN_FMIEN0 | CAN_INTEN_FMIEN1 | CAN_INTEN_TXMEIEN>(
+        reg.INTEN
     );
     nvic::set_irq_priority(rx0_irqn, config.rx_fifo0_irq_priority);
     nvic::set_irq_priority(rx1_irqn, config.rx_fifo1_irq_priority);
@@ -190,7 +189,7 @@ public:
     nvic::clear_pending_irq(sce_irqn);
     // TODO nvic::enable_irq(sce_irqn);
 
-    emb::mmio::clear(reg.MCTRL, CAN_MCTRL_INITREQ);
+    emb::mmio::clear<CAN_MCTRL_INITREQ>(reg.MCTRL);
     timeout_t start_timeout(std::chrono::milliseconds(2));
     while (emb::mmio::test_any(reg.MSTS, CAN_MSTS_INITFLG)) {
       emb::ensure(!start_timeout.expired());
@@ -239,9 +238,9 @@ public:
 
     // release FIFO
     if constexpr (RxFifo == rx_fifo::_0) {
-      emb::mmio::set(reg.RXF0, CAN_RXF0_RFOM0);
+      emb::mmio::set<CAN_RXF0_RFOM0>(reg.RXF0);
     } else {
-      emb::mmio::set(reg.RXF1, CAN_RXF1_RFOM1);
+      emb::mmio::set<CAN_RXF1_RFOM1>(reg.RXF1);
     }
 
     return frame;
@@ -372,7 +371,7 @@ private:
     reg.sTxMailBox[mailbox].TXMDH = words[1];
 
     // request transmission
-    emb::mmio::set(reg.sTxMailBox[mailbox].TXMID, CAN_TXMID0_TXMREQ);
+    emb::mmio::set<CAN_TXMID0_TXMREQ>(reg.sTxMailBox[mailbox].TXMID);
   }
 
 private:
@@ -463,7 +462,7 @@ template<transceiver_traits Traits>
   filter_init_session fg;
   emb::mmio::write<CAN_FCTRL_CAN2SB>(can1::reg.FCTRL, 0u);
   // leave CAN1 in init mode
-  emb::mmio::set(can1::reg.MCTRL, CAN_MCTRL_INITREQ);
+  emb::mmio::set<CAN_MCTRL_INITREQ>(can1::reg.MCTRL);
   return filter_setup<can2, Traits>{can2_xcvr};
 }
 

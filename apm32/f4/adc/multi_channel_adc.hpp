@@ -163,12 +163,12 @@ public:
 
   void start_injected()
     requires(injected_count > 0 && !injected_trigger && !auto_injconv) {
-    emb::mmio::set(reg.CTRL2, ADC_CTRL2_INJSWSC);
+    emb::mmio::set<ADC_CTRL2_INJSWSC>(reg.CTRL2);
   }
 
   void start_regular()
     requires(regular_count > 0 && !regular_trigger) {
-    emb::mmio::set(reg.CTRL2, ADC_CTRL2_REGSWSC);
+    emb::mmio::set<ADC_CTRL2_REGSWSC>(reg.CTRL2);
   }
 
   template<unsigned Channel>

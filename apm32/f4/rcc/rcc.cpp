@@ -13,15 +13,15 @@ void init_clock() {
   if constexpr (C::sysclk_src == sysclk_src::hse
                 || (C::sysclk_src == sysclk_src::pll
                     && C::pll_src == pll_src::hse)) {
-    emb::mmio::set(RCM->CTRL, RCM_CTRL_HSEEN);
+    emb::mmio::set<RCM_CTRL_HSEEN>(RCM->CTRL);
     while (!emb::mmio::test_any(RCM->CTRL, RCM_CTRL_HSERDYFLG)) {}
   }
   // HSI is enabled by hardware after reset
 
   // Enable PMU clock and select voltage regulator scale 1
   // (required for SYSCLK > 144 MHz; safe at any frequency)
-  emb::mmio::set(RCM->APB1CLKEN, RCM_APB1CLKEN_PMUEN);
-  emb::mmio::set(PMU->CTRL, PMU_CTRL_VOSSEL);
+  emb::mmio::set<RCM_APB1CLKEN_PMUEN>(RCM->APB1CLKEN);
+  emb::mmio::set<PMU_CTRL_VOSSEL>(PMU->CTRL);
 
   // Configure bus prescalers
   emb::mmio::write<RCM_CFG_AHBPSC>(
@@ -53,7 +53,7 @@ void init_clock() {
             static_cast<std::uint32_t>(C::pll_src)
         }
     );
-    emb::mmio::set(RCM->CTRL, RCM_CTRL_PLL1EN);
+    emb::mmio::set<RCM_CTRL_PLL1EN>(RCM->CTRL);
     while (!emb::mmio::test_any(RCM->CTRL, RCM_CTRL_PLL1RDYFLG)) {}
   }
 

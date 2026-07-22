@@ -115,7 +115,7 @@ public:
     detail::configure_channel(REG, cfg.filter);
 
     // Interrupt configuration
-    emb::mmio::set(REG.DIEN, TMR_DIEN_CC1IEN | TMR_DIEN_UIEN);
+    emb::mmio::set<TMR_DIEN_CC1IEN | TMR_DIEN_UIEN>(REG.DIEN);
     set_irq_priority(irqn_, cfg.irq_priority);
   }
 

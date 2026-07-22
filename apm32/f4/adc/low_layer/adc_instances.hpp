@@ -31,7 +31,7 @@ struct adc1 {
   static constexpr nvic::irq_number irqn = ADC_IRQn;
 
   static constexpr auto enable_clock = []() {
-    emb::mmio::set(RCM->APB2CLKEN, RCM_APB2CLKEN_ADC1EN);
+    emb::mmio::set<RCM_APB2CLKEN_ADC1EN>(RCM->APB2CLKEN);
   };
 
   using dma_streams = emb::typelist<dma::dma2_stream0, dma::dma2_stream4>;
@@ -44,7 +44,7 @@ struct adc2 {
   static constexpr nvic::irq_number irqn = ADC_IRQn;
 
   static constexpr auto enable_clock = []() {
-    emb::mmio::set(RCM->APB2CLKEN, RCM_APB2CLKEN_ADC2EN);
+    emb::mmio::set<RCM_APB2CLKEN_ADC2EN>(RCM->APB2CLKEN);
   };
 
   using dma_streams = emb::typelist<dma::dma2_stream2, dma::dma2_stream3>;
@@ -57,7 +57,7 @@ struct adc3 {
   static constexpr nvic::irq_number irqn = ADC_IRQn;
 
   static constexpr auto enable_clock = []() {
-    emb::mmio::set(RCM->APB2CLKEN, RCM_APB2CLKEN_ADC3EN);
+    emb::mmio::set<RCM_APB2CLKEN_ADC3EN>(RCM->APB2CLKEN);
   };
 
   using dma_streams = emb::typelist<dma::dma2_stream0, dma::dma2_stream1>;

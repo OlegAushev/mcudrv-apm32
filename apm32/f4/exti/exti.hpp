@@ -54,7 +54,7 @@ struct Config {
 void configure(line l, mode m, trigger_edge edge);
 
 inline void trigger_software_interrupt(line l) {
-  emb::mmio::set(EINT->SWINTE, std::to_underlying(l));
+  emb::mmio::runtime::set(EINT->SWINTE, std::to_underlying(l));
 }
 
 inline void ack_interrupt(line l) {

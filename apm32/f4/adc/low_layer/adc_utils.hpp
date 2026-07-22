@@ -14,12 +14,12 @@ namespace apm32::f4::adc {
 
 template<some_adc_instance Instance>
 void start_injected() {
-  emb::mmio::set(Instance::reg.CTRL2, ADC_CTRL2_INJSWSC);
+  emb::mmio::set<ADC_CTRL2_INJSWSC>(Instance::reg.CTRL2);
 }
 
 template<some_adc_instance Instance>
 void start_regular() {
-  emb::mmio::set(Instance::reg.CTRL2, ADC_CTRL2_REGSWSC);
+  emb::mmio::set<ADC_CTRL2_REGSWSC>(Instance::reg.CTRL2);
 }
 
 template<some_adc_instance Instance>

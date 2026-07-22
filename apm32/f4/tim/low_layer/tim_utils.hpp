@@ -14,12 +14,12 @@ namespace apm32::f4::tim {
 
 template<some_timer_instance Tim>
 void enable_counter() {
-  emb::mmio::set(Tim::REG.CTRL1, TMR_CTRL1_CNTEN);
+  emb::mmio::set<TMR_CTRL1_CNTEN>(Tim::REG.CTRL1);
 }
 
 template<some_timer_instance Tim>
 void disable_counter() {
-  emb::mmio::clear(Tim::REG.CTRL1, TMR_CTRL1_CNTEN);
+  emb::mmio::clear<TMR_CTRL1_CNTEN>(Tim::REG.CTRL1);
 }
 
 template<some_timer_instance Tim>

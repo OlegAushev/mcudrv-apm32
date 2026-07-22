@@ -35,7 +35,7 @@ struct tim1 {
   static constexpr auto clock_frequency = rcc::pclk2_timer_frequency<T>;
 
   static constexpr auto enable_clock = []() {
-    emb::mmio::set(RCM->APB2CLKEN, RCM_APB2CLKEN_TMR1EN);
+    emb::mmio::set<RCM_APB2CLKEN_TMR1EN>(RCM->APB2CLKEN);
   };
 
   static constexpr std::uint32_t gpio_altfunc = gpio::altfunc::tmr1;
@@ -54,7 +54,7 @@ struct tim2 {
   static constexpr auto clock_frequency = rcc::pclk1_timer_frequency<T>;
 
   static constexpr auto enable_clock = []() {
-    emb::mmio::set(RCM->APB1CLKEN, RCM_APB1CLKEN_TMR2EN);
+    emb::mmio::set<RCM_APB1CLKEN_TMR2EN>(RCM->APB1CLKEN);
   };
 
   static constexpr std::uint32_t gpio_altfunc = gpio::altfunc::tmr2;
@@ -73,7 +73,7 @@ struct tim3 {
   static constexpr auto clock_frequency = rcc::pclk1_timer_frequency<T>;
 
   static constexpr auto enable_clock = []() {
-    emb::mmio::set(RCM->APB1CLKEN, RCM_APB1CLKEN_TMR3EN);
+    emb::mmio::set<RCM_APB1CLKEN_TMR3EN>(RCM->APB1CLKEN);
   };
 
   static constexpr std::uint32_t gpio_altfunc = gpio::altfunc::tmr3;
@@ -92,7 +92,7 @@ struct tim4 {
   static constexpr auto clock_frequency = rcc::pclk1_timer_frequency<T>;
 
   static constexpr auto enable_clock = []() {
-    emb::mmio::set(RCM->APB1CLKEN, RCM_APB1CLKEN_TMR4EN);
+    emb::mmio::set<RCM_APB1CLKEN_TMR4EN>(RCM->APB1CLKEN);
   };
 
   static constexpr std::uint32_t gpio_altfunc = gpio::altfunc::tmr4;
@@ -111,7 +111,7 @@ struct tim5 {
   static constexpr auto clock_frequency = rcc::pclk1_timer_frequency<T>;
 
   static constexpr auto enable_clock = []() {
-    emb::mmio::set(RCM->APB1CLKEN, RCM_APB1CLKEN_TMR5EN);
+    emb::mmio::set<RCM_APB1CLKEN_TMR5EN>(RCM->APB1CLKEN);
   };
 
   static constexpr std::uint32_t gpio_altfunc = gpio::altfunc::tmr5;
@@ -124,7 +124,7 @@ struct tim6 {
   static constexpr unsigned io_channel_count = 0;
 
   static void enable_clock() {
-    emb::mmio::set(RCM->APB1CLKEN, RCM_APB1CLKEN_TMR6EN);
+    emb::mmio::set<RCM_APB1CLKEN_TMR6EN>(RCM->APB1CLKEN);
   }
 };
 
@@ -135,7 +135,7 @@ struct tim7 {
   static constexpr unsigned io_channel_count = 0;
 
   static void enable_clock() {
-    emb::mmio::set(RCM->APB1CLKEN, RCM_APB1CLKEN_TMR7EN);
+    emb::mmio::set<RCM_APB1CLKEN_TMR7EN>(RCM->APB1CLKEN);
   }
 };
 
@@ -153,7 +153,7 @@ struct tim8 {
   static constexpr auto clock_frequency = rcc::pclk2_timer_frequency<T>;
 
   static constexpr auto enable_clock = []() {
-    emb::mmio::set(RCM->APB2CLKEN, RCM_APB2CLKEN_TMR8EN);
+    emb::mmio::set<RCM_APB2CLKEN_TMR8EN>(RCM->APB2CLKEN);
   };
 
   static constexpr std::uint32_t gpio_altfunc = gpio::altfunc::tmr8;
@@ -166,7 +166,7 @@ struct tim9 {
   static constexpr unsigned io_channel_count = 2;
 
   static void enable_clock() {
-    emb::mmio::set(RCM->APB2CLKEN, RCM_APB2CLKEN_TMR9EN);
+    emb::mmio::set<RCM_APB2CLKEN_TMR9EN>(RCM->APB2CLKEN);
   }
 };
 
@@ -177,7 +177,7 @@ struct tim10 {
   static constexpr unsigned io_channel_count = 1;
 
   static void enable_clock() {
-    emb::mmio::set(RCM->APB2CLKEN, RCM_APB2CLKEN_TMR10EN);
+    emb::mmio::set<RCM_APB2CLKEN_TMR10EN>(RCM->APB2CLKEN);
   }
 };
 
@@ -188,7 +188,7 @@ struct tim11 {
   static constexpr unsigned io_channel_count = 1;
 
   static void enable_clock() {
-    emb::mmio::set(RCM->APB2CLKEN, RCM_APB2CLKEN_TMR11EN);
+    emb::mmio::set<RCM_APB2CLKEN_TMR11EN>(RCM->APB2CLKEN);
   }
 };
 
@@ -199,7 +199,7 @@ struct tim12 {
   static constexpr unsigned io_channel_count = 2;
 
   static void enable_clock() {
-    emb::mmio::set(RCM->APB1CLKEN, RCM_APB1CLKEN_TMR12EN);
+    emb::mmio::set<RCM_APB1CLKEN_TMR12EN>(RCM->APB1CLKEN);
   }
 };
 
@@ -210,7 +210,7 @@ struct tim13 {
   static constexpr unsigned io_channel_count = 1;
 
   static void enable_clock() {
-    emb::mmio::set(RCM->APB1CLKEN, RCM_APB1CLKEN_TMR13EN);
+    emb::mmio::set<RCM_APB1CLKEN_TMR13EN>(RCM->APB1CLKEN);
   }
 };
 
@@ -221,7 +221,7 @@ struct tim14 {
   static constexpr unsigned io_channel_count = 1;
 
   static void enable_clock() {
-    emb::mmio::set(RCM->APB1CLKEN, RCM_APB1CLKEN_TMR14EN);
+    emb::mmio::set<RCM_APB1CLKEN_TMR14EN>(RCM->APB1CLKEN);
   }
 };
 

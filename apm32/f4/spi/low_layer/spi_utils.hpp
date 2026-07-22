@@ -13,12 +13,12 @@ namespace apm32::f4::spi {
 
 template<some_spi_instance Instance>
 void enable() {
-  emb::mmio::set(Instance::REG.CTRL1, SPI_CTRL1_SPIEN);
+  emb::mmio::set<SPI_CTRL1_SPIEN>(Instance::REG.CTRL1);
 }
 
 template<some_spi_instance Instance>
 void disable() {
-  emb::mmio::clear(Instance::REG.CTRL1, SPI_CTRL1_SPIEN);
+  emb::mmio::clear<SPI_CTRL1_SPIEN>(Instance::REG.CTRL1);
 }
 
 inline constexpr std::array<std::uint32_t, 8> clock_prescalers =

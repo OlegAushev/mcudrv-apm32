@@ -18,9 +18,9 @@ constexpr std::uint32_t wait_states(std::uint64_t hclk_hz) {
 }
 
 inline void enable_acceleration() {
-  emb::mmio::set(
-      FLASH->ACCTRL,
-      FLASH_ACCTRL_PREFEN | FLASH_ACCTRL_ICACHEEN | FLASH_ACCTRL_DCACHEEN
+  emb::mmio::set<
+      FLASH_ACCTRL_PREFEN | FLASH_ACCTRL_ICACHEEN | FLASH_ACCTRL_DCACHEEN>(
+      FLASH->ACCTRL
   );
 }
 

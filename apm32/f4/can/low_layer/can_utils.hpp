@@ -10,11 +10,11 @@ namespace apm32::f4::can {
 
 struct filter_init_session {
   filter_init_session() {
-    emb::mmio::set(can1::reg.FCTRL, CAN_FCTRL_FINITEN);
+    emb::mmio::set<CAN_FCTRL_FINITEN>(can1::reg.FCTRL);
   }
 
   ~filter_init_session() {
-    emb::mmio::clear(can1::reg.FCTRL, CAN_FCTRL_FINITEN);
+    emb::mmio::clear<CAN_FCTRL_FINITEN>(can1::reg.FCTRL);
   }
 };
 
@@ -33,7 +33,7 @@ inline void setup_filter_bank(
   filter_init_session fg;
 
   // deactivate filter
-  emb::mmio::clear(reg.FACT, filter_bit);
+  emb::mmio::runtime::clear(reg.FACT, filter_bit);
 
   emb::mmio::set_or_clear(reg.FSCFG, filter_bit, scale == filter_scale::_32bit);
   emb::mmio::set_or_clear(reg.FMCFG, filter_bit, mode == filter_mode::list);
@@ -43,7 +43,7 @@ inline void setup_filter_bank(
   reg.sFilterRegister[filter_idx].FBANK2 = bank2;
 
   // activate filter
-  emb::mmio::set(reg.FACT, filter_bit);
+  emb::mmio::runtime::set(reg.FACT, filter_bit);
 }
 
 namespace detail {

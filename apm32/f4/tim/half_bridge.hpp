@@ -214,10 +214,10 @@ public:
     }
 
     // Interrupt configuration
-    emb::mmio::set(REG.DIEN, TMR_DIEN_UIEN);
+    emb::mmio::set<TMR_DIEN_UIEN>(REG.DIEN);
     set_irq_priority(update_irqn_, conf.pwm.update_irq_priority);
     if (bk_pin_) {
-      emb::mmio::set(REG.DIEN, TMR_DIEN_BRKIEN);
+      emb::mmio::set<TMR_DIEN_BRKIEN>(REG.DIEN);
       set_irq_priority(break_irqn_, conf.pwm.break_irq_priority);
     }
   }
@@ -264,16 +264,16 @@ public:
   void start() {
     if (bk_pin_) {
       acknowledge_break<timer_instance>();
-      emb::mmio::set(REG.DIEN, TMR_DIEN_BRKIEN);
+      emb::mmio::set<TMR_DIEN_BRKIEN>(REG.DIEN);
     }
-    emb::mmio::set(REG.BDT, TMR_BDT_MOEN);
+    emb::mmio::set<TMR_BDT_MOEN>(REG.BDT);
   }
 
   void stop() {
-    emb::mmio::clear(REG.BDT, TMR_BDT_MOEN);
+    emb::mmio::clear<TMR_BDT_MOEN>(REG.BDT);
     if (bk_pin_) {
       // disable break interrupts to prevent instant call of BRK ISR
-      emb::mmio::clear(REG.DIEN, TMR_DIEN_BRKIEN);
+      emb::mmio::clear<TMR_DIEN_BRKIEN>(REG.DIEN);
     }
   }
 

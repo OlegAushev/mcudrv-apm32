@@ -143,7 +143,7 @@ set_injected_offset(registers& reg, std::uint8_t rank, std::uint16_t offset) {
 }
 
 inline void enable_temp_sensor_vrefint() {
-  emb::mmio::set(ADC123_COMMON->CCTRL, ADC_CCTRL_TSVREFEN);
+  emb::mmio::set<ADC_CCTRL_TSVREFEN>(ADC123_COMMON->CCTRL);
 }
 
 } // namespace detail

@@ -71,7 +71,7 @@ public:
     }
 
     // Interrupt configuration
-    emb::mmio::set(REG.DIEN, TMR_DIEN_UIEN);
+    emb::mmio::set<TMR_DIEN_UIEN>(REG.DIEN);
     set_irq_priority(update_irqn_, conf.irq_priority);
   }
 
@@ -91,11 +91,11 @@ public:
   }
 private:
   void enable_counter() {
-    emb::mmio::set(REG.CTRL1, TMR_CTRL1_CNTEN);
+    emb::mmio::set<TMR_CTRL1_CNTEN>(REG.CTRL1);
   }
 
   void disable_counter() {
-    emb::mmio::clear(REG.CTRL1, TMR_CTRL1_CNTEN);
+    emb::mmio::clear<TMR_CTRL1_CNTEN>(REG.CTRL1);
   }
 };
 

@@ -27,7 +27,7 @@ detail::pin_base::pin_base(
   used_pins_[port_idx] |= std::uint16_t(pin_);
 
   if (!is_clock_enabled_[port_idx]) {
-    emb::mmio::set(RCM->AHB1CLKEN, port_clock_bits_[port_idx]);
+    emb::mmio::runtime::set(RCM->AHB1CLKEN, port_clock_bits_[port_idx]);
     is_clock_enabled_[port_idx] = true;
   }
 

@@ -17,7 +17,7 @@ struct dma1 {
   static inline controller_registers& REG = *DMA1;
 
   static constexpr auto enable_clock = []() {
-    emb::mmio::set(RCM->AHB1CLKEN, RCM_AHB1CLKEN_DMA1EN);
+    emb::mmio::set<RCM_AHB1CLKEN_DMA1EN>(RCM->AHB1CLKEN);
   };
 };
 
@@ -25,7 +25,7 @@ struct dma2 {
   static inline controller_registers& REG = *DMA2;
 
   static constexpr auto enable_clock = []() {
-    emb::mmio::set(RCM->AHB1CLKEN, RCM_AHB1CLKEN_DMA2EN);
+    emb::mmio::set<RCM_AHB1CLKEN_DMA2EN>(RCM->AHB1CLKEN);
   };
 };
 

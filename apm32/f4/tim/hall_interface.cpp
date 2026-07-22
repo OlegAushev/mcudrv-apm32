@@ -16,10 +16,10 @@ void detail::configure_timebase(
   REG.AUTORLD = cfg.counter_max;
   REG.PSC = cfg.counter_prescaler;
 
-  emb::mmio::set(REG.CEG, TMR_CEG_UEG);
+  emb::mmio::set<TMR_CEG_UEG>(REG.CEG);
 
   // TI1SEL = 1: XOR of CH1, CH2, CH3 inputs
-  emb::mmio::set(REG.CTRL2, TMR_CTRL2_TI1SEL);
+  emb::mmio::set<TMR_CTRL2_TI1SEL>(REG.CTRL2);
 
   // Slave mode: trigger = TI1 Edge Detector, mode = Reset
   emb::mmio::modify(REG.SMCTRL,
