@@ -9,7 +9,7 @@
 
 namespace apm32::f4::spi {
 
-enum class error : std::uint8_t {
+enum class error {
   timeout,
   overrun,
   underrun,

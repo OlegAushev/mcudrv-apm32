@@ -4,13 +4,13 @@
 
 namespace apm32::f4::adc {
 
-enum class trigger_edge : std::uint8_t {
+enum class trigger_edge : std::uint32_t {
   rising = 0b01,
   falling = 0b10,
   both = 0b11
 };
 
-enum class inj_trigger_event : std::uint8_t {
+enum class inj_trigger_event : std::uint32_t {
   tim1_cc4 = 0b0000u,
   tim1_trgo = 0b0001u,
   tim2_cc1 = 0b0010u,
@@ -29,7 +29,7 @@ enum class inj_trigger_event : std::uint8_t {
   exti_line15 = 0b1111u
 };
 
-enum class reg_trigger_event : std::uint8_t {
+enum class reg_trigger_event : std::uint32_t {
   tim1_cc1 = 0b0000u,
   tim1_cc2 = 0b0001u,
   tim1_cc3 = 0b0010u,
@@ -58,7 +58,7 @@ struct reg_trigger {
   reg_trigger_event event;
 };
 
-enum class sampletime {
+enum class sampletime : std::uint32_t {
   cycles_3,
   cycles_15,
   cycles_28,
