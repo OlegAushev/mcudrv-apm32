@@ -2,13 +2,12 @@
 
 #include <apm32/device.hpp>
 
-#include <emb/expected.hpp>
 #include <emb/mmio.hpp>
-#include <emb/scope.hpp>
 
+#include <cstddef>
 #include <cstdint>
 #include <expected>
-#include <optional>
+#include <span>
 
 namespace apm32::f4::flash {
 
@@ -18,42 +17,32 @@ enum class error {
   programming_alignment,
   programming_parallelism,
   programming_sequence,
-  unknown
+  locked
 };
 
-enum class sector : std::uint16_t {
-  _0 = 0x0000,
-  _1 = 0x0008,
-  _2 = 0x0010,
-  _3 = 0x0018,
-  _4 = 0x0020,
-  _5 = 0x0028,
-  _6 = 0x0030,
-  _7 = 0x0038,
-  _8 = 0x0040,
-  _9 = 0x0048,
-  _10 = 0x0050,
-  _11 = 0x0058,
-  _12 = 0x0080,
-  _13 = 0x0088,
-  _14 = 0x0090,
-  _15 = 0x0098,
-  _16 = 0x00A0,
-  _17 = 0x00A8,
-  _18 = 0x00B0,
-  _19 = 0x00B8,
-  _20 = 0x00C0,
-  _21 = 0x00C8,
-  _22 = 0x00D0,
-  _23 = 0x00D8
+enum class sector : std::uint32_t {
+  _0,
+  _1,
+  _2,
+  _3,
+  _4,
+  _5,
+  _6,
+  _7,
+  _8,
+  _9,
+  _10,
+  _11
 };
 
-enum class voltage_range : std::uint8_t {
+enum class voltage_range : std::uint32_t {
   _1 = 0x00, // 1.8V to 2.1V, operation by byte (8-bit)
   _2 = 0x01, // 2.1V to 2.7V, operation by half word (16-bit)
   _3 = 0x02, // 2.7V to 3.6V, operation by word (32-bit)
   _4 = 0x03, // 2.7V to 3.6V + External Vpp, operation by double word (64-bit)
 };
+
+enum class program_size : std::uint32_t { _8, _16, _32, _64 };
 
 constexpr std::uint32_t wait_states(std::uint64_t hclk_hz) {
   return hclk_hz <= 30'000'000  ? FLASH_ACCTRL_WAITP_0WS
@@ -71,76 +60,11 @@ inline void enable_acceleration() {
   );
 }
 
-// ----------------------------------------------------------------------------
+auto erase_sector(sector s) -> std::expected<void, error>;
 
-inline auto locked() -> bool {
-  return emb::mmio::test<FLASH_CTRL_LOCK>(FLASH->CTRL);
-}
+auto write(std::uintptr_t addr, std::span<std::byte const> data)
+    -> std::expected<void, error>;
 
-inline auto unlock() -> std::expected<void, error> {
-  constexpr std::uint32_t key1 = 0x45670123;
-  constexpr std::uint32_t key2 = 0xCDEF89AB;
-
-  if (!locked()) {
-    return {};
-  }
-
-  FLASH->KEY = key1;
-  FLASH->KEY = key2;
-
-  if (locked()) {
-    return std::unexpected(error::unknown);
-  }
-
-  return {};
-}
-
-inline void lock() {
-  emb::mmio::set<FLASH_CTRL_LOCK>(FLASH->CTRL);
-}
-
-inline bool busy() {
-  return emb::mmio::test<FLASH_STS_BUSY>(FLASH->STS);
-}
-
-inline std::optional<error> error_status() {
-  constexpr auto errors = FLASH_STS_WPROTERR
-                        | FLASH_STS_PGALGERR
-                        | FLASH_STS_PGPRLERR
-                        | FLASH_STS_PGSEQERR
-                        | FLASH_STS_OPRERR;
-
-  if (!emb::mmio::test_any<errors>(FLASH->STS)) {
-    return {};
-  }
-
-  if (emb::mmio::test<FLASH_STS_WPROTERR>(FLASH->STS)) {
-    return error::write_protection;
-  } else if (emb::mmio::test<FLASH_STS_PGALGERR>(FLASH->STS)) {
-    return error::programming_alignment;
-  } else if (emb::mmio::test<FLASH_STS_PGPRLERR>(FLASH->STS)) {
-    return error::programming_parallelism;
-  } else if (emb::mmio::test<FLASH_STS_PGSEQERR>(FLASH->STS)) {
-    return error::programming_sequence;
-  } else if (emb::mmio::test<FLASH_STS_OPRERR>(FLASH->STS)) {
-    return error::operation;
-  }
-
-  return {};
-}
-
-inline auto erase_sector(sector s) -> std::expected<void, error> {
-  TRY(unlock());
-  auto relock = emb::scope_exit([] { lock(); });
-  // TODO
-  return {};
-}
-
-inline auto write_byte(std::byte b) -> std::expected<void, error> {
-  TRY(unlock());
-  auto relock = emb::scope_exit([] { lock(); });
-  // TODO
-  return {};
-}
+auto write_byte(std::uintptr_t addr, std::byte b) -> std::expected<void, error>;
 
 } // namespace apm32::f4::flash
