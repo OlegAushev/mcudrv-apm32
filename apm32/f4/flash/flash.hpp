@@ -2,7 +2,9 @@
 
 #include <apm32/device.hpp>
 
+#include <emb/expected.hpp>
 #include <emb/mmio.hpp>
+#include <emb/scope.hpp>
 
 #include <cstdint>
 #include <expected>
@@ -16,6 +18,7 @@ enum class error {
   programming_alignment,
   programming_parallelism,
   programming_sequence,
+  unknown
 };
 
 enum class sector : std::uint16_t {
@@ -68,16 +71,31 @@ inline void enable_acceleration() {
   );
 }
 
-inline void unlock() {
-  constexpr std::uint32_t key1 = 0x45670123;
-  constexpr std::uint32_t key2 = 0xCDEF89AB;
-  if (emb::mmio::test<FLASH_CTRL_LOCK>(FLASH->CTRL)) {
-    FLASH->KEY = key1;
-    FLASH->KEY = key2;
-  }
+// ----------------------------------------------------------------------------
+
+inline auto locked() -> bool {
+  return emb::mmio::test<FLASH_CTRL_LOCK>(FLASH->CTRL);
 }
 
-inline void lock(void) {
+inline auto unlock() -> std::expected<void, error> {
+  constexpr std::uint32_t key1 = 0x45670123;
+  constexpr std::uint32_t key2 = 0xCDEF89AB;
+
+  if (!locked()) {
+    return {};
+  }
+
+  FLASH->KEY = key1;
+  FLASH->KEY = key2;
+
+  if (locked()) {
+    return std::unexpected(error::unknown);
+  }
+
+  return {};
+}
+
+inline void lock() {
   emb::mmio::set<FLASH_CTRL_LOCK>(FLASH->CTRL);
 }
 
@@ -112,11 +130,15 @@ inline std::optional<error> error_status() {
 }
 
 inline auto erase_sector(sector s) -> std::expected<void, error> {
+  TRY(unlock());
+  auto relock = emb::scope_exit([] { lock(); });
   // TODO
   return {};
 }
 
 inline auto write_byte(std::byte b) -> std::expected<void, error> {
+  TRY(unlock());
+  auto relock = emb::scope_exit([] { lock(); });
   // TODO
   return {};
 }
