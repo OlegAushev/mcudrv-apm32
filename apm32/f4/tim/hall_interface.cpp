@@ -11,7 +11,7 @@ void detail::configure_timebase(
   emb::mmio::modify(REG.CTRL1,
       emb::mmio::bits<TMR_CTRL1_CNTDIR>(0u),
       emb::mmio::bits<TMR_CTRL1_CAMSEL>(0u),
-      emb::mmio::bits<TMR_CTRL1_CLKDIV>(std::to_underlying(cfg.filter_clock_division))
+      emb::mmio::bits<TMR_CTRL1_CLKDIV>(cfg.filter_clock_division)
   );
   REG.AUTORLD = cfg.counter_max;
   REG.PSC = cfg.counter_prescaler;
@@ -32,7 +32,7 @@ void detail::configure_channel(registers& REG, capture_filter filter) {
   // IC1: both edges, direct TI, prescaler = 1
   emb::mmio::modify(REG.CCM1,
       emb::mmio::bits<TMR_CCM1_CC1SEL>(0b01u),      // direct TI
-      emb::mmio::bits<TMR_CCM1_IC1F>(std::to_underlying(filter))
+      emb::mmio::bits<TMR_CCM1_IC1F>(filter)
   );
   // polarity = both edges: CC1POL=1, CC1NPOL=1
   emb::mmio::modify(REG.CCEN,

@@ -63,10 +63,7 @@ public:
     // Trigger output
     if constexpr (some_master_timer_instance<Tim>) {
       if (conf.trgo) {
-        emb::mmio::write<TMR_CTRL2_MMSEL>(
-            REG.CTRL2,
-            std::to_underlying(*conf.trgo)
-        );
+        emb::mmio::write<TMR_CTRL2_MMSEL>(REG.CTRL2, *conf.trgo);
       }
     }
 

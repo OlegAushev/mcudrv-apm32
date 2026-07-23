@@ -56,13 +56,13 @@ public:
 
     emb::mmio::modify(
         REG.CTRL1,
-        emb::mmio::bits<SPI_CTRL1_CPHA>(std::to_underlying(config.cpha)),
-        emb::mmio::bits<SPI_CTRL1_CPOL>(std::to_underlying(config.cpol)),
+        emb::mmio::bits<SPI_CTRL1_CPHA>(config.cpha),
+        emb::mmio::bits<SPI_CTRL1_CPOL>(config.cpol),
         emb::mmio::bits<SPI_CTRL1_MSMCFG>(1),
-        emb::mmio::bits<SPI_CTRL1_BRSEL>(std::to_underlying(
+        emb::mmio::bits<SPI_CTRL1_BRSEL>(
             calculate_prescaler<spi_instance>(config.clk_frequency)
-        )),
-        emb::mmio::bits<SPI_CTRL1_LSBSEL>(std::to_underlying(config.bit_order)),
+        ),
+        emb::mmio::bits<SPI_CTRL1_LSBSEL>(config.bit_order),
         emb::mmio::bits<SPI_CTRL1_SSEN>(1u),
         emb::mmio::bits<SPI_CTRL1_ISSEL>(1u),
         emb::mmio::bits<SPI_CTRL1_RXOMEN>(0u),

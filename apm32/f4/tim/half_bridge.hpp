@@ -207,10 +207,7 @@ public:
 
     // Trigger output
     if (conf.pwm.trgo) {
-      emb::mmio::write<TMR_CTRL2_MMSEL>(
-          REG.CTRL2,
-          std::to_underlying(*conf.pwm.trgo)
-      );
+      emb::mmio::write<TMR_CTRL2_MMSEL>(REG.CTRL2, *conf.pwm.trgo);
     }
 
     // Interrupt configuration

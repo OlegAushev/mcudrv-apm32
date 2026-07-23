@@ -24,20 +24,9 @@ void init_clock() {
   emb::mmio::set<PMU_CTRL_VOSSEL>(PMU->CTRL);
 
   // Configure bus prescalers
-  emb::mmio::write<RCM_CFG_AHBPSC>(
-      RCM->CFG,
-      static_cast<std::uint32_t>(C::ahb_div)
-  );
-
-  emb::mmio::write<RCM_CFG_APB2PSC>(
-      RCM->CFG,
-      static_cast<std::uint32_t>(C::apb2_div)
-  );
-
-  emb::mmio::write<RCM_CFG_APB1PSC>(
-      RCM->CFG,
-      static_cast<std::uint32_t>(C::apb1_div)
-  );
+  emb::mmio::write<RCM_CFG_AHBPSC>(RCM->CFG, C::ahb_div);
+  emb::mmio::write<RCM_CFG_APB2PSC>(RCM->CFG, C::apb2_div);
+  emb::mmio::write<RCM_CFG_APB1PSC>(RCM->CFG, C::apb1_div);
 
   // Configure and enable PLL when selected as SYSCLK source
   if constexpr (C::sysclk_src == sysclk_src::pll) {
@@ -45,13 +34,9 @@ void init_clock() {
         RCM->PLL1CFG,
         emb::mmio::bits<RCM_PLL1CFG_PLLB>{C::pllb_div},
         emb::mmio::bits<RCM_PLL1CFG_PLL1A>{C::pll1a_mult},
-        emb::mmio::bits<RCM_PLL1CFG_PLL1C>{
-            static_cast<std::uint32_t>(C::pll1c_div)
-        },
+        emb::mmio::bits<RCM_PLL1CFG_PLL1C>{C::pll1c_div},
         emb::mmio::bits<RCM_PLL1CFG_PLLD>{C::plld_div},
-        emb::mmio::bits<RCM_PLL1CFG_PLL1CLKS>{
-            static_cast<std::uint32_t>(C::pll_src)
-        }
+        emb::mmio::bits<RCM_PLL1CFG_PLL1CLKS>{C::pll_src}
     );
     emb::mmio::set<RCM_CTRL_PLL1EN>(RCM->CTRL);
     while (!emb::mmio::test<RCM_CTRL_PLL1RDYFLG>(RCM->CTRL)) {}

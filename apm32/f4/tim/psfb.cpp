@@ -27,7 +27,7 @@ void detail::configure_psfb_timebase(
   emb::mmio::modify(REG.CTRL1,
       emb::mmio::bits<TMR_CTRL1_CNTDIR>(0u),
       emb::mmio::bits<TMR_CTRL1_CAMSEL>(0u),       // edge-aligned, up counting
-      emb::mmio::bits<TMR_CTRL1_CLKDIV>(std::to_underlying(conf.clkdiv))
+      emb::mmio::bits<TMR_CTRL1_CLKDIV>(conf.clkdiv)
   );
   REG.AUTORLD = period;
   REG.PSC = conf.prescaler.value();
