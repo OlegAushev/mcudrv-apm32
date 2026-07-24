@@ -6,6 +6,7 @@
 #include <apm32/f4/dma/pm_stream.hpp>
 #include <apm32/f4/gpio/analog_pin.hpp>
 
+#include <emb/meta/typelist.hpp>
 #include <emb/mmio.hpp>
 
 #include <array>
@@ -84,6 +85,7 @@ public:
   using dma_stream = Traits::dma_stream;
   using dma_channel = Traits::dma_channel;
   using dma_stream_type = Traits::stream_type;
+  using channels = emb::typelist<Channels...>;
   static constexpr unsigned injected_count = Traits::injected_count;
   static constexpr unsigned regular_count = Traits::regular_count;
   static constexpr bool dma_enabled = Traits::dma_enabled;
@@ -234,5 +236,15 @@ private:
     };
   }
 };
+
+template<typename T>
+inline constexpr bool is_multi_channel_adc = false;
+
+template<some_multi_channel_adc_traits Traits, some_adc_channel... Channels>
+inline constexpr bool
+    is_multi_channel_adc<multi_channel_adc<Traits, Channels...>> = true;
+
+template<typename T>
+concept some_multi_channel_adc = is_multi_channel_adc<T>;
 
 } // namespace apm32::f4::adc
