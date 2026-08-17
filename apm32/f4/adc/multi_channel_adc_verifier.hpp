@@ -132,7 +132,7 @@ public:
       emb::unroll<channel::ranks.size()>([&, this]<std::size_t R>() {
         constexpr auto rank = channel::ranks[R];
         std::uint32_t const code =
-            *adc_.template regular_storage<rank>();
+            adc_.template regular_result<rank>();
         bool const ok = forced_high(binding::pin)
                             ? code >= high_code_min
                             : code <= low_code_max;

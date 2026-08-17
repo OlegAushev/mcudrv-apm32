@@ -28,6 +28,17 @@ consteval bool is_valid_dma_buffer_size() {
 }
 
 template<typename T>
+consteval bool is_valid_dma_buffer_element() {
+  if constexpr (T::dma_enabled) {
+    return std::same_as<
+        typename T::stream_type::memory_buffer_type::element_type,
+        std::uint16_t>;
+  } else {
+    return true;
+  }
+}
+
+template<typename T>
 consteval bool is_valid_dma_irq_priority() {
   if constexpr (T::dma_enabled) {
     return std::convertible_to<
@@ -117,6 +128,10 @@ public:
       "DMA buffer size must equal regular_count"
   );
   static_assert(
+      detail::is_valid_dma_buffer_element<Traits>(),
+      "DMA buffer element type must be uint16_t (regular data is 16-bit)"
+  );
+  static_assert(
       detail::is_valid_dma_irq_priority<Traits>(),
       "dma_irq_priority must be convertible to nvic::irq_priority"
   );
@@ -175,34 +190,24 @@ public:
 
   template<unsigned Channel>
     requires(1 <= Channel && Channel <= injected_count)
-  [[nodiscard]] std::uint32_t injected_result() const {
+  [[nodiscard]] std::uint16_t injected_result() const {
     if constexpr (Channel == 1)
-      return reg.INJDATA1;
+      return static_cast<std::uint16_t>(reg.INJDATA1);
     else if constexpr (Channel == 2)
-      return reg.INJDATA2;
+      return static_cast<std::uint16_t>(reg.INJDATA2);
     else if constexpr (Channel == 3)
-      return reg.INJDATA3;
+      return static_cast<std::uint16_t>(reg.INJDATA3);
     else if constexpr (Channel == 4)
-      return reg.INJDATA4;
-  }
-
-  template<unsigned Channel>
-    requires(1 <= Channel && Channel <= injected_count)
-  [[nodiscard]] std::uint32_t const volatile* injected_storage() const {
-    if constexpr (Channel == 1)
-      return &reg.INJDATA1;
-    else if constexpr (Channel == 2)
-      return &reg.INJDATA2;
-    else if constexpr (Channel == 3)
-      return &reg.INJDATA3;
-    else if constexpr (Channel == 4)
-      return &reg.INJDATA4;
+      return static_cast<std::uint16_t>(reg.INJDATA4);
   }
 
   template<unsigned Rank>
     requires(1 <= Rank && Rank <= regular_count && dma_enabled)
-  [[nodiscard]] auto const volatile* regular_storage() const {
-    return &dma_stream_.data().data[Rank - 1];
+  [[nodiscard]] std::uint16_t regular_result() const {
+    // DMA writes the buffer concurrently: read the slot through a volatile
+    // reference so the load is not cached or elided
+    auto const volatile& slot = dma_stream_.data().data[Rank - 1];
+    return slot;
   }
 private:
   void init_channels() {
