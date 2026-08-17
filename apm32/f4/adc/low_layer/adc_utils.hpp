@@ -87,7 +87,7 @@ inline std::uint32_t calculate_prescaler() {
 }
 
 inline emb::units::degree_celsius_f32
-convert_to_mcu_temperature(std::uint32_t adc_data) {
+convert_to_mcu_temperature(std::uint16_t adc_data) {
   float const volt = static_cast<float>(adc_data) * vref / nmax<float>;
   return emb::units::degree_celsius_f32{(volt - 0.7782f) / 0.0024f + 28.0f};
 }
