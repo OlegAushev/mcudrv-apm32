@@ -7,6 +7,7 @@
 #include <apm32/f4/gpio/analog_pin.hpp>
 
 #include <emb/meta/typelist.hpp>
+#include <emb/meta/unroll.hpp>
 #include <emb/mmio.hpp>
 
 #include <array>
@@ -209,7 +210,60 @@ public:
     auto const volatile& slot = dma_stream_.data().data[Rank - 1];
     return slot;
   }
+
+  template<some_adc_channel Channel>
+    requires(Channel::ranks.size() == 1)
+  [[nodiscard]] std::uint16_t read(Channel) const {
+    return result<Channel, Channel::ranks[0]>();
+  }
+
+  template<some_adc_channel Channel>
+  [[nodiscard]] std::uint16_t oversample(Channel) const {
+    constexpr std::size_t n = Channel::ranks.size();
+    std::uint32_t sum = 0;
+    emb::unroll<n>([&]<std::size_t I>() {
+      sum += std::uint32_t{result<Channel, Channel::ranks[I]>()};
+    });
+    return static_cast<std::uint16_t>((sum + n / 2) / n);
+  }
+
+  template<some_adc_channel... Cs>
+    requires(sizeof...(Cs) > 0)
+  [[nodiscard]] std::array<std::uint16_t, sizeof...(Cs)>
+  read_frame(Cs... chs) const {
+    return {read(chs)...};
+  }
+
+  template<some_adc_channel... Cs>
+  [[nodiscard]] auto read_frame(emb::typelist<Cs...>) const {
+    return read_frame(Cs{}...);
+  }
+
+  template<some_adc_channel... Cs>
+    requires(sizeof...(Cs) > 0)
+  [[nodiscard]] std::array<std::uint16_t, sizeof...(Cs)>
+  oversample_frame(Cs... chs) const {
+    return {oversample(chs)...};
+  }
+
+  template<some_adc_channel... Cs>
+  [[nodiscard]] auto oversample_frame(emb::typelist<Cs...>) const {
+    return oversample_frame(Cs{}...);
+  }
 private:
+  template<some_adc_channel Channel, unsigned Rank>
+  [[nodiscard]] std::uint16_t result() const {
+    static_assert(
+        emb::typelist_contains_v<channels, Channel>,
+        "channel is not part of this ADC's conversion sequence"
+    );
+    if constexpr (Channel::injected) {
+      return injected_result<Rank>();
+    } else {
+      return regular_result<Rank>();
+    }
+  }
+
   void init_channels() {
     [[maybe_unused]] std::size_t i = 0;
     (
@@ -225,8 +279,7 @@ private:
           }
           ++i;
         }(),
-        ...
-    );
+        ...);
   }
 
   detail::sequence_config get_config() const {

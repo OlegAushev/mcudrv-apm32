@@ -88,8 +88,8 @@ using adc1_inj1 = channel<adc123_in0, sampletime::cycles_3, injected_rank_sequen
 using adc1_inj2 = channel<adc1_in16, sampletime::cycles_144, injected_rank_sequence<2>>;
 using adc1_reg1 = channel<adc123_in1, sampletime::cycles_3, regular_rank_sequence<1>>;
 using adc1_reg2 = channel<adc123_in2, sampletime::cycles_3, regular_rank_sequence<2>>;
-using adc1_reg3 = channel<adc123_in3, sampletime::cycles_3, regular_rank_sequence<3>>;
-using adc1_reg4 = channel<adc123_in10, sampletime::cycles_3, regular_rank_sequence<4>>;
+// two-slot channel: ranks 3 and 4 oversample one input
+using adc1_reg34 = channel<adc123_in3, sampletime::cycles_3, regular_rank_sequence<3, 4>>;
 
 // adc_2: injected ranks cover {1}, regular ranks cover {1, 2}
 using adc2_inj1 = channel<adc12_in4, sampletime::cycles_3, injected_rank_sequence<1>>;
@@ -108,8 +108,7 @@ using adc3_reg3 = channel<adc3_in6, sampletime::cycles_3, regular_rank_sequence<
       adc1_inj2,
       adc1_reg1,
       adc1_reg2,
-      adc1_reg3,
-      adc1_reg4>
+      adc1_reg34>
       adc_1;
   multi_channel_adc<adc_traits_2, adc2_inj1, adc2_reg1, adc2_reg2> adc_2;
   streaming_adc<stream_traits_3, adc3_reg1, adc3_reg2, adc3_reg3> adc_3;
@@ -124,6 +123,22 @@ using adc3_reg3 = channel<adc3_in6, sampletime::cycles_3, regular_rank_sequence<
 
   [[maybe_unused]] auto res1 = adc_1.injected_result<1>();
   [[maybe_unused]] auto res2 = adc_2.injected_result<1>();
+
+  // channel-level layer: read/oversample dispatch on the channel kind and
+  // check the channel belongs to this ADC's sequence
+  [[maybe_unused]] auto reg = adc_1.read(adc1_reg1{});
+  [[maybe_unused]] auto inj = adc_1.read(adc1_inj1{});
+  [[maybe_unused]] auto ovs = adc_1.oversample(adc1_reg34{});
+  [[maybe_unused]] auto frame = adc_1.read_frame(adc1_reg1{}, adc1_reg2{});
+  [[maybe_unused]] auto frame_tl =
+      adc_1.read_frame(emb::typelist<adc1_reg1, adc1_reg2>{});
+  // mixed frame; a single-slot channel oversamples to its plain read
+  [[maybe_unused]] auto ovs_frame =
+      adc_1.oversample_frame(adc1_reg34{}, adc1_inj1{});
+  [[maybe_unused]] auto ovs_frame_tl =
+      adc_1.oversample_frame(emb::typelist<adc1_reg34, adc1_inj1>{});
+  // injected read works without DMA too
+  [[maybe_unused]] auto inj2 = adc_2.read(adc2_inj1{});
 
   // adc_3 is DMA-driven: ISR acks, consumer reads a completed window
   adc_3.on_dma_complete();
