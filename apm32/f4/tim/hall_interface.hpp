@@ -5,6 +5,7 @@
 #include <apm32/f4/gpio/alternate_pin.hpp>
 #include <apm32/f4/nvic/nvic.hpp>
 
+#include <emb/assert.hpp>
 #include <emb/mmio.hpp>
 
 #include <cstdint>
@@ -83,13 +84,9 @@ public:
     }
 
     if (!cfg.counter_prescaler.has_value()) {
-      if constexpr (std::same_as<counter_type, std::uint32_t>) {
-        cfg.counter_prescaler = 0;
-      } else {
-        auto const clk_freq =
-            timer_instance::template clock_frequency<std::uint32_t>();
-        cfg.counter_prescaler = (clk_freq / 1'000u) - 1;
-      }
+      // 16-bit timers must choose the prescaler explicitly.
+      emb::ensure(std::same_as<counter_type, std::uint32_t>);
+      cfg.counter_prescaler = 0;
     }
 
     counter_period_ =
