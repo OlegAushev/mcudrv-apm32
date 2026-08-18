@@ -127,7 +127,7 @@ public:
   }
 
   typename timer_instance::counter_type captured_counter() const {
-    return REG.CC1;
+    return static_cast<typename timer_instance::counter_type>(REG.CC1);
   }
 
   emb::units::sec_f32 captured_time() const {
