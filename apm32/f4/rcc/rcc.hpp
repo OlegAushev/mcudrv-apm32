@@ -27,6 +27,16 @@ constexpr T hsi_frequency() {
   return T(hsi_value);
 }
 
+constexpr std::uint64_t pll_input_frequency() {
+  return clock_config::pll_src == pll_src::hse ? hse_value : hsi_value;
+}
+
+constexpr std::uint32_t pllb_div() {
+  return static_cast<std::uint32_t>(
+      pll_input_frequency() / clock_config::pll_vco_in
+  );
+}
+
 template<typename T>
 constexpr T sysclk_frequency() {
   using C = clock_config;
@@ -35,14 +45,11 @@ constexpr T sysclk_frequency() {
   } else if constexpr (C::sysclk_src == sysclk_src::hsi) {
     return hsi_frequency<T>();
   } else {
-    constexpr uint64_t pll_in = C::pll_src == pll_src::hse ? hse_value
-                                                           : hsi_value;
-
     static_assert(
-        pll_in % C::pllb_div == 0,
-        "PLL VCO input frequency is not an integer number of Hz"
+        pll_input_frequency() % C::pll_vco_in == 0,
+        "PLL input frequency is not an integer multiple of target VCO input"
     );
-    constexpr uint64_t vco_in = pll_in / C::pllb_div;
+    constexpr uint64_t vco_in = pll_input_frequency() / pllb_div();
     static_assert(
         vco_in >= vco_in_min && vco_in <= vco_in_max,
         "PLL VCO input frequency out of range"
@@ -104,7 +111,7 @@ constexpr T pclk2_timer_frequency() {
 // ---- Clock Config Validation ----
 
 static_assert(
-    clock_config::pllb_div >= 2 && clock_config::pllb_div <= 63,
+    pllb_div() >= 2 && pllb_div() <= 63,
     "pllb_div must be in 2..63"
 );
 

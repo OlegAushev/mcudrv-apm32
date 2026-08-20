@@ -32,7 +32,7 @@ void init_clock() {
   if constexpr (C::sysclk_src == sysclk_src::pll) {
     emb::mmio::modify(
         RCM->PLL1CFG,
-        emb::mmio::bits<RCM_PLL1CFG_PLLB>{C::pllb_div},
+        emb::mmio::bits<RCM_PLL1CFG_PLLB>{pllb_div()},
         emb::mmio::bits<RCM_PLL1CFG_PLL1A>{C::pll1a_mult},
         emb::mmio::bits<RCM_PLL1CFG_PLL1C>{C::pll1c_div},
         emb::mmio::bits<RCM_PLL1CFG_PLLD>{C::plld_div},
