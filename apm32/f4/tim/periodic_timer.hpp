@@ -5,6 +5,7 @@
 #include <emb/mmio.hpp>
 
 #include <cstdint>
+#include <limits>
 #include <utility>
 
 namespace apm32::f4::tim {
@@ -21,7 +22,8 @@ namespace detail {
 void configure_timebase(
     registers& REG,
     emb::units::hz_f32 clk_freq,
-    periodic_timer_config const& conf
+    periodic_timer_config const& conf,
+    std::uint32_t counter_max
 );
 
 } // namespace detail
@@ -57,7 +59,8 @@ public:
     detail::configure_timebase(
         REG,
         timer_instance::template clock_frequency<emb::units::hz_f32>(),
-        conf
+        conf,
+        std::numeric_limits<typename timer_instance::counter_type>::max()
     );
 
     // Trigger output

@@ -12,7 +12,8 @@ namespace apm32::f4::tim {
 void detail::configure_timebase(
     registers& REG,
     emb::units::hz_f32 clk_freq,
-    periodic_timer_config const& conf
+    periodic_timer_config const& conf,
+    std::uint32_t counter_max
 ) {
   emb::ensure(conf.prescaler.has_value());
 
@@ -21,7 +22,7 @@ void detail::configure_timebase(
 
   std::uint32_t const period = std::uint32_t(timebase_freq / conf.frequency)
                              - 1;
-  emb::ensure(period <= UINT16_MAX);
+  emb::ensure(period <= counter_max);
 
   emb::mmio::modify(REG.CTRL1,
       emb::mmio::bits<TMR_CTRL1_CNTDIR>(0),   // up counting
