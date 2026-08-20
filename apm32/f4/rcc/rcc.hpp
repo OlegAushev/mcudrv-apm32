@@ -110,10 +110,7 @@ constexpr T pclk2_timer_frequency() {
 
 // ---- Clock Config Validation ----
 
-static_assert(
-    pllb_div() >= 2 && pllb_div() <= 63,
-    "pllb_div must be in 2..63"
-);
+static_assert(pllb_div() >= 2 && pllb_div() <= 63, "pllb_div must be in 2..63");
 
 static_assert(
     clock_config::pll1a_mult >= 50 && clock_config::pll1a_mult <= 432,
