@@ -120,7 +120,7 @@ class half_bridge {
 public:
   using timer_instance = Tim;
   using counter_type = Tim::counter_type;
-  using dutycycle_type = std::array<emb::unsigned_pu, LegCount>;
+  using dutycycle_type = std::array<emb::unsigned_pu_f32, LegCount>;
 private:
   static inline registers& REG = timer_instance::REG;
 
@@ -284,7 +284,7 @@ public:
     dutycycle_type dutycycle;
     float const reload_val = static_cast<float>(REG.AUTORLD);
     emb::unroll<LegCount>([&]<std::size_t I>() {
-      dutycycle[I] = emb::unsigned_pu{
+      dutycycle[I] = emb::unsigned_pu_f32{
           static_cast<float>(*CCR_REGS[I]) / reload_val
       };
     });

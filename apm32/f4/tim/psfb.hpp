@@ -114,7 +114,7 @@ public:
   using timer_instance = Tim;
   using counter_type = Tim::counter_type;
   static constexpr std::size_t LegCount = 2;
-  using dutycycle_type = std::array<emb::unsigned_pu, LegCount>;
+  using dutycycle_type = std::array<emb::unsigned_pu_f32, LegCount>;
 private:
   static inline registers& REG = timer_instance::REG;
 
@@ -134,7 +134,7 @@ private:
 
   emb::units::sec_f32 period_;
   emb::units::sec_f32 deadtime_;
-  emb::unsigned_pu overlap_{0};
+  emb::unsigned_pu_f32 overlap_{0};
 
   std::array<std::optional<gpio::alternate_pin>, LegCount> hi_pins_;
   std::array<std::optional<gpio::alternate_pin>, LegCount> lo_pins_;
@@ -272,7 +272,7 @@ public:
     dutycycle_type dutycycle;
     float const reload_val = static_cast<float>(REG.AUTORLD);
     emb::unroll<LegCount>([&]<std::size_t I>() {
-      dutycycle[I] = emb::unsigned_pu{
+      dutycycle[I] = emb::unsigned_pu_f32{
           static_cast<float>(*CCR_REGS[I]) / reload_val
       };
     });
@@ -287,7 +287,7 @@ public:
     });
   }
 
-  void set_overlap(emb::unsigned_pu overlap) {
+  void set_overlap(emb::unsigned_pu_f32 overlap) {
     auto arr_v = REG.AUTORLD;
     auto mn = min_ccr_v();
     auto mx = max_ccr_v(arr_v);
@@ -314,7 +314,7 @@ public:
       nvic::enable_irq(break_irqn_);
     }
 
-    overlap_ = emb::unsigned_pu{0};
+    overlap_ = emb::unsigned_pu_f32{0};
     auto arr_v = REG.AUTORLD;
     REG.CC1 = max_ccr_v(arr_v);
     REG.CC2 = max_ccr_v(arr_v);
