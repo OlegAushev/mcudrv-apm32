@@ -20,10 +20,18 @@ inline constexpr std::size_t count = 3;
 
 inline constexpr emb::units::hz_f32 max_clock_frequency{30e6f};
 inline constexpr std::chrono::microseconds powerup_time{3};
+
 inline constexpr float vref = 3.3f;
+inline constexpr unsigned resolution = 12;
 
 template<typename T>
-inline constexpr T nmax = T{4095};
+inline constexpr T full_scale = T{1u << resolution};
+
+template<typename T>
+inline constexpr T max_code = full_scale<T> - 1;
+
+inline constexpr float lsb = vref / full_scale<float>;
+inline constexpr float codes_per_volt = 1 / lsb;
 
 struct adc1 {
   static inline common_registers& common_reg = *ADC123_COMMON;
