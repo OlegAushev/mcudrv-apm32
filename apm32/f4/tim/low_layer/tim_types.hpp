@@ -10,16 +10,9 @@ enum class clock_division : std::uint32_t {
   div4 = 0b10u
 };
 
-enum class count_direction : std::uint32_t {
-  up,
-  down
-};
+enum class count_direction : std::uint32_t { up, down };
 
-enum class counter_mode : std::uint32_t {
-  up,
-  down,
-  updown
-};
+enum class counter_mode : std::uint32_t { up, down, updown };
 
 enum class capture_filter : std::uint32_t {
   disabled,

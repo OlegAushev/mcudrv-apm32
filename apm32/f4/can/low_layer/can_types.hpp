@@ -10,11 +10,7 @@
 
 namespace apm32::f4::can {
 
-enum class error {
-  timeout,
-  overflow,
-  unknown
-};
+enum class error { timeout, overflow, unknown };
 
 struct rx_pin_config {
   gpio::port port;

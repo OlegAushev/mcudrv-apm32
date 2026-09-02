@@ -58,28 +58,21 @@ public:
   static constexpr std::size_t pin_count = std::max({Bindings::pin...}) + 1;
 
   static_assert(
-      (... && (Bindings::channel::descriptor::type
-               == channel_type::external)),
-      "only external channels can be stimulated by drive pins"
-  );
-  static_assert(
-      (... && !Bindings::channel::injected),
-      "only regular channels are covered by the regular DMA buffer"
-  );
-  static_assert(
-      (... && emb::typelist_contains_v<
-                  typename Adc::channels,
-                  typename Bindings::channel>),
-      "every bound channel must belong to the verified ADC"
-  );
+      (... && (Bindings::channel::descriptor::type == channel_type::external)),
+      "only external channels can be stimulated by drive pins");
+  static_assert((... && !Bindings::channel::injected),
+                "only regular channels are covered by the regular DMA buffer");
+  static_assert((...
+                 && emb::typelist_contains_v<typename Adc::channels,
+                                             typename Bindings::channel>),
+                "every bound channel must belong to the verified ADC");
   static_assert(
       []() consteval {
         std::array<bool, pin_count> used{};
         ((used[Bindings::pin] = true), ...);
         return std::ranges::all_of(used, [](bool u) { return u; });
       }(),
-      "drive pin indices must be contiguous starting at 0"
-  );
+      "drive pin indices must be contiguous starting at 0");
 
   enum class check_status { settling, pass, fail };
 
@@ -101,24 +94,24 @@ public:
   multi_channel_adc_verifier(
       Adc& adc,
       std::span<gpio::output_pin_config const, pin_count> drive_pin_configs,
-      std::uint32_t settle_checks = 2
-  )
-      : adc_(adc),
-        settle_checks_(settle_checks),
-        skip_checks_(settle_checks) {
+      std::uint32_t settle_checks = 2)
+      : adc_(adc), settle_checks_(settle_checks), skip_checks_(settle_checks)
+  {
     for (auto i = 0uz; i < pin_count; ++i) {
       drive_pins_[i].emplace(drive_pin_configs[i]);
     }
     apply_pattern();
   }
 
-  void step() {
+  void step()
+  {
     step_ = (step_ + 1) % step_period;
     apply_pattern();
     skip_checks_ = settle_checks_;
   }
 
-  [[nodiscard]] check_status check() {
+  [[nodiscard]] check_status check()
+  {
     if (skip_checks_ > 0) {
       --skip_checks_;
       return check_status::settling;
@@ -131,11 +124,9 @@ public:
       using channel = binding::channel;
       emb::unroll<channel::ranks.size()>([&, this]<std::size_t R>() {
         constexpr auto rank = channel::ranks[R];
-        std::uint32_t const code =
-            adc_.template regular_result<rank>();
-        bool const ok = forced_high(binding::pin)
-                            ? code >= high_code_min
-                            : code <= low_code_max;
+        std::uint32_t const code = adc_.template regular_result<rank>();
+        bool const ok = forced_high(binding::pin) ? code >= high_code_min
+                                                  : code <= low_code_max;
         if (!ok && !failed_rank.has_value()) {
           failed_rank = rank;
         }
@@ -151,27 +142,31 @@ public:
     return check_status::pass;
   }
 
-  std::uint32_t pass_count() const {
+  std::uint32_t pass_count() const
+  {
     return pass_count_;
   }
 
-  std::uint32_t fail_count() const {
+  std::uint32_t fail_count() const
+  {
     return fail_count_;
   }
 
-  unsigned last_failed_rank() const {
+  unsigned last_failed_rank() const
+  {
     return last_failed_rank_;
   }
 private:
-  bool forced_high(std::size_t pin) const {
+  bool forced_high(std::size_t pin) const
+  {
     return pin_count == 1 ? step_ == 1 : pin == step_;
   }
 
-  void apply_pattern() {
+  void apply_pattern()
+  {
     for (auto i = 0uz; i < pin_count; ++i) {
-      drive_pins_[i]->set_level(
-          forced_high(i) ? emb::gpio::level::high : emb::gpio::level::low
-      );
+      drive_pins_[i]->set_level(forced_high(i) ? emb::gpio::level::high
+                                               : emb::gpio::level::low);
     }
   }
 };

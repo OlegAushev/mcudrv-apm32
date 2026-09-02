@@ -29,10 +29,9 @@ struct blocking_master_config {
   spi::bit_order bit_order;
 };
 
-template<
-    some_spi_instance Instance,
-    frame_format FrameFormat,
-    std::size_t SlaveCount>
+template<some_spi_instance Instance,
+         frame_format FrameFormat,
+         std::size_t SlaveCount>
 class blocking_master {
 public:
   using spi_instance = Instance;
@@ -51,7 +50,8 @@ public:
   blocking_master(blocking_master&&) = delete;
   blocking_master& operator=(blocking_master&&) = delete;
 
-  blocking_master(blocking_master_config<SlaveCount> const& config) {
+  blocking_master(blocking_master_config<SlaveCount> const& config)
+  {
     spi_instance::enable_clock();
 
     emb::mmio::modify(
@@ -60,62 +60,47 @@ public:
         emb::mmio::bits<SPI_CTRL1_CPOL>(config.cpol),
         emb::mmio::bits<SPI_CTRL1_MSMCFG>(1),
         emb::mmio::bits<SPI_CTRL1_BRSEL>(
-            calculate_prescaler<spi_instance>(config.clk_frequency)
-        ),
+            calculate_prescaler<spi_instance>(config.clk_frequency)),
         emb::mmio::bits<SPI_CTRL1_LSBSEL>(config.bit_order),
         emb::mmio::bits<SPI_CTRL1_SSEN>(1u),
         emb::mmio::bits<SPI_CTRL1_ISSEL>(1u),
         emb::mmio::bits<SPI_CTRL1_RXOMEN>(0u),
         emb::mmio::bits<SPI_CTRL1_BMEN>(0u),
         emb::mmio::bits<SPI_CTRL1_DFLSEL>(
-            std::is_same_v<FrameFormat, std::uint8_t> ? 0u : 1u
-        )
-    );
+            std::is_same_v<FrameFormat, std::uint8_t> ? 0u : 1u));
 
     mosi_pin_.emplace(
-        gpio::alternate_pin_config{
-            .port = config.mosi_pin.port,
-            .pin = config.mosi_pin.pin,
-            .pull = gpio::pull::none,
-            .output_type = gpio::output_type::pushpull,
-            .speed = pin_speed(config.clk_frequency),
-            .altfunc = spi_instance::gpio_altfunc
-        }
-    );
+        gpio::alternate_pin_config{.port = config.mosi_pin.port,
+                                   .pin = config.mosi_pin.pin,
+                                   .pull = gpio::pull::none,
+                                   .output_type = gpio::output_type::pushpull,
+                                   .speed = pin_speed(config.clk_frequency),
+                                   .altfunc = spi_instance::gpio_altfunc});
 
     miso_pin_.emplace(
-        gpio::alternate_pin_config{
-            .port = config.miso_pin.port,
-            .pin = config.miso_pin.pin,
-            .pull = gpio::pull::none,
-            .output_type = gpio::output_type::pushpull,
-            .speed = pin_speed(config.clk_frequency),
-            .altfunc = spi_instance::gpio_altfunc
-        }
-    );
+        gpio::alternate_pin_config{.port = config.miso_pin.port,
+                                   .pin = config.miso_pin.pin,
+                                   .pull = gpio::pull::none,
+                                   .output_type = gpio::output_type::pushpull,
+                                   .speed = pin_speed(config.clk_frequency),
+                                   .altfunc = spi_instance::gpio_altfunc});
 
     clk_pin_.emplace(
-        gpio::alternate_pin_config{
-            .port = config.clk_pin.port,
-            .pin = config.clk_pin.pin,
-            .pull = gpio::pull::none,
-            .output_type = gpio::output_type::pushpull,
-            .speed = pin_speed(config.clk_frequency),
-            .altfunc = spi_instance::gpio_altfunc
-        }
-    );
+        gpio::alternate_pin_config{.port = config.clk_pin.port,
+                                   .pin = config.clk_pin.pin,
+                                   .pull = gpio::pull::none,
+                                   .output_type = gpio::output_type::pushpull,
+                                   .speed = pin_speed(config.clk_frequency),
+                                   .altfunc = spi_instance::gpio_altfunc});
 
     for (auto i = 0uz; i < ss_pins_.size(); ++i) {
       ss_pins_[i].emplace(
-          gpio::output_pin_config{
-              .port = config.ss_pins[i].port,
-              .pin = config.ss_pins[i].pin,
-              .pull = gpio::pull::none,
-              .output_type = gpio::output_type::pushpull,
-              .speed = pin_speed(config.clk_frequency),
-              .polarity = emb::gpio::polarity::active_low
-          }
-      );
+          gpio::output_pin_config{.port = config.ss_pins[i].port,
+                                  .pin = config.ss_pins[i].pin,
+                                  .pull = gpio::pull::none,
+                                  .output_type = gpio::output_type::pushpull,
+                                  .speed = pin_speed(config.clk_frequency),
+                                  .polarity = emb::gpio::polarity::active_low});
       ss_pins_[i]->reset();
     }
 
@@ -123,61 +108,74 @@ public:
   }
 
   void select()
-    requires(SlaveCount == 1) {
+    requires(SlaveCount == 1)
+  {
     ss_pins_[0]->set();
   }
 
   template<std::size_t Idx>
-  void select() {
+  void select()
+  {
     std::get<Idx>(ss_pins_)->set();
   }
 
-  void select(std::size_t idx) {
+  void select(std::size_t idx)
+  {
     ss_pins_[idx]->set();
   }
 
   void release()
-    requires(SlaveCount == 1) {
+    requires(SlaveCount == 1)
+  {
     ss_pins_[0]->reset();
   }
 
   template<std::size_t Idx>
-  void release() {
+  void release()
+  {
     std::get<Idx>(ss_pins_)->reset();
   }
 
-  void release(std::size_t idx) {
+  void release(std::size_t idx)
+  {
     ss_pins_[idx]->reset();
   }
 
-  bool busy() const {
+  bool busy() const
+  {
     return emb::mmio::test<SPI_STS_BSYFLG>(REG.STS);
   }
 
-  bool rx_empty() const {
+  bool rx_empty() const
+  {
     return !emb::mmio::test<SPI_STS_RXBNEFLG>(REG.STS);
   }
 
-  bool tx_empty() const {
+  bool tx_empty() const
+  {
     return emb::mmio::test<SPI_STS_TXBEFLG>(REG.STS);
   }
 
-  bool can_get() const {
+  bool can_get() const
+  {
     return !rx_empty();
   }
 
-  bool can_put() const {
+  bool can_put() const
+  {
     return tx_empty();
   }
 
-  auto try_get() const -> std::optional<FrameFormat> {
+  auto try_get() const -> std::optional<FrameFormat>
+  {
     if (can_get()) {
       return static_cast<FrameFormat>(REG.DATA);
     }
     return {};
   }
 
-  auto try_put(FrameFormat data) -> std::optional<FrameFormat> {
+  auto try_put(FrameFormat data) -> std::optional<FrameFormat>
+  {
     if (can_put()) {
       REG.DATA = data;
       return data;
@@ -186,7 +184,8 @@ public:
   }
 
   auto get(std::chrono::milliseconds timeout) const
-      -> std::expected<FrameFormat, error> {
+      -> std::expected<FrameFormat, error>
+  {
     if (emb::mmio::test<SPI_STS_OVRFLG>(REG.STS)) {
       clear_overrun();
       return std::unexpected(error::overrun);
@@ -199,7 +198,8 @@ public:
   }
 
   auto put(FrameFormat data, std::chrono::milliseconds timeout)
-      -> std::expected<void, error> {
+      -> std::expected<void, error>
+  {
     if (emb::mmio::test<SPI_STS_OVRFLG>(REG.STS)) {
       clear_overrun();
       return std::unexpected(error::overrun);
@@ -213,12 +213,14 @@ public:
   }
 
   auto transfer(FrameFormat tx_data, std::chrono::milliseconds timeout)
-      -> std::expected<FrameFormat, error> {
+      -> std::expected<FrameFormat, error>
+  {
     return put(tx_data, timeout).and_then([&]() { return get(timeout); });
   }
 
   auto wait_idle(std::chrono::milliseconds timeout)
-      -> std::expected<void, error> {
+      -> std::expected<void, error>
+  {
     timeout_t t(timeout);
     while (!tx_empty() || busy()) {
       if (t.expired()) return std::unexpected(error::timeout);
@@ -228,7 +230,8 @@ public:
 
   template<typename Fn>
   auto transaction(Fn&& fn) -> decltype(fn())
-    requires(SlaveCount == 1) {
+    requires(SlaveCount == 1)
+  {
     select();
     auto result = fn();
     release();
@@ -236,7 +239,8 @@ public:
   }
 
   template<std::size_t Idx, typename Fn>
-  auto transaction(Fn&& fn) -> decltype(fn()) {
+  auto transaction(Fn&& fn) -> decltype(fn())
+  {
     select<Idx>();
     auto result = fn();
     release<Idx>();
@@ -244,7 +248,8 @@ public:
   }
 
 private:
-  void clear_overrun() const {
+  void clear_overrun() const
+  {
     [[maybe_unused]] auto volatile d = REG.DATA;
     [[maybe_unused]] auto volatile s = REG.STS;
   }

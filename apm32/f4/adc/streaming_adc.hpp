@@ -19,7 +19,8 @@ namespace apm32::f4::adc {
 namespace detail {
 
 template<typename T>
-consteval bool is_valid_stream_buffer() {
+consteval bool is_valid_stream_buffer()
+{
   using buf = typename T::stream_type::memory_buffer_type;
   return buf::double_buffer_mode && (buf::size % T::regular_count == 0);
 }
@@ -61,28 +62,20 @@ public:
       Traits::dma_irq_priority;
   static constexpr bool eoc_on_each = Traits::eoc_on_each;
 
-  static_assert(
-      ((!Channels::injected) && ...),
-      "streaming_adc supports regular channels only"
-  );
-  static_assert(
-      detail::ranks_cover_exactly<false, Channels...>(regular_count),
-      "regular channel ranks must cover 1..regular_count exactly "
-      "(no gaps, duplicates, or out-of-range positions)"
-  );
-  static_assert(
-      is_compatible_dma_stream<adc_instance, dma_stream>(),
-      "dma_stream is not wired to this ADC instance"
-  );
+  static_assert(((!Channels::injected) && ...),
+                "streaming_adc supports regular channels only");
+  static_assert(detail::ranks_cover_exactly<false, Channels...>(regular_count),
+                "regular channel ranks must cover 1..regular_count exactly "
+                "(no gaps, duplicates, or out-of-range positions)");
+  static_assert(is_compatible_dma_stream<adc_instance, dma_stream>(),
+                "dma_stream is not wired to this ADC instance");
   static_assert(
       is_compatible_dma_channel<adc_instance, dma_channel>(),
-      "dma_channel is not the DMA request channel for this ADC instance"
-  );
+      "dma_channel is not the DMA request channel for this ADC instance");
   static_assert(
       detail::is_valid_stream_buffer<Traits>(),
       "streaming_adc needs a double buffer whose size is a multiple of "
-      "regular_count"
-  );
+      "regular_count");
 private:
   static inline registers& reg = adc_instance::reg;
   dma_stream_type dma_stream_;
@@ -97,16 +90,16 @@ public:
   streaming_adc()
       : dma_stream_(
             dma::peripheral_to_memory_stream_config{
-                .irq_priority = dma_irq_priority
-            },
-            &reg.REGDATA
-        ) {
+                .irq_priority = dma_irq_priority},
+            &reg.REGDATA)
+  {
     adc_instance::enable_clock();
     detail::init_sequence(reg, get_config());
     init_channels();
   }
 
-  void enable() {
+  void enable()
+  {
     dma_stream_.enable();
     if constexpr (eoc_on_each) {
       nvic::set_irq_priority(adc_instance::irqn, common_irq_priority);
@@ -115,24 +108,28 @@ public:
   }
 
   // Call from the DMA stream's transfer-complete ISR.
-  void on_dma_complete() {
+  void on_dma_complete()
+  {
     dma_stream_.ack_interrupt();
     completed_.store(true, std::memory_order::release);
   }
 
   // Returns the just-completed window once it was filled, else nullopt.
-  [[nodiscard]] std::optional<std::span<element_type const>> completed() const {
+  [[nodiscard]] std::optional<std::span<element_type const>> completed() const
+  {
     if (!completed_.load(std::memory_order::acquire)) {
       return std::nullopt;
     }
     return dma_stream_.completed_buffer();
   }
 
-  void consume() {
+  void consume()
+  {
     completed_.store(false, std::memory_order::release);
   }
 private:
-  void init_channels() {
+  void init_channels()
+  {
     [[maybe_unused]] std::size_t i = 0;
     (
         [&] {
@@ -142,11 +139,11 @@ private:
           }
           ++i;
         }(),
-        ...
-    );
+        ...);
   }
 
-  detail::sequence_config get_config() const {
+  detail::sequence_config get_config() const
+  {
     return detail::sequence_config{
         .injected_count = 0,
         .regular_count = regular_count,

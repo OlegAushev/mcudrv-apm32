@@ -27,7 +27,8 @@ void init_sequence(registers& reg, sequence_config const& conf);
 // cover positions 1..count exactly — every position assigned once, no
 // gaps, duplicates, or out-of-range ranks.
 template<bool Injected, some_adc_channel... Channels>
-consteval bool ranks_cover_exactly(unsigned count) {
+consteval bool ranks_cover_exactly(unsigned count)
+{
   std::array<unsigned, 17> tally{}; // tally[rank], rank in 1..16
   (
       [&] {
@@ -37,8 +38,7 @@ consteval bool ranks_cover_exactly(unsigned count) {
           }
         }
       }(),
-      ...
-  );
+      ...);
   for (unsigned rank = 1; rank <= 16; ++rank) {
     unsigned const expected = (rank <= count) ? 1u : 0u;
     if (tally[rank] != expected) {

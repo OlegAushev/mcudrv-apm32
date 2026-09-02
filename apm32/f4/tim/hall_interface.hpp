@@ -43,15 +43,14 @@ void configure_channel(registers& REG, capture_filter filter);
 
 template<some_timer_instance Tim>
 [[nodiscard]] gpio::alternate_pin_config
-make_input_config(input_pin_config const& pin) {
-  return gpio::alternate_pin_config{
-      .port = pin.port,
-      .pin = pin.pin,
-      .pull = pin.pull,
-      .output_type = gpio::output_type::pushpull,
-      .speed = gpio::speed::low,
-      .altfunc = Tim::gpio_altfunc
-  };
+make_input_config(input_pin_config const& pin)
+{
+  return gpio::alternate_pin_config{.port = pin.port,
+                                    .pin = pin.pin,
+                                    .pull = pin.pull,
+                                    .output_type = gpio::output_type::pushpull,
+                                    .speed = gpio::speed::low,
+                                    .altfunc = Tim::gpio_altfunc};
 }
 
 } // namespace detail
@@ -76,7 +75,8 @@ public:
   hall_interface(hall_interface&&) = delete;
   hall_interface& operator=(hall_interface&&) = delete;
 
-  hall_interface(hall_interface_config cfg) {
+  hall_interface(hall_interface_config cfg)
+  {
     timer_instance::enable_clock();
 
     for (auto i = 0uz; i < 3; ++i) {
@@ -98,14 +98,13 @@ public:
     timebase_cfg.counter_prescaler = *cfg.counter_prescaler;
 
     if (!cfg.timeout.has_value()) {
-      timebase_cfg.counter_max =
-          std::numeric_limits<counter_type>::max();
-    } else {
+      timebase_cfg.counter_max = std::numeric_limits<counter_type>::max();
+    }
+    else {
       timebase_cfg.counter_max = std::clamp(
           static_cast<counter_type>(*cfg.timeout / counter_period_),
           counter_type{0},
-          std::numeric_limits<counter_type>::max()
-      );
+          std::numeric_limits<counter_type>::max());
     }
 
     detail::configure_timebase(REG, timebase_cfg);
@@ -116,34 +115,38 @@ public:
     set_irq_priority(irqn_, cfg.irq_priority);
   }
 
-  void enable() {
+  void enable()
+  {
     acknowledge_update<timer_instance>();
     nvic::clear_pending_irq(irqn_);
     nvic::enable_irq(irqn_);
     enable_counter<timer_instance>();
   }
 
-  typename timer_instance::counter_type captured_counter() const {
+  typename timer_instance::counter_type captured_counter() const
+  {
     return static_cast<typename timer_instance::counter_type>(REG.CC1);
   }
 
-  emb::units::sec_f32 captured_time() const {
+  emb::units::sec_f32 captured_time() const
+  {
     return static_cast<float>(captured_counter()) * counter_period_;
   }
 
-  emb::units::sec_f32 time_since_capture() const {
+  emb::units::sec_f32 time_since_capture() const
+  {
     return float(REG.CNT) * counter_period_;
   }
 
-  std::array<emb::gpio::level, 3> input_levels() const {
-    return {
-        pins_[0]->read_level(),
-        pins_[1]->read_level(),
-        pins_[2]->read_level()
-    };
+  std::array<emb::gpio::level, 3> input_levels() const
+  {
+    return {pins_[0]->read_level(),
+            pins_[1]->read_level(),
+            pins_[2]->read_level()};
   }
 
-  std::uint8_t input_state() const {
+  std::uint8_t input_state() const
+  {
     std::uint8_t state = std::uint8_t(pins_[0]->read_level())
                        | std::uint8_t(pins_[1]->read_level()) << 1
                        | std::uint8_t(pins_[2]->read_level()) << 2;

@@ -46,26 +46,23 @@ public:
   probe& operator=(probe const&) = delete;
   probe& operator=(probe&&) = delete;
 
-  static void configure(probe_channel ch, gpio::port prt, gpio::pin pn) {
+  static void configure(probe_channel ch, gpio::port prt, gpio::pin pn)
+  {
     pins_[std::to_underlying(ch)].emplace(
-        gpio::output_pin_config{
-            .port = prt,
-            .pin = pn,
-            .pull = gpio::pull::none,
-            .output_type = gpio::output_type::pushpull,
-            .speed = gpio::speed::very_high,
-            .polarity = emb::gpio::polarity::active_high
-        }
-    );
+        gpio::output_pin_config{.port = prt,
+                                .pin = pn,
+                                .pull = gpio::pull::none,
+                                .output_type = gpio::output_type::pushpull,
+                                .speed = gpio::speed::very_high,
+                                .polarity = emb::gpio::polarity::active_high});
   }
 
   probe(probe_channel ch, probe_mode mode)
-      : pin_(
-            pins_[std::to_underlying(ch)].has_value()
-                ? &pins_[std::to_underlying(ch)].value()
-                : nullptr
-        ),
-        mode_(mode) {
+      : pin_(pins_[std::to_underlying(ch)].has_value()
+                 ? &pins_[std::to_underlying(ch)].value()
+                 : nullptr),
+        mode_(mode)
+  {
     if (!pin_) {
       return;
     }
@@ -73,12 +70,14 @@ public:
     if (mode_ == probe_mode::level) {
       pin_->set_level(emb::gpio::level::high);
       start_ = stamp();
-    } else {
+    }
+    else {
       pin_->toggle();
     }
   }
 
-  ~probe() {
+  ~probe()
+  {
     if (!pin_) {
       return;
     }
@@ -86,12 +85,14 @@ public:
     if (mode_ == probe_mode::level) {
       wait_min_pulse(start_);
       pin_->set_level(emb::gpio::level::low);
-    } else {
+    }
+    else {
       pulse();
     }
   }
 
-  static void set_min_pulse(std::uint32_t cycles) {
+  static void set_min_pulse(std::uint32_t cycles)
+  {
     // wait_min_pulse() terminates only if a nonzero minimum
     // never exists without a running CYCCNT
     emb::mmio::set<CoreDebug_DEMCR_TRCENA_Msk>(CoreDebug->DEMCR);
@@ -99,7 +100,8 @@ public:
     min_pulse_cycles_ = cycles;
   }
 
-  void mark() {
+  void mark()
+  {
     if (!pin_) {
       return;
     }
@@ -107,7 +109,8 @@ public:
     pulse();
   }
 
-  static std::optional<emb::gpio::level> read(probe_channel ch) {
+  static std::optional<emb::gpio::level> read(probe_channel ch)
+  {
     auto const pin = pins_[std::to_underlying(ch)].has_value()
                        ? &pins_[std::to_underlying(ch)].value()
                        : nullptr;
@@ -119,7 +122,8 @@ public:
     return pin->read_level();
   }
 private:
-  void pulse() {
+  void pulse()
+  {
     pin_->toggle();
     wait_min_pulse(stamp());
     pin_->toggle();
@@ -127,12 +131,14 @@ private:
 
   // DWT register reads are unpredictable while TRCENA is cleared,
   // so CYCCNT must stay untouched until set_min_pulse() enables it
-  static std::uint32_t stamp() {
+  static std::uint32_t stamp()
+  {
     return min_pulse_cycles_ != 0 ? DWT->CYCCNT : 0;
   }
 
   // unsigned wraparound arithmetic: correct across CYCCNT overflow
-  static void wait_min_pulse(std::uint32_t start) {
+  static void wait_min_pulse(std::uint32_t start)
+  {
     if (min_pulse_cycles_ == 0) {
       return;
     }

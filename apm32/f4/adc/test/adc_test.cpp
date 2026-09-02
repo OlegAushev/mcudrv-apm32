@@ -14,12 +14,9 @@ static_assert(detail::prescaler_to_field(4) == 1);
 static_assert(detail::prescaler_to_field(6) == 2);
 static_assert(detail::prescaler_to_field(8) == 3);
 
-static_assert(
-    detail::calculate_prescaler(
-        emb::units::hz_f32{84e6f},
-        max_clock_frequency
-    ) == 4
-);
+static_assert(detail::calculate_prescaler(emb::units::hz_f32{84e6f},
+                                          max_clock_frequency)
+              == 4);
 
 struct adc_traits_1 {
   using adc_instance = adc1;
@@ -35,12 +32,10 @@ struct adc_traits_1 {
   static constexpr nvic::irq_priority dma_irq_priority{4};
   static constexpr auto injected_trigger = inj_trigger{
       .edge = trigger_edge::rising,
-      .event = inj_trigger_event::tim1_trgo
-  };
+      .event = inj_trigger_event::tim1_trgo};
   static constexpr auto regular_trigger = reg_trigger{
       .edge = trigger_edge::falling,
-      .event = reg_trigger_event::tim3_trgo
-  };
+      .event = reg_trigger_event::tim3_trgo};
   static constexpr bool eoc_on_each = true;
   static constexpr bool auto_injconv = true;
 };
@@ -76,39 +71,49 @@ struct stream_traits_3 {
   static constexpr nvic::irq_priority dma_irq_priority{4};
   static constexpr auto regular_trigger = reg_trigger{
       .edge = trigger_edge::rising,
-      .event = reg_trigger_event::tim3_trgo
-  };
+      .event = reg_trigger_event::tim3_trgo};
   static constexpr bool eoc_on_each = true;
 };
 
 static_assert(some_streaming_adc_traits<stream_traits_3>);
 
 // adc_1: injected ranks cover {1, 2}, regular ranks cover {1, 2, 3, 4}
-using adc1_inj1 = channel<adc123_in0, sampletime::cycles_3, injected_rank_sequence<1>>;
-using adc1_inj2 = channel<adc1_in16, sampletime::cycles_144, injected_rank_sequence<2>>;
-using adc1_reg1 = channel<adc123_in1, sampletime::cycles_3, regular_rank_sequence<1>>;
-using adc1_reg2 = channel<adc123_in2, sampletime::cycles_3, regular_rank_sequence<2>>;
+using adc1_inj1 =
+    channel<adc123_in0, sampletime::cycles_3, injected_rank_sequence<1>>;
+using adc1_inj2 =
+    channel<adc1_in16, sampletime::cycles_144, injected_rank_sequence<2>>;
+using adc1_reg1 =
+    channel<adc123_in1, sampletime::cycles_3, regular_rank_sequence<1>>;
+using adc1_reg2 =
+    channel<adc123_in2, sampletime::cycles_3, regular_rank_sequence<2>>;
 // two-slot channel: ranks 3 and 4 oversample one input
-using adc1_reg34 = channel<adc123_in3, sampletime::cycles_3, regular_rank_sequence<3, 4>>;
+using adc1_reg34 =
+    channel<adc123_in3, sampletime::cycles_3, regular_rank_sequence<3, 4>>;
 
 // adc_2: injected ranks cover {1}, regular ranks cover {1, 2}
-using adc2_inj1 = channel<adc12_in4, sampletime::cycles_3, injected_rank_sequence<1>>;
-using adc2_reg1 = channel<adc12_in5, sampletime::cycles_3, regular_rank_sequence<1>>;
-using adc2_reg2 = channel<adc12_in6, sampletime::cycles_3, regular_rank_sequence<2>>;
+using adc2_inj1 =
+    channel<adc12_in4, sampletime::cycles_3, injected_rank_sequence<1>>;
+using adc2_reg1 =
+    channel<adc12_in5, sampletime::cycles_3, regular_rank_sequence<1>>;
+using adc2_reg2 =
+    channel<adc12_in6, sampletime::cycles_3, regular_rank_sequence<2>>;
 
 // adc_3: regular ranks cover {1, 2, 3}
-using adc3_reg1 = channel<adc3_in4, sampletime::cycles_3, regular_rank_sequence<1>>;
-using adc3_reg2 = channel<adc3_in5, sampletime::cycles_3, regular_rank_sequence<2>>;
-using adc3_reg3 = channel<adc3_in6, sampletime::cycles_3, regular_rank_sequence<3>>;
+using adc3_reg1 =
+    channel<adc3_in4, sampletime::cycles_3, regular_rank_sequence<1>>;
+using adc3_reg2 =
+    channel<adc3_in5, sampletime::cycles_3, regular_rank_sequence<2>>;
+using adc3_reg3 =
+    channel<adc3_in6, sampletime::cycles_3, regular_rank_sequence<3>>;
 
-[[maybe_unused]] void test() {
-  multi_channel_adc<
-      adc_traits_1,
-      adc1_inj1,
-      adc1_inj2,
-      adc1_reg1,
-      adc1_reg2,
-      adc1_reg34>
+[[maybe_unused]] void test()
+{
+  multi_channel_adc<adc_traits_1,
+                    adc1_inj1,
+                    adc1_inj2,
+                    adc1_reg1,
+                    adc1_reg2,
+                    adc1_reg34>
       adc_1;
   multi_channel_adc<adc_traits_2, adc2_inj1, adc2_reg1, adc2_reg2> adc_2;
   streaming_adc<stream_traits_3, adc3_reg1, adc3_reg2, adc3_reg3> adc_3;
@@ -130,13 +135,13 @@ using adc3_reg3 = channel<adc3_in6, sampletime::cycles_3, regular_rank_sequence<
   [[maybe_unused]] auto inj = adc_1.read(adc1_inj1{});
   [[maybe_unused]] auto ovs = adc_1.oversample(adc1_reg34{});
   [[maybe_unused]] auto frame = adc_1.read_frame(adc1_reg1{}, adc1_reg2{});
-  [[maybe_unused]] auto frame_tl =
-      adc_1.read_frame(emb::typelist<adc1_reg1, adc1_reg2>{});
+  [[maybe_unused]] auto frame_tl = adc_1.read_frame(
+      emb::typelist<adc1_reg1, adc1_reg2>{});
   // mixed frame; a single-slot channel oversamples to its plain read
-  [[maybe_unused]] auto ovs_frame =
-      adc_1.oversample_frame(adc1_reg34{}, adc1_inj1{});
-  [[maybe_unused]] auto ovs_frame_tl =
-      adc_1.oversample_frame(emb::typelist<adc1_reg34, adc1_inj1>{});
+  [[maybe_unused]] auto ovs_frame = adc_1.oversample_frame(adc1_reg34{},
+                                                           adc1_inj1{});
+  [[maybe_unused]] auto ovs_frame_tl = adc_1.oversample_frame(
+      emb::typelist<adc1_reg34, adc1_inj1>{});
   // injected read works without DMA too
   [[maybe_unused]] auto inj2 = adc_2.read(adc2_inj1{});
 

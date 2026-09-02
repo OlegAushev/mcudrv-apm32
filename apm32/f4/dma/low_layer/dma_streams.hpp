@@ -125,24 +125,24 @@ struct dma2_stream7 {
 };
 
 template<typename T>
-struct is_dma_stream_instance : std::bool_constant<emb::same_as_any<
-                                    T,
-                                    dma1_stream0,
-                                    dma1_stream1,
-                                    dma1_stream2,
-                                    dma1_stream3,
-                                    dma1_stream4,
-                                    dma1_stream5,
-                                    dma1_stream6,
-                                    dma1_stream7,
-                                    dma2_stream0,
-                                    dma2_stream1,
-                                    dma2_stream2,
-                                    dma2_stream3,
-                                    dma2_stream4,
-                                    dma2_stream5,
-                                    dma2_stream6,
-                                    dma2_stream7>> {};
+struct is_dma_stream_instance
+    : std::bool_constant<emb::same_as_any<T,
+                                          dma1_stream0,
+                                          dma1_stream1,
+                                          dma1_stream2,
+                                          dma1_stream3,
+                                          dma1_stream4,
+                                          dma1_stream5,
+                                          dma1_stream6,
+                                          dma1_stream7,
+                                          dma2_stream0,
+                                          dma2_stream1,
+                                          dma2_stream2,
+                                          dma2_stream3,
+                                          dma2_stream4,
+                                          dma2_stream5,
+                                          dma2_stream6,
+                                          dma2_stream7>> {};
 
 template<typename T>
 concept some_dma_stream_instance = is_dma_stream_instance<T>::value;

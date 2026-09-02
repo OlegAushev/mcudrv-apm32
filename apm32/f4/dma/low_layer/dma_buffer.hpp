@@ -34,10 +34,12 @@ template<typename Buffer>
 struct owned_storage {
   using buffer_type = Buffer;
   Buffer buffer{};
-  constexpr Buffer& get() {
+  constexpr Buffer& get()
+  {
     return buffer;
   }
-  constexpr Buffer const& get() const {
+  constexpr Buffer const& get() const
+  {
     return buffer;
   }
 };
@@ -45,7 +47,8 @@ struct owned_storage {
 template<auto& Buffer>
 struct static_storage {
   using buffer_type = std::remove_reference_t<decltype(Buffer)>;
-  constexpr buffer_type& get() const {
+  constexpr buffer_type& get() const
+  {
     return Buffer;
   }
 };

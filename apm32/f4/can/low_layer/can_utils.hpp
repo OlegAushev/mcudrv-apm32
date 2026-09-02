@@ -9,23 +9,24 @@
 namespace apm32::f4::can {
 
 struct filter_init_session {
-  filter_init_session() {
+  filter_init_session()
+  {
     emb::mmio::set<CAN_FCTRL_FINITEN>(can1::reg.FCTRL);
   }
 
-  ~filter_init_session() {
+  ~filter_init_session()
+  {
     emb::mmio::clear<CAN_FCTRL_FINITEN>(can1::reg.FCTRL);
   }
 };
 
-inline void setup_filter_bank(
-    filter_scale scale,
-    filter_mode mode,
-    rx_fifo fifo,
-    std::size_t filter_idx,
-    std::uint32_t bank1,
-    std::uint32_t bank2
-) {
+inline void setup_filter_bank(filter_scale scale,
+                              filter_mode mode,
+                              rx_fifo fifo,
+                              std::size_t filter_idx,
+                              std::uint32_t bank1,
+                              std::uint32_t bank2)
+{
   registers& reg = can1::reg;
 
   std::uint32_t const filter_bit = 1u << filter_idx;
@@ -35,8 +36,12 @@ inline void setup_filter_bank(
   // deactivate filter
   emb::mmio::runtime::clear(reg.FACT, filter_bit);
 
-  emb::mmio::runtime::set_or_clear(reg.FSCFG, filter_bit, scale == filter_scale::_32bit);
-  emb::mmio::runtime::set_or_clear(reg.FMCFG, filter_bit, mode == filter_mode::list);
+  emb::mmio::runtime::set_or_clear(reg.FSCFG,
+                                   filter_bit,
+                                   scale == filter_scale::_32bit);
+  emb::mmio::runtime::set_or_clear(reg.FMCFG,
+                                   filter_bit,
+                                   mode == filter_mode::list);
   emb::mmio::runtime::set_or_clear(reg.FFASS, filter_bit, fifo == rx_fifo::_1);
 
   reg.sFilterRegister[filter_idx].FBANK1 = bank1;
@@ -48,8 +53,9 @@ inline void setup_filter_bank(
 
 namespace detail {
 
-constexpr std::uint32_t
-encode_32bit_id(emb::can::format_t fmt, emb::can::id_t id) {
+constexpr std::uint32_t encode_32bit_id(emb::can::format_t fmt,
+                                        emb::can::id_t id)
+{
   if (fmt == emb::can::format_t::standard) {
     return (id & 0x7FFu) << 21;
   }
@@ -57,8 +63,9 @@ encode_32bit_id(emb::can::format_t fmt, emb::can::id_t id) {
   return (id & 0x1FFFFFFFu) << 3 | ide_bit;
 }
 
-constexpr std::uint32_t
-encode_32bit_mask(emb::can::format_t fmt, emb::can::id_t mask) {
+constexpr std::uint32_t encode_32bit_mask(emb::can::format_t fmt,
+                                          emb::can::id_t mask)
+{
   constexpr std::uint32_t rtr_bit = 1u << 1; // accept data frames only
   constexpr std::uint32_t ide_bit = 1u << 2;
   if (fmt == emb::can::format_t::standard) {
@@ -67,11 +74,13 @@ encode_32bit_mask(emb::can::format_t fmt, emb::can::id_t mask) {
   return (mask & 0x1FFFFFFFu) << 3 | ide_bit | rtr_bit;
 }
 
-constexpr std::uint32_t encode_16bit_id(emb::can::id_t id) {
+constexpr std::uint32_t encode_16bit_id(emb::can::id_t id)
+{
   return (id & 0x7FFu) << 5;
 }
 
-constexpr std::uint32_t encode_16bit_mask(emb::can::id_t id) {
+constexpr std::uint32_t encode_16bit_mask(emb::can::id_t id)
+{
   constexpr std::uint32_t rtr_bit = 1u << 4; // accept data frames only
   constexpr std::uint32_t ide_bit = 1u << 3;
   return (id & 0x7FFu) << 5 | ide_bit | rtr_bit;

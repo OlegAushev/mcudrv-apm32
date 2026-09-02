@@ -19,12 +19,10 @@ struct periodic_timer_config {
 
 namespace detail {
 
-void configure_timebase(
-    registers& REG,
-    emb::units::hz_f32 clk_freq,
-    periodic_timer_config const& conf,
-    std::uint32_t counter_max
-);
+void configure_timebase(registers& REG,
+                        emb::units::hz_f32 clk_freq,
+                        periodic_timer_config const& conf,
+                        std::uint32_t counter_max);
 
 } // namespace detail
 
@@ -45,13 +43,12 @@ public:
   periodic_timer(periodic_timer&&) = delete;
   periodic_timer& operator=(periodic_timer&&) = delete;
 
-  periodic_timer(periodic_timer_config conf) {
+  periodic_timer(periodic_timer_config conf)
+  {
     period_ = 1.f / conf.frequency;
     if (!conf.prescaler.has_value()) {
-      conf.prescaler = calculate_prescaler<timer_instance>(
-          conf.frequency,
-          counter_mode::up
-      );
+      conf.prescaler = calculate_prescaler<timer_instance>(conf.frequency,
+                                                           counter_mode::up);
     }
 
     timer_instance::enable_clock();
@@ -60,8 +57,7 @@ public:
         REG,
         timer_instance::template clock_frequency<emb::units::hz_f32>(),
         conf,
-        std::numeric_limits<typename timer_instance::counter_type>::max()
-    );
+        std::numeric_limits<typename timer_instance::counter_type>::max());
 
     // Trigger output
     if constexpr (some_master_timer_instance<Tim>) {
@@ -75,26 +71,31 @@ public:
     set_irq_priority(update_irqn_, conf.irq_priority);
   }
 
-  emb::units::sec_f32 period() const {
+  emb::units::sec_f32 period() const
+  {
     return period_;
   }
 
-  void enable() {
+  void enable()
+  {
     ack_update_interrupt();
     nvic::clear_pending_irq(update_irqn_);
     nvic::enable_irq(update_irqn_);
     enable_counter();
   }
 
-  void ack_update_interrupt() {
+  void ack_update_interrupt()
+  {
     emb::mmio::clear_w0<TMR_STS_UIFLG>(REG.STS);
   }
 private:
-  void enable_counter() {
+  void enable_counter()
+  {
     emb::mmio::set<TMR_CTRL1_CNTEN>(REG.CTRL1);
   }
 
-  void disable_counter() {
+  void disable_counter()
+  {
     emb::mmio::clear<TMR_CTRL1_CNTEN>(REG.CTRL1);
   }
 };

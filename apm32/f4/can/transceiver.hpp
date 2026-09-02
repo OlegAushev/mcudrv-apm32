@@ -49,7 +49,8 @@ struct transceiver_config {
   nvic::irq_priority tx_irq_priority;
   nvic::irq_priority sce_irq_priority;
 
-  constexpr std::uint32_t bittim_reg() const {
+  constexpr std::uint32_t bittim_reg() const
+  {
     return ((prescaler - 1u) << CAN_BITTIM_BRPSC_Pos)
          | ((sync_jump_width - 1u) << CAN_BITTIM_RSYNJW_Pos)
          | ((time_segment1 - 1u) << CAN_BITTIM_TIMSEG1_Pos)
@@ -58,7 +59,8 @@ struct transceiver_config {
          | ((std::to_underlying(mode) >> 1) << CAN_BITTIM_SILMEN_Pos);
   }
 
-  constexpr std::uint32_t mctrl_reg() const {
+  constexpr std::uint32_t mctrl_reg() const
+  {
     return (tx_fifo_priority ? CAN_MCTRL_TXFPCFG : 0u)
          | (rx_fifo_locked ? CAN_MCTRL_RXFLOCK : 0u)
          | (no_auto_retransmit ? CAN_MCTRL_ARTXMD : 0u)
@@ -85,10 +87,9 @@ template<transceiver_traits Traits>
 
 template<transceiver_traits Traits1, transceiver_traits Traits2>
   requires(Traits1.filter_count + Traits2.filter_count <= filter_count_total)
-[[nodiscard]] auto init_filter_banks(
-    transceiver<can1, Traits1>& can1_xcvr,
-    transceiver<can2, Traits2>& can2_xcvr
-) -> std::pair<filter_setup<can1, Traits1>, filter_setup<can2, Traits2>>;
+[[nodiscard]] auto init_filter_banks(transceiver<can1, Traits1>& can1_xcvr,
+                                     transceiver<can2, Traits2>& can2_xcvr)
+    -> std::pair<filter_setup<can1, Traits1>, filter_setup<can2, Traits2>>;
 
 template<some_can_instance Instance, transceiver_traits Traits>
 class transceiver {
@@ -121,7 +122,8 @@ public:
   transceiver(transceiver&&) = delete;
   transceiver& operator=(transceiver&&) = delete;
 
-  transceiver(transceiver_config const& config) {
+  transceiver(transceiver_config const& config)
+  {
     Instance::enable_clock();
 
     // enter init mode
@@ -143,26 +145,20 @@ public:
     reg.BITTIM = config.bittim_reg();
 
     rx_pin_.emplace(
-        gpio::alternate_pin_config{
-            .port = config.rx_pin.port,
-            .pin = config.rx_pin.pin,
-            .pull = gpio::pull::none,
-            .output_type = gpio::output_type::pushpull,
-            .speed = gpio::speed::medium,
-            .altfunc = Instance::gpio_altfunc
-        }
-    );
+        gpio::alternate_pin_config{.port = config.rx_pin.port,
+                                   .pin = config.rx_pin.pin,
+                                   .pull = gpio::pull::none,
+                                   .output_type = gpio::output_type::pushpull,
+                                   .speed = gpio::speed::medium,
+                                   .altfunc = Instance::gpio_altfunc});
 
     tx_pin_.emplace(
-        gpio::alternate_pin_config{
-            .port = config.tx_pin.port,
-            .pin = config.tx_pin.pin,
-            .pull = gpio::pull::none,
-            .output_type = gpio::output_type::pushpull,
-            .speed = gpio::speed::medium,
-            .altfunc = Instance::gpio_altfunc
-        }
-    );
+        gpio::alternate_pin_config{.port = config.tx_pin.port,
+                                   .pin = config.tx_pin.pin,
+                                   .pull = gpio::pull::none,
+                                   .output_type = gpio::output_type::pushpull,
+                                   .speed = gpio::speed::medium,
+                                   .altfunc = Instance::gpio_altfunc});
 
     Instance::on_irq_rx0 = emb::make_delegate<&transceiver::on_irq_rx0>(this);
     Instance::on_irq_rx1 = emb::make_delegate<&transceiver::on_irq_rx1>(this);
@@ -171,15 +167,15 @@ public:
 
     // interrupt configuration
     emb::mmio::set<CAN_INTEN_FMIEN0 | CAN_INTEN_FMIEN1 | CAN_INTEN_TXMEIEN>(
-        reg.INTEN
-    );
+        reg.INTEN);
     nvic::set_irq_priority(rx0_irqn, config.rx_fifo0_irq_priority);
     nvic::set_irq_priority(rx1_irqn, config.rx_fifo1_irq_priority);
     nvic::set_irq_priority(tx_irqn, config.tx_irq_priority);
     nvic::set_irq_priority(sce_irqn, config.sce_irq_priority);
   }
 
-  void enable() {
+  void enable()
+  {
     nvic::clear_pending_irq(rx0_irqn);
     nvic::enable_irq(rx0_irqn);
     nvic::clear_pending_irq(rx1_irqn);
@@ -196,22 +192,26 @@ public:
     }
   }
 
-  void on_rx_fifo0(rx_delegate sink) {
+  void on_rx_fifo0(rx_delegate sink)
+  {
     on_rx_fifo0_ = sink;
   }
 
-  void on_rx_fifo1(rx_delegate sink) {
+  void on_rx_fifo1(rx_delegate sink)
+  {
     on_rx_fifo1_ = sink;
   }
 
-  auto put(emb::can::frame_t const& frame) -> std::expected<void, error> {
+  auto put(emb::can::frame_t const& frame) -> std::expected<void, error>
+  {
     if (!tx_queue_.try_push(frame)) return std::unexpected(error::overflow);
     if (!all_mailboxes_busy()) nvic::set_pending_irq(tx_irqn);
     return {};
   }
 
   template<rx_fifo RxFifo>
-  auto get() -> std::optional<emb::can::frame_t> {
+  auto get() -> std::optional<emb::can::frame_t>
+  {
     if (rx_messages_pending<RxFifo>() == 0) {
       return {};
     }
@@ -223,23 +223,23 @@ public:
     if (!emb::mmio::test<CAN_RXMID0_IDTYPESEL>(rxmid)) {
       frame.format = emb::can::format_t::standard;
       frame.id = rxmid >> 21;
-    } else {
+    }
+    else {
       frame.format = emb::can::format_t::extended;
       frame.id = rxmid >> 3;
     }
 
     frame.len = std::uint8_t(
-        emb::mmio::read<CAN_RXDLEN0_DLCODE>(reg.sFIFOMailBox[fifo].RXDLEN)
-    );
+        emb::mmio::read<CAN_RXDLEN0_DLCODE>(reg.sFIFOMailBox[fifo].RXDLEN));
 
     frame.payload = std::bit_cast<emb::can::payload_t>(
-        std::array{reg.sFIFOMailBox[fifo].RXMDL, reg.sFIFOMailBox[fifo].RXMDH}
-    );
+        std::array{reg.sFIFOMailBox[fifo].RXMDL, reg.sFIFOMailBox[fifo].RXMDH});
 
     // release FIFO
     if constexpr (RxFifo == rx_fifo::_0) {
       emb::mmio::set<CAN_RXF0_RFOM0>(reg.RXF0);
-    } else {
+    }
+    else {
       emb::mmio::set<CAN_RXF1_RFOM1>(reg.RXF1);
     }
 
@@ -247,7 +247,8 @@ public:
   }
 
 private:
-  std::uint32_t get_next_filter_idx() {
+  std::uint32_t get_next_filter_idx()
+  {
     std::uint32_t bank_offset = 0;
     if constexpr (std::same_as<Instance, can2>) {
       bank_offset = emb::mmio::read<CAN_FCTRL_CAN2SB>(can1::reg.FCTRL);
@@ -255,90 +256,90 @@ private:
     return bank_offset + filters_used_;
   }
 
-  void add_filter(filter_32_mask const& filter, rx_fifo fifo) {
+  void add_filter(filter_32_mask const& filter, rx_fifo fifo)
+  {
     emb::ensure(filters_used_ < Traits.filter_count);
 
-    setup_filter_bank(
-        filter_scale::_32bit,
-        filter_mode::mask,
-        fifo,
-        get_next_filter_idx(),
-        detail::encode_32bit_id(filter.format, filter.id),
-        detail::encode_32bit_mask(filter.format, filter.mask)
-    );
+    setup_filter_bank(filter_scale::_32bit,
+                      filter_mode::mask,
+                      fifo,
+                      get_next_filter_idx(),
+                      detail::encode_32bit_id(filter.format, filter.id),
+                      detail::encode_32bit_mask(filter.format, filter.mask));
 
     ++filters_used_;
   }
 
-  void add_filter(filter_32_list const& filter, rx_fifo fifo) {
+  void add_filter(filter_32_list const& filter, rx_fifo fifo)
+  {
     emb::ensure(filters_used_ < Traits.filter_count);
 
-    setup_filter_bank(
-        filter_scale::_32bit,
-        filter_mode::list,
-        fifo,
-        get_next_filter_idx(),
-        detail::encode_32bit_id(filter.format, filter.id1),
-        detail::encode_32bit_id(filter.format, filter.id2)
-    );
+    setup_filter_bank(filter_scale::_32bit,
+                      filter_mode::list,
+                      fifo,
+                      get_next_filter_idx(),
+                      detail::encode_32bit_id(filter.format, filter.id1),
+                      detail::encode_32bit_id(filter.format, filter.id2));
 
     ++filters_used_;
   }
 
-  void add_filter(filter_16_mask const& filter, rx_fifo fifo) {
+  void add_filter(filter_16_mask const& filter, rx_fifo fifo)
+  {
     emb::ensure(filters_used_ < Traits.filter_count);
 
     std::uint32_t const bank1 = detail::encode_16bit_mask(filter.mask1) << 16
-                         | detail::encode_16bit_id(filter.id1);
+                              | detail::encode_16bit_id(filter.id1);
     std::uint32_t const bank2 = detail::encode_16bit_mask(filter.mask2) << 16
-                         | detail::encode_16bit_id(filter.id2);
+                              | detail::encode_16bit_id(filter.id2);
 
-    setup_filter_bank(
-        filter_scale::_16bit,
-        filter_mode::mask,
-        fifo,
-        get_next_filter_idx(),
-        bank1,
-        bank2
-    );
+    setup_filter_bank(filter_scale::_16bit,
+                      filter_mode::mask,
+                      fifo,
+                      get_next_filter_idx(),
+                      bank1,
+                      bank2);
 
     ++filters_used_;
   }
 
-  void add_filter(filter_16_list const& filter, rx_fifo fifo) {
+  void add_filter(filter_16_list const& filter, rx_fifo fifo)
+  {
     emb::ensure(filters_used_ < Traits.filter_count);
 
     std::uint32_t const bank1 = detail::encode_16bit_id(filter.id2) << 16
-                         | detail::encode_16bit_id(filter.id1);
+                              | detail::encode_16bit_id(filter.id1);
     std::uint32_t const bank2 = detail::encode_16bit_id(filter.id4) << 16
-                         | detail::encode_16bit_id(filter.id3);
+                              | detail::encode_16bit_id(filter.id3);
 
-    setup_filter_bank(
-        filter_scale::_16bit,
-        filter_mode::list,
-        fifo,
-        get_next_filter_idx(),
-        bank1,
-        bank2
-    );
+    setup_filter_bank(filter_scale::_16bit,
+                      filter_mode::list,
+                      fifo,
+                      get_next_filter_idx(),
+                      bank1,
+                      bank2);
 
     ++filters_used_;
   }
 
-  bool all_mailboxes_busy() const {
+  bool all_mailboxes_busy() const
+  {
     return !emb::mmio::test_any<CAN_TXSTS_TXMEFLG>(reg.TXSTS);
   }
 
   template<rx_fifo RxFifo>
-  std::size_t rx_messages_pending() const {
+  std::size_t rx_messages_pending() const
+  {
     if constexpr (RxFifo == rx_fifo::_0) {
       return emb::mmio::read<CAN_RXF0_FMNUM0>(reg.RXF0);
-    } else {
+    }
+    else {
       return emb::mmio::read<CAN_RXF1_FMNUM1>(reg.RXF1);
     }
   }
 
-  void populate_mailboxes() {
+  void populate_mailboxes()
+  {
     while (!all_mailboxes_busy()) {
       auto frame = tx_queue_.try_pop();
       if (!frame) return;
@@ -346,7 +347,8 @@ private:
     }
   }
 
-  void put_into_mailbox(emb::can::frame_t const& frame) {
+  void put_into_mailbox(emb::can::frame_t const& frame)
+  {
     auto mailbox = emb::mmio::read<CAN_TXSTS_EMNUM>(reg.TXSTS);
     if (mailbox > 2) return;
 
@@ -354,19 +356,19 @@ private:
     std::uint32_t txmid;
     if (frame.format == emb::can::format_t::standard) {
       txmid = (frame.id << CAN_TXMID0_STDID_Pos);
-    } else {
+    }
+    else {
       txmid = (frame.id << CAN_TXMID0_EXTID_Pos) | CAN_TXMID0_IDTYPESEL;
     }
     reg.sTxMailBox[mailbox].TXMID = txmid;
 
     // DLC
-    emb::mmio::write<CAN_TXDLEN0_DLCODE>(
-        reg.sTxMailBox[mailbox].TXDLEN,
-        frame.len
-    );
+    emb::mmio::write<CAN_TXDLEN0_DLCODE>(reg.sTxMailBox[mailbox].TXDLEN,
+                                         frame.len);
 
     // data
-    auto const words = std::bit_cast<std::array<std::uint32_t, 2>>(frame.payload);
+    auto const words = std::bit_cast<std::array<std::uint32_t, 2>>(
+        frame.payload);
     reg.sTxMailBox[mailbox].TXMDL = words[0];
     reg.sTxMailBox[mailbox].TXMDH = words[1];
 
@@ -375,28 +377,31 @@ private:
   }
 
 private:
-  void on_irq_rx0() {
+  void on_irq_rx0()
+  {
     while (auto frame = get<rx_fifo::_0>()) {
       if (on_rx_fifo0_) on_rx_fifo0_(*frame);
     }
   }
 
-  void on_irq_rx1() {
+  void on_irq_rx1()
+  {
     while (auto frame = get<rx_fifo::_1>()) {
       if (on_rx_fifo1_) on_rx_fifo1_(*frame);
     }
   }
 
-  void on_irq_tx() {
+  void on_irq_tx()
+  {
     emb::mmio::clear_w1<
         CAN_TXSTS_REQCFLG0 | CAN_TXSTS_REQCFLG1 | CAN_TXSTS_REQCFLG2>(
-        reg.TXSTS
-    );
+        reg.TXSTS);
 
     populate_mailboxes();
   }
 
-  void on_irq_sce() {
+  void on_irq_sce()
+  {
     // TODO
   }
 };
@@ -422,25 +427,28 @@ class filter_setup {
 
   template<transceiver_traits T1, transceiver_traits T2>
     requires(T1.filter_count + T2.filter_count <= filter_count_total)
-  friend auto init_filter_banks(
-      transceiver<can1, T1>& can1_xcvr,
-      transceiver<can2, T2>& can2_xcvr
-  ) -> std::pair<filter_setup<can1, T1>, filter_setup<can2, T2>>;
+  friend auto init_filter_banks(transceiver<can1, T1>& can1_xcvr,
+                                transceiver<can2, T2>& can2_xcvr)
+      -> std::pair<filter_setup<can1, T1>, filter_setup<can2, T2>>;
 
 public:
-  void add(filter_32_mask const& filter, rx_fifo fifo) {
+  void add(filter_32_mask const& filter, rx_fifo fifo)
+  {
     xcvr_.add_filter(filter, fifo);
   }
 
-  void add(filter_32_list const& filter, rx_fifo fifo) {
+  void add(filter_32_list const& filter, rx_fifo fifo)
+  {
     xcvr_.add_filter(filter, fifo);
   }
 
-  void add(filter_16_mask const& filter, rx_fifo fifo) {
+  void add(filter_16_mask const& filter, rx_fifo fifo)
+  {
     xcvr_.add_filter(filter, fifo);
   }
 
-  void add(filter_16_list const& filter, rx_fifo fifo) {
+  void add(filter_16_list const& filter, rx_fifo fifo)
+  {
     xcvr_.add_filter(filter, fifo);
   }
 };
@@ -448,7 +456,8 @@ public:
 template<transceiver_traits Traits>
   requires(Traits.filter_count <= filter_count_total)
 [[nodiscard]] auto init_filter_banks(transceiver<can1, Traits>& can1_xcvr)
-    -> filter_setup<can1, Traits> {
+    -> filter_setup<can1, Traits>
+{
   filter_init_session fg;
   emb::mmio::write<CAN_FCTRL_CAN2SB>(can1::reg.FCTRL, Traits.filter_count);
   return filter_setup<can1, Traits>{can1_xcvr};
@@ -457,7 +466,8 @@ template<transceiver_traits Traits>
 template<transceiver_traits Traits>
   requires(Traits.filter_count <= filter_count_total)
 [[nodiscard]] auto init_filter_banks(transceiver<can2, Traits>& can2_xcvr)
-    -> filter_setup<can2, Traits> {
+    -> filter_setup<can2, Traits>
+{
   can1::enable_clock();
   filter_init_session fg;
   emb::mmio::write<CAN_FCTRL_CAN2SB>(can1::reg.FCTRL, 0u);
@@ -468,16 +478,14 @@ template<transceiver_traits Traits>
 
 template<transceiver_traits Traits1, transceiver_traits Traits2>
   requires(Traits1.filter_count + Traits2.filter_count <= filter_count_total)
-[[nodiscard]] auto init_filter_banks(
-    transceiver<can1, Traits1>& can1_xcvr,
-    transceiver<can2, Traits2>& can2_xcvr
-) -> std::pair<filter_setup<can1, Traits1>, filter_setup<can2, Traits2>> {
+[[nodiscard]] auto init_filter_banks(transceiver<can1, Traits1>& can1_xcvr,
+                                     transceiver<can2, Traits2>& can2_xcvr)
+    -> std::pair<filter_setup<can1, Traits1>, filter_setup<can2, Traits2>>
+{
   filter_init_session fg;
   emb::mmio::write<CAN_FCTRL_CAN2SB>(can1::reg.FCTRL, Traits1.filter_count);
-  return {
-      filter_setup<can1, Traits1>{can1_xcvr},
-      filter_setup<can2, Traits2>{can2_xcvr}
-  };
+  return {filter_setup<can1, Traits1>{can1_xcvr},
+          filter_setup<can2, Traits2>{can2_xcvr}};
 }
 
 } // namespace apm32::f4::can

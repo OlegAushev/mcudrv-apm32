@@ -46,19 +46,22 @@ inline constexpr std::size_t capacity = 0x10'0000;
 inline constexpr std::uint32_t sector_count = 12;
 #endif
 
-constexpr auto address(sector s) -> std::uintptr_t {
+constexpr auto address(sector s) -> std::uintptr_t
+{
   auto const n = std::to_underlying(s);
   return n <= 3 ? base + 0x4000 * n
        : n == 4 ? base + 0x1'0000
                 : base + 0x2'0000 * (n - 4);
 }
 
-constexpr auto size(sector s) -> std::size_t {
+constexpr auto size(sector s) -> std::size_t
+{
   auto const n = std::to_underlying(s);
   return n <= 3 ? 0x4000 : n == 4 ? 0x1'0000 : 0x2'0000;
 }
 
-inline auto view(sector s) -> std::span<std::byte const> {
+inline auto view(sector s) -> std::span<std::byte const>
+{
   return {reinterpret_cast<std::byte const*>(address(s)), size(s)};
 }
 
@@ -76,7 +79,8 @@ static_assert([] {
 }());
 
 // Factory-programmed flash size of the actual part; may differ from capacity.
-inline auto device_flash_size() -> std::size_t {
+inline auto device_flash_size() -> std::size_t
+{
   return *reinterpret_cast<std::uint16_t volatile*>(FLASHSIZE_BASE) * 1024u;
 }
 
@@ -89,7 +93,8 @@ enum class voltage_range : std::uint32_t {
 
 enum class program_size : std::uint32_t { _8, _16, _32, _64 };
 
-constexpr std::uint32_t wait_states(std::uint64_t hclk_hz) {
+constexpr std::uint32_t wait_states(std::uint64_t hclk_hz)
+{
   return hclk_hz <= 30'000'000  ? FLASH_ACCTRL_WAITP_0WS
        : hclk_hz <= 60'000'000  ? FLASH_ACCTRL_WAITP_1WS
        : hclk_hz <= 90'000'000  ? FLASH_ACCTRL_WAITP_2WS
@@ -98,14 +103,15 @@ constexpr std::uint32_t wait_states(std::uint64_t hclk_hz) {
                                 : FLASH_ACCTRL_WAITP_5WS;
 }
 
-inline void enable_acceleration() {
+inline void enable_acceleration()
+{
   emb::mmio::set<
       FLASH_ACCTRL_PREFEN | FLASH_ACCTRL_ICACHEEN | FLASH_ACCTRL_DCACHEEN>(
-      FLASH->ACCTRL
-  );
+      FLASH->ACCTRL);
 }
 
-constexpr auto erased(std::span<std::byte const> data) -> bool {
+constexpr auto erased(std::span<std::byte const> data) -> bool
+{
   for (std::byte b : data) {
     if (b != std::byte{0xFF}) {
       return false;

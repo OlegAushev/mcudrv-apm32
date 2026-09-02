@@ -20,15 +20,13 @@ protected:
   std::uint16_t const pin_;
   port_registers* const regs_;
 private:
-  pin_base(
-      port p,
-      std::uint16_t pin_mask,
-      std::uint32_t mode_val,
-      std::uint32_t otype_val,
-      std::uint32_t speed_val,
-      std::uint32_t pupd_val,
-      std::optional<std::uint32_t> altfunc = std::nullopt
-  );
+  pin_base(port p,
+           std::uint16_t pin_mask,
+           std::uint32_t mode_val,
+           std::uint32_t otype_val,
+           std::uint32_t speed_val,
+           std::uint32_t pupd_val,
+           std::optional<std::uint32_t> altfunc = std::nullopt);
 protected:
   ~pin_base();
   explicit pin_base(input_pin_config const& conf);
@@ -41,15 +39,18 @@ public:
   pin_base(pin_base&& other) = delete;
   pin_base& operator=(pin_base&& other) = delete;
 
-  std::size_t pin_no() const {
+  std::size_t pin_no() const
+  {
     return __CLZ(__RBIT(pin_));
   }
 
-  std::uint16_t pin_bit() const {
+  std::uint16_t pin_bit() const
+  {
     return static_cast<std::uint16_t>(pin_);
   }
 
-  port_registers const* regs() const {
+  port_registers const* regs() const
+  {
     return regs_;
   }
 private:

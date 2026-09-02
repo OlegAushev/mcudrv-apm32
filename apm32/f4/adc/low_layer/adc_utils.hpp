@@ -13,32 +13,38 @@
 namespace apm32::f4::adc {
 
 template<some_adc_instance Instance>
-void start_injected() {
+void start_injected()
+{
   emb::mmio::set<ADC_CTRL2_INJSWSC>(Instance::reg.CTRL2);
 }
 
 template<some_adc_instance Instance>
-void start_regular() {
+void start_regular()
+{
   emb::mmio::set<ADC_CTRL2_REGSWSC>(Instance::reg.CTRL2);
 }
 
 template<some_adc_instance Instance>
-bool jeoc_flag() {
+bool jeoc_flag()
+{
   return emb::mmio::test<ADC_STS_INJEOCFLG>(Instance::reg.STS);
 }
 
 template<some_adc_instance Instance>
-void acknowledge_jeoc() {
+void acknowledge_jeoc()
+{
   emb::mmio::clear_w0<ADC_STS_INJEOCFLG>(Instance::reg.STS);
 }
 
 template<some_adc_instance Instance>
-bool eoc_flag() {
+bool eoc_flag()
+{
   return emb::mmio::test<ADC_STS_EOCFLG>(Instance::reg.STS);
 }
 
 template<some_adc_instance Instance>
-void acknowledge_eoc() {
+void acknowledge_eoc()
+{
   emb::mmio::clear_w0<ADC_STS_EOCFLG>(Instance::reg.STS);
 }
 
@@ -47,43 +53,39 @@ inline constexpr std::array<std::uint32_t, 4> clock_prescalers = {2, 4, 6, 8};
 namespace detail {
 
 // prescaler field value: 0=div2, 1=div4, 2=div6, 3=div8
-constexpr std::uint32_t prescaler_to_field(std::uint32_t prescaler) {
+constexpr std::uint32_t prescaler_to_field(std::uint32_t prescaler)
+{
   switch (prescaler) {
-  case 2:
-    return 0;
-  case 4:
-    return 1;
-  case 6:
-    return 2;
-  case 8:
-    return 3;
+  case 2: return 0;
+  case 4: return 1;
+  case 6: return 2;
+  case 8: return 3;
   }
   std::unreachable();
 }
 
-constexpr std::uint32_t
-calculate_prescaler(emb::units::hz_f32 clk_freq, emb::units::hz_f32 adc_freq) {
+constexpr std::uint32_t calculate_prescaler(emb::units::hz_f32 clk_freq,
+                                            emb::units::hz_f32 adc_freq)
+{
   std::uint32_t clk_freq_u32 = static_cast<std::uint32_t>(clk_freq.value());
   std::uint32_t adc_freq_u32 = static_cast<std::uint32_t>(adc_freq.value());
 
-  std::uint32_t ratio = clk_freq_u32 / adc_freq_u32 +
-                   (clk_freq_u32 % adc_freq_u32 != 0);
-  auto it = std::upper_bound(
-      clock_prescalers.begin(),
-      clock_prescalers.end(),
-      ratio
-  );
+  std::uint32_t ratio = clk_freq_u32 / adc_freq_u32
+                      + (clk_freq_u32 % adc_freq_u32 != 0);
+  auto it = std::upper_bound(clock_prescalers.begin(),
+                             clock_prescalers.end(),
+                             ratio);
   emb::ensure(it != clock_prescalers.end());
   return *it;
 }
 
 } // namespace detail
 
-inline std::uint32_t calculate_prescaler() {
+inline std::uint32_t calculate_prescaler()
+{
   return detail::calculate_prescaler(
       rcc::pclk2_timer_frequency<emb::units::hz_f32>(),
-      max_clock_frequency
-  );
+      max_clock_frequency);
 }
 
 } // namespace apm32::f4::adc

@@ -80,12 +80,14 @@ template<typename T>
 concept some_adc_instance = is_adc_instance<T>::value;
 
 template<some_adc_instance Instance, typename T>
-consteval bool is_compatible_dma_stream() {
+consteval bool is_compatible_dma_stream()
+{
   return emb::typelist_contains_v<typename Instance::dma_streams, T>;
 }
 
 template<some_adc_instance Instance, typename T>
-consteval bool is_compatible_dma_channel() {
+consteval bool is_compatible_dma_channel()
+{
   return std::same_as<T, typename Instance::dma_channel>;
 }
 

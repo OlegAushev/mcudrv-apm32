@@ -37,16 +37,16 @@ struct channel7 {
 };
 
 template<typename T>
-struct is_dma_channel_instance : std::bool_constant<emb::same_as_any<
-                                     T,
-                                     channel0,
-                                     channel1,
-                                     channel2,
-                                     channel3,
-                                     channel4,
-                                     channel5,
-                                     channel6,
-                                     channel7>> {};
+struct is_dma_channel_instance
+    : std::bool_constant<emb::same_as_any<T,
+                                          channel0,
+                                          channel1,
+                                          channel2,
+                                          channel3,
+                                          channel4,
+                                          channel5,
+                                          channel6,
+                                          channel7>> {};
 
 template<typename T>
 concept some_dma_channel_instance = is_dma_channel_instance<T>::value;

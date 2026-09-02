@@ -16,8 +16,10 @@ namespace apm32::f4::adc {
 namespace detail {
 
 template<std::size_t N>
-constexpr bool
-ranks_in_range(std::array<unsigned, N> const& ranks, unsigned lo, unsigned hi) {
+constexpr bool ranks_in_range(std::array<unsigned, N> const& ranks,
+                              unsigned lo,
+                              unsigned hi)
+{
   for (auto rank : ranks) {
     if (rank < lo || rank > hi) {
       return false;
@@ -27,7 +29,8 @@ ranks_in_range(std::array<unsigned, N> const& ranks, unsigned lo, unsigned hi) {
 }
 
 template<std::size_t N>
-constexpr bool ranks_unique(std::array<unsigned, N> const& ranks) {
+constexpr bool ranks_unique(std::array<unsigned, N> const& ranks)
+{
   for (std::size_t i = 0; i < N; ++i) {
     for (std::size_t j = i + 1; j < N; ++j) {
       if (ranks[i] == ranks[j]) {
@@ -44,36 +47,25 @@ template<unsigned... Ranks>
 struct injected_rank_sequence {
   static constexpr std::array<unsigned, sizeof...(Ranks)> values{Ranks...};
 
-  static_assert(
-      sizeof...(Ranks) >= 1,
-      "injected_rank_sequence must contain at least one rank"
-  );
-  static_assert(
-      detail::ranks_in_range(values, 1u, 4u),
-      "injected ranks must be in [1, 4]"
-  );
+  static_assert(sizeof...(Ranks) >= 1,
+                "injected_rank_sequence must contain at least one rank");
+  static_assert(detail::ranks_in_range(values, 1u, 4u),
+                "injected ranks must be in [1, 4]");
   static_assert(
       detail::ranks_unique(values),
-      "injected ranks must be unique (no slot may be assigned twice)"
-  );
+      "injected ranks must be unique (no slot may be assigned twice)");
 };
 
 template<unsigned... Ranks>
 struct regular_rank_sequence {
   static constexpr std::array<unsigned, sizeof...(Ranks)> values{Ranks...};
 
-  static_assert(
-      sizeof...(Ranks) >= 1,
-      "regular_rank_sequence must contain at least one rank"
-  );
-  static_assert(
-      detail::ranks_in_range(values, 1u, 16u),
-      "regular ranks must be in [1, 16]"
-  );
-  static_assert(
-      detail::ranks_unique(values),
-      "regular ranks must be unique (no slot may be assigned twice)"
-  );
+  static_assert(sizeof...(Ranks) >= 1,
+                "regular_rank_sequence must contain at least one rank");
+  static_assert(detail::ranks_in_range(values, 1u, 16u),
+                "regular ranks must be in [1, 16]");
+  static_assert(detail::ranks_unique(values),
+                "regular ranks must be unique (no slot may be assigned twice)");
 };
 
 template<typename T>
@@ -95,11 +87,13 @@ namespace detail {
 // sample time: 3 bits per channel
 // channels 0-9  -> SMPTIM2 at (ch * 3) bits
 // channels 10-17 -> SMPTIM1 at ((ch - 10) * 3) bits
-inline void set_sample_time(registers& reg, unsigned ch, std::uint8_t smp) {
+inline void set_sample_time(registers& reg, unsigned ch, std::uint8_t smp)
+{
   if (ch < 10) {
     std::uint32_t const pos = ch * 3u;
     emb::mmio::runtime::write(reg.SMPTIM2, 0x7u << pos, std::uint32_t(smp));
-  } else {
+  }
+  else {
     std::uint32_t const pos = (ch - 10u) * 3u;
     emb::mmio::runtime::write(reg.SMPTIM1, 0x7u << pos, std::uint32_t(smp));
   }
@@ -109,15 +103,17 @@ inline void set_sample_time(registers& reg, unsigned ch, std::uint8_t smp) {
 // ranks 1-6   -> REGSEQ3 at ((rank-1) * 5) bits
 // ranks 7-12  -> REGSEQ2 at ((rank-7) * 5) bits
 // ranks 13-16 -> REGSEQ1 at ((rank-13) * 5) bits
-inline void
-set_regular_sequence(registers& reg, unsigned ch, std::uint8_t rank) {
+inline void set_regular_sequence(registers& reg, unsigned ch, std::uint8_t rank)
+{
   if (rank <= 6) {
     std::uint32_t const pos = (rank - 1u) * 5u;
     emb::mmio::runtime::write(reg.REGSEQ3, 0x1Fu << pos, std::uint32_t(ch));
-  } else if (rank <= 12) {
+  }
+  else if (rank <= 12) {
     std::uint32_t const pos = (rank - 7u) * 5u;
     emb::mmio::runtime::write(reg.REGSEQ2, 0x1Fu << pos, std::uint32_t(ch));
-  } else {
+  }
+  else {
     std::uint32_t const pos = (rank - 13u) * 5u;
     emb::mmio::runtime::write(reg.REGSEQ1, 0x1Fu << pos, std::uint32_t(ch));
   }
@@ -125,15 +121,19 @@ set_regular_sequence(registers& reg, unsigned ch, std::uint8_t rank) {
 
 // injected sequence: 5 bits per slot, slots 1-4 at ((slot-1) * 5) bits
 // (right-alignment by sequence length is handled by the caller)
-inline void
-set_injected_sequence(registers& reg, unsigned ch, std::uint8_t slot) {
+inline void set_injected_sequence(registers& reg,
+                                  unsigned ch,
+                                  std::uint8_t slot)
+{
   std::uint32_t const pos = (slot - 1u) * 5u;
   emb::mmio::runtime::write(reg.INJSEQ, 0x1Fu << pos, std::uint32_t(ch));
 }
 
 // injected offset: INJDOF1-4 registers
-inline void
-set_injected_offset(registers& reg, std::uint8_t rank, std::uint16_t offset) {
+inline void set_injected_offset(registers& reg,
+                                std::uint8_t rank,
+                                std::uint16_t offset)
+{
   switch (rank) {
   case 1: reg.INJDOF1 = offset; break;
   case 2: reg.INJDOF2 = offset; break;
@@ -142,7 +142,8 @@ set_injected_offset(registers& reg, std::uint8_t rank, std::uint16_t offset) {
   }
 }
 
-inline void enable_temp_sensor_vrefint() {
+inline void enable_temp_sensor_vrefint()
+{
   emb::mmio::set<ADC_CCTRL_TSVREFEN>(ADC123_COMMON->CCTRL);
 }
 
@@ -361,12 +362,14 @@ struct channel {
   static constexpr std::array ranks = Ranks::values;
 
   static constexpr unsigned rank()
-    requires(Ranks::values.size() == 1) {
+    requires(Ranks::values.size() == 1)
+  {
     return ranks[0];
   }
 
   static std::optional<gpio::analog_pin_config> init(registers& reg)
-    requires is_regular_sequence<Ranks> {
+    requires is_regular_sequence<Ranks>
+  {
     using namespace detail;
     set_sample_time(reg, Channel::idx, static_cast<std::uint8_t>(sampletime));
     for (auto rank : ranks) {
@@ -375,9 +378,10 @@ struct channel {
     return finalize();
   }
 
-  static std::optional<gpio::analog_pin_config>
-  init(registers& reg, unsigned injected_count)
-    requires is_injected_sequence<Ranks> {
+  static std::optional<gpio::analog_pin_config> init(registers& reg,
+                                                     unsigned injected_count)
+    requires is_injected_sequence<Ranks>
+  {
     using namespace detail;
     set_sample_time(reg, Channel::idx, static_cast<std::uint8_t>(sampletime));
     for (auto rank : ranks) {
@@ -392,13 +396,13 @@ struct channel {
   }
 
 private:
-  static std::optional<gpio::analog_pin_config> finalize() {
+  static std::optional<gpio::analog_pin_config> finalize()
+  {
     if constexpr (Channel::type == channel_type::external) {
-      return gpio::analog_pin_config{
-          .port = Channel::port,
-          .pin = Channel::pin
-      };
-    } else {
+      return gpio::analog_pin_config{.port = Channel::port,
+                                     .pin = Channel::pin};
+    }
+    else {
       detail::enable_temp_sensor_vrefint();
       return std::nullopt;
     }

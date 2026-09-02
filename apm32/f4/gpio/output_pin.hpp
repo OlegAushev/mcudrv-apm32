@@ -14,11 +14,10 @@ class output_pin : public detail::pin_base {
 private:
   emb::gpio::polarity const polarity_;
 public:
-  explicit output_pin(
-      output_pin_config const& conf,
-      emb::gpio::state init_state = emb::gpio::state::inactive
-  )
-      : detail::pin_base(conf), polarity_(conf.polarity) {
+  explicit output_pin(output_pin_config const& conf,
+                      emb::gpio::state init_state = emb::gpio::state::inactive)
+      : detail::pin_base(conf), polarity_(conf.polarity)
+  {
     set(init_state);
   }
 
@@ -27,38 +26,46 @@ public:
   output_pin(output_pin&& other) = delete;
   output_pin& operator=(output_pin&& other) = delete;
 
-  emb::gpio::polarity polarity() const {
+  emb::gpio::polarity polarity() const
+  {
     return polarity_;
   }
 
-  emb::gpio::level read_level() const {
+  emb::gpio::level read_level() const
+  {
     if ((regs_->IDATA & pin_) != 0) {
       return emb::gpio::level::high;
     }
     return emb::gpio::level::low;
   }
 
-  void set_level(emb::gpio::level lvl) {
+  void set_level(emb::gpio::level lvl)
+  {
     if (lvl == emb::gpio::level::high) {
       regs_->BSC = std::uint32_t(pin_);
-    } else {
+    }
+    else {
       regs_->BSC = std::uint32_t(pin_) << 16;
     }
   }
 
-  emb::gpio::state read() const {
+  emb::gpio::state read() const
+  {
     return emb::gpio::to_state(read_level(), polarity_);
   }
 
-  void set(emb::gpio::state s = emb::gpio::state::active) {
+  void set(emb::gpio::state s = emb::gpio::state::active)
+  {
     set_level(emb::gpio::to_level(s, polarity_));
   }
 
-  void reset() {
+  void reset()
+  {
     set(emb::gpio::state::inactive);
   }
 
-  void toggle() {
+  void toggle()
+  {
     std::uint16_t const out = static_cast<std::uint16_t>(regs_->ODATA);
     regs_->BSC = std::uint32_t(~out & pin_) | (std::uint32_t(out & pin_) << 16);
   }

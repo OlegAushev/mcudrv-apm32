@@ -9,12 +9,7 @@
 
 namespace apm32::f4::tim {
 
-enum class channel_idx : unsigned {
-  ch1,
-  ch2,
-  ch3,
-  ch4
-};
+enum class channel_idx : unsigned { ch1, ch2, ch3, ch4 };
 
 struct channel1 {
   static constexpr auto idx = channel_idx::ch1;
@@ -42,8 +37,7 @@ concept some_timer_channel_instance = is_timer_channel_instance<T>::value;
 
 template<std::size_t I>
   requires(I < 4)
-using channel_at = std::tuple_element_t<
-    I,
-    std::tuple<channel1, channel2, channel3, channel4>>;
+using channel_at =
+    std::tuple_element_t<I, std::tuple<channel1, channel2, channel3, channel4>>;
 
 } // namespace apm32::f4::tim

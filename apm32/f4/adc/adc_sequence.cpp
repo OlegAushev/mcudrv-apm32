@@ -8,20 +8,18 @@
 
 namespace apm32::f4::adc::detail {
 
-void init_sequence(registers& REG, sequence_config const& conf) {
+void init_sequence(registers& REG, sequence_config const& conf)
+{
   detail::init_common();
 
   // Resolution = 00: 12-bit
   // Scan mode enabled
-  emb::mmio::modify(
-      REG.CTRL1,
-      emb::mmio::bits<ADC_CTRL1_RESSEL>(0u),
-      emb::mmio::bits<ADC_CTRL1_SCANEN>(1u),
-      emb::mmio::bits<ADC_CTRL1_INJGACEN>(
-          conf.auto_injected_conversion ? 1u : 0u
-      ),
-      emb::mmio::bits<ADC_CTRL1_INJDISCEN>(0u)
-  );
+  emb::mmio::modify(REG.CTRL1,
+                    emb::mmio::bits<ADC_CTRL1_RESSEL>(0u),
+                    emb::mmio::bits<ADC_CTRL1_SCANEN>(1u),
+                    emb::mmio::bits<ADC_CTRL1_INJGACEN>(
+                        conf.auto_injected_conversion ? 1u : 0u),
+                    emb::mmio::bits<ADC_CTRL1_INJDISCEN>(0u));
 
   // External trigger for regular channels
   std::uint32_t reg_ext_trgen = 0;
@@ -49,23 +47,22 @@ void init_sequence(registers& REG, sequence_config const& conf) {
       emb::mmio::bits<ADC_CTRL2_DMAEN>(conf.dma_enabled ? 1u : 0u),
       emb::mmio::bits<ADC_CTRL2_DMADISSEL>(conf.dma_enabled ? 1u : 0u),
       emb::mmio::bits<ADC_CTRL2_INJEXTTRGEN>(inj_ext_trgen),
-      emb::mmio::bits<ADC_CTRL2_INJGEXTTRGSEL>(inj_ext_trgsel)
-  );
+      emb::mmio::bits<ADC_CTRL2_INJGEXTTRGSEL>(inj_ext_trgsel));
 
   // Regular channel sequence length
   if (conf.regular_count > 0) {
-    emb::mmio::write<ADC_REGSEQ1_REGSEQLEN>(
-        REG.REGSEQ1,
-        conf.regular_count - 1
-    );
-  } else {
+    emb::mmio::write<ADC_REGSEQ1_REGSEQLEN>(REG.REGSEQ1,
+                                            conf.regular_count - 1);
+  }
+  else {
     emb::mmio::write<ADC_REGSEQ1_REGSEQLEN>(REG.REGSEQ1, 0u);
   }
 
   // Injected sequence length (INJSEQLEN = number of conversions - 1)
   if (conf.injected_count > 0) {
     emb::mmio::write<ADC_INJSEQ_INJSEQLEN>(REG.INJSEQ, conf.injected_count - 1);
-  } else {
+  }
+  else {
     emb::mmio::write<ADC_INJSEQ_INJSEQLEN>(REG.INJSEQ, 0u);
   }
 

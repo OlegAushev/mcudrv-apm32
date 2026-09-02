@@ -123,7 +123,8 @@ struct tim6 {
   using counter_type = std::uint16_t;
   static constexpr unsigned io_channel_count = 0;
 
-  static void enable_clock() {
+  static void enable_clock()
+  {
     emb::mmio::set<RCM_APB1CLKEN_TMR6EN>(RCM->APB1CLKEN);
   }
 };
@@ -134,7 +135,8 @@ struct tim7 {
   using counter_type = std::uint16_t;
   static constexpr unsigned io_channel_count = 0;
 
-  static void enable_clock() {
+  static void enable_clock()
+  {
     emb::mmio::set<RCM_APB1CLKEN_TMR7EN>(RCM->APB1CLKEN);
   }
 };
@@ -165,7 +167,8 @@ struct tim9 {
   using counter_type = std::uint16_t;
   static constexpr unsigned io_channel_count = 2;
 
-  static void enable_clock() {
+  static void enable_clock()
+  {
     emb::mmio::set<RCM_APB2CLKEN_TMR9EN>(RCM->APB2CLKEN);
   }
 };
@@ -176,7 +179,8 @@ struct tim10 {
   using counter_type = std::uint16_t;
   static constexpr unsigned io_channel_count = 1;
 
-  static void enable_clock() {
+  static void enable_clock()
+  {
     emb::mmio::set<RCM_APB2CLKEN_TMR10EN>(RCM->APB2CLKEN);
   }
 };
@@ -187,7 +191,8 @@ struct tim11 {
   using counter_type = std::uint16_t;
   static constexpr unsigned io_channel_count = 1;
 
-  static void enable_clock() {
+  static void enable_clock()
+  {
     emb::mmio::set<RCM_APB2CLKEN_TMR11EN>(RCM->APB2CLKEN);
   }
 };
@@ -198,7 +203,8 @@ struct tim12 {
   using counter_type = std::uint16_t;
   static constexpr unsigned io_channel_count = 2;
 
-  static void enable_clock() {
+  static void enable_clock()
+  {
     emb::mmio::set<RCM_APB1CLKEN_TMR12EN>(RCM->APB1CLKEN);
   }
 };
@@ -209,7 +215,8 @@ struct tim13 {
   using counter_type = std::uint16_t;
   static constexpr unsigned io_channel_count = 1;
 
-  static void enable_clock() {
+  static void enable_clock()
+  {
     emb::mmio::set<RCM_APB1CLKEN_TMR13EN>(RCM->APB1CLKEN);
   }
 };
@@ -220,28 +227,28 @@ struct tim14 {
   using counter_type = std::uint16_t;
   static constexpr unsigned io_channel_count = 1;
 
-  static void enable_clock() {
+  static void enable_clock()
+  {
     emb::mmio::set<RCM_APB1CLKEN_TMR14EN>(RCM->APB1CLKEN);
   }
 };
 
 template<typename T>
-struct is_timer_instance : std::bool_constant<emb::same_as_any<
-                               T,
-                               tim1,
-                               tim2,
-                               tim3,
-                               tim4,
-                               tim5,
-                               tim6,
-                               tim7,
-                               tim8,
-                               tim9,
-                               tim10,
-                               tim11,
-                               tim12,
-                               tim13,
-                               tim14>> {};
+struct is_timer_instance : std::bool_constant<emb::same_as_any<T,
+                                                               tim1,
+                                                               tim2,
+                                                               tim3,
+                                                               tim4,
+                                                               tim5,
+                                                               tim6,
+                                                               tim7,
+                                                               tim8,
+                                                               tim9,
+                                                               tim10,
+                                                               tim11,
+                                                               tim12,
+                                                               tim13,
+                                                               tim14>> {};
 
 template<typename T>
 concept some_timer_instance = is_timer_instance<T>::value;
@@ -254,18 +261,18 @@ template<typename T>
 concept some_advanced_timer = is_advanced_timer<T>::value;
 
 template<typename T>
-struct is_general_purpose_timer : std::bool_constant<emb::same_as_any<
-                                      T,
-                                      tim2,
-                                      tim3,
-                                      tim4,
-                                      tim5,
-                                      tim9,
-                                      tim10,
-                                      tim11,
-                                      tim12,
-                                      tim13,
-                                      tim14>> {};
+struct is_general_purpose_timer : std::bool_constant<emb::same_as_any<T,
+                                                                      tim2,
+                                                                      tim3,
+                                                                      tim4,
+                                                                      tim5,
+                                                                      tim9,
+                                                                      tim10,
+                                                                      tim11,
+                                                                      tim12,
+                                                                      tim13,
+                                                                      tim14>> {
+};
 
 template<typename T>
 concept some_general_purpose_timer = is_general_purpose_timer<T>::value;
@@ -285,16 +292,10 @@ template<typename T>
 concept some_basic_timer = is_basic_timer<T>::value;
 
 template<typename T>
-struct is_master_timer_instance : std::bool_constant<emb::same_as_any<
-                               T,
-                               tim1,
-                               tim2,
-                               tim3,
-                               tim4,
-                               tim5,
-                               tim6,
-                               tim7,
-                               tim8>> {};
+struct is_master_timer_instance
+    : std::bool_constant<
+          emb::same_as_any<T, tim1, tim2, tim3, tim4, tim5, tim6, tim7, tim8>> {
+};
 
 template<typename T>
 concept some_master_timer_instance = is_master_timer_instance<T>::value;

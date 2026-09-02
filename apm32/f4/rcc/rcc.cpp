@@ -6,7 +6,8 @@
 
 namespace apm32::f4::rcc {
 
-void init_clock() {
+void init_clock()
+{
   using C = clock_config;
 
   // Enable HSE if it is required as SYSCLK source or PLL input
@@ -30,14 +31,12 @@ void init_clock() {
 
   // Configure and enable PLL when selected as SYSCLK source
   if constexpr (C::sysclk_src == sysclk_src::pll) {
-    emb::mmio::modify(
-        RCM->PLL1CFG,
-        emb::mmio::bits<RCM_PLL1CFG_PLLB>{pllb_div()},
-        emb::mmio::bits<RCM_PLL1CFG_PLL1A>{C::pll1a_mult},
-        emb::mmio::bits<RCM_PLL1CFG_PLL1C>{C::pll1c_div},
-        emb::mmio::bits<RCM_PLL1CFG_PLLD>{C::plld_div},
-        emb::mmio::bits<RCM_PLL1CFG_PLL1CLKS>{C::pll_src}
-    );
+    emb::mmio::modify(RCM->PLL1CFG,
+                      emb::mmio::bits<RCM_PLL1CFG_PLLB>{pllb_div()},
+                      emb::mmio::bits<RCM_PLL1CFG_PLL1A>{C::pll1a_mult},
+                      emb::mmio::bits<RCM_PLL1CFG_PLL1C>{C::pll1c_div},
+                      emb::mmio::bits<RCM_PLL1CFG_PLLD>{C::plld_div},
+                      emb::mmio::bits<RCM_PLL1CFG_PLL1CLKS>{C::pll_src});
     emb::mmio::set<RCM_CTRL_PLL1EN>(RCM->CTRL);
     while (!emb::mmio::test<RCM_CTRL_PLL1RDYFLG>(RCM->CTRL)) {}
   }
@@ -45,8 +44,7 @@ void init_clock() {
   // Set Flash wait states based on the target HCLK frequency
   emb::mmio::write<FLASH_ACCTRL_WAITP>(
       FLASH->ACCTRL,
-      flash::wait_states(hclk_frequency<std::uint64_t>())
-  );
+      flash::wait_states(hclk_frequency<std::uint64_t>()));
 
   // Switch SYSCLK to the configured source
   constexpr auto sclk_field = static_cast<std::uint32_t>(C::sysclk_src);

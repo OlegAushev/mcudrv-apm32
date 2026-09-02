@@ -31,26 +31,31 @@ public:
   steady_clock() = delete;
   static void init();
 
-  static bool initialized() {
+  static bool initialized()
+  {
     return initialized_;
   }
 
-  static std::chrono::time_point<steady_clock> now() {
+  static std::chrono::time_point<steady_clock> now()
+  {
     return time_point{std::chrono::milliseconds{time_.load()}};
   }
 
-  static std::chrono::milliseconds time_since_boot() {
+  static std::chrono::milliseconds time_since_boot()
+  {
     return std::chrono::milliseconds{time_.load()};
   }
 
-  static void delay(std::chrono::milliseconds delay) {
+  static void delay(std::chrono::milliseconds delay)
+  {
     auto const start = now();
     while ((now() - start) <= delay) {
       // wait
     }
   }
 protected:
-  static void on_interrupt() {
+  static void on_interrupt()
+  {
     time_.update([](std::int64_t t) { return ++t; });
   }
 };
@@ -71,11 +76,13 @@ public:
   high_resolution_clock() = delete;
   static void init();
 
-  static bool initialized() {
+  static bool initialized()
+  {
     return initialized_;
   }
 
-  static std::chrono::time_point<high_resolution_clock> now() {
+  static std::chrono::time_point<high_resolution_clock> now()
+  {
 #if 1
     std::int64_t ms;
     std::uint32_t ticks;
@@ -105,14 +112,12 @@ public:
     // instead of direct cast to int64_t allows use of hardware FPU instruction
     // and avoids software floating-point conversion routine __fixsfdi
     // that would be needed for float-to-int64 conversion.
-    auto const nsec_count = static_cast<std::int32_t>(
-        static_cast<float>(ticks) * nsec_per_tick_
-    );
+    auto const nsec_count = static_cast<std::int32_t>(static_cast<float>(ticks)
+                                                      * nsec_per_tick_);
 
     return time_point{
-        std::chrono::duration_cast<duration>(std::chrono::milliseconds{ms}) +
-        duration{nsec_count}
-    };
+        std::chrono::duration_cast<duration>(std::chrono::milliseconds{ms})
+        + duration{nsec_count}};
 #else
     // TODO remove this after testing
     nvic::irq_guard lock;
@@ -122,8 +127,7 @@ public:
     // intermediate cast to int32 instead of immediate cast to rep (int64)
     // to use FPU and avoid usage of __fixsfdi
     auto const nsec_count = static_cast<std::int32_t>(
-        static_cast<float>(SysTick->LOAD - SysTick->VAL) * nsec_per_tick_
-    );
+        static_cast<float>(SysTick->LOAD - SysTick->VAL) * nsec_per_tick_);
 
     auto const nsec = duration{static_cast<rep>(nsec_count)};
 
@@ -131,7 +135,8 @@ public:
 #endif
   }
 
-  static void delay(std::chrono::nanoseconds delay) {
+  static void delay(std::chrono::nanoseconds delay)
+  {
     auto const start = now();
     while ((now() - start) <= delay) {
       // wait
@@ -141,7 +146,8 @@ public:
 
 static_assert(std::chrono::is_clock_v<high_resolution_clock>);
 
-constexpr float to_float(high_resolution_clock::duration dur) {
+constexpr float to_float(high_resolution_clock::duration dur)
+{
   // intermediate cast to int32 instead of immediate cast to float to use FPU
   std::int32_t const dur_ = static_cast<std::int32_t>(dur.count());
   return static_cast<float>(dur_);

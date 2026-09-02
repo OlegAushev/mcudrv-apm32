@@ -29,10 +29,7 @@ enum class pin : std::uint16_t {
   pin15 = (1u << 15),
 };
 
-enum class output_type : std::uint32_t {
-  pushpull = 0b0,
-  opendrain = 0b1
-};
+enum class output_type : std::uint32_t { pushpull = 0b0, opendrain = 0b1 };
 
 enum class speed : std::uint32_t {
   low = 0b00,
@@ -41,11 +38,7 @@ enum class speed : std::uint32_t {
   very_high = 0b11
 };
 
-enum class pull : std::uint32_t {
-  none = 0b00,
-  up = 0b01,
-  down = 0b10
-};
+enum class pull : std::uint32_t { none = 0b00, up = 0b01, down = 0b10 };
 
 namespace mode {
 inline constexpr std::uint32_t input = 0b00;
