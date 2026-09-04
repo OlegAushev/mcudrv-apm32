@@ -4,6 +4,7 @@
 
 #include <emb/mmio.hpp>
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <expected>
@@ -18,7 +19,10 @@ enum class error {
   programming_alignment,
   programming_parallelism,
   programming_sequence,
-  locked
+  locked,
+  // Not a status flag: a range that does not lie inside what was asked for,
+  // or an erase that does not cover whole sectors.
+  invalid_argument
 };
 
 enum class sector : std::uint32_t {
@@ -128,5 +132,91 @@ auto write(std::uintptr_t addr, std::span<std::byte const> data)
     -> std::expected<void, error>;
 
 auto write_byte(std::uintptr_t addr, std::byte b) -> std::expected<void, error>;
+
+// A run of equally sized sectors seen as one addressable medium, addressed
+// from zero rather than by absolute address.
+//
+// This is what a record store asks of a memory: read anywhere, write only
+// what has been erased, erase a whole block at a time. The sectors must be
+// of one size because a store places its slots on a uniform grid of erase
+// blocks — which on this part means the four 16 KiB sectors at the bottom
+// or any run of the 128 KiB ones above, never a range that straddles the
+// two.
+//
+// Programming and erasing stall instruction fetch: this part has one bank,
+// and the code doing the programming runs from it. Nothing else runs during
+// a write, and a sector erase takes long enough to be measured in hundreds
+// of milliseconds, so a caller with real-time duties must be standing still.
+template<sector First, sector Last>
+class region {
+  static constexpr std::uint32_t first = std::to_underlying(First);
+  static constexpr std::uint32_t last = std::to_underlying(Last);
+
+  static_assert(first <= last, "the range is empty");
+  static_assert(last < sector_count, "the part has no such sector");
+  static_assert([] {
+    for (auto n = first; n <= last; ++n) {
+      if (size(sector{n}) != size(First)) return false;
+    }
+    return true;
+  }(), "the sectors of a region must be of one size");
+
+public:
+  using addr_type = std::uint32_t;
+  using error_type = error;
+
+  static constexpr std::size_t sector_size = size(First);
+  static constexpr std::size_t sector_span = (last - first) + 1;
+  static constexpr std::size_t capacity = sector_size * sector_span;
+
+  // Programming is by byte, so nothing here has to be aligned.
+  static constexpr std::size_t write_granularity = 1;
+  static constexpr bool needs_erase = true;
+  static constexpr std::byte erased_value{0xFF};
+
+  static constexpr std::uintptr_t base_address = address(First);
+
+  auto read(addr_type at, std::span<std::byte> dest) const
+      -> std::expected<void, error>
+  {
+    if (!in_range(at, dest.size())) {
+      return std::unexpected(error::invalid_argument);
+    }
+    auto const* src = reinterpret_cast<std::byte const*>(base_address + at);
+    std::copy_n(src, dest.size(), dest.begin());
+    return {};
+  }
+
+  auto write(addr_type at, std::span<std::byte const> src)
+      -> std::expected<void, error>
+  {
+    if (!in_range(at, src.size())) {
+      return std::unexpected(error::invalid_argument);
+    }
+    return flash::write(base_address + at, src);
+  }
+
+  auto erase(addr_type at, std::size_t size) -> std::expected<void, error>
+  {
+    if (!in_range(at, size) || (at % sector_size != 0)
+        || (size % sector_size != 0)) {
+      return std::unexpected(error::invalid_argument);
+    }
+
+    for (auto offset = at; offset < at + size; offset += sector_size) {
+      auto const n = first + (offset / sector_size);
+      if (auto const erased = erase_sector(sector{n}); !erased) {
+        return erased;
+      }
+    }
+    return {};
+  }
+
+private:
+  static constexpr bool in_range(addr_type at, std::size_t size)
+  {
+    return (at <= capacity) && (size <= capacity - at);
+  }
+};
 
 } // namespace apm32::f4::flash
