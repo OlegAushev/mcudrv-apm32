@@ -6,7 +6,10 @@
 #include <apm32/f4/gpio/alternate_pin.hpp>
 #include <apm32/f4/gpio/output_pin.hpp>
 
+#include <emb/assert.hpp>
 #include <emb/chrono.hpp>
+#include <emb/expected.hpp>
+#include <emb/spi.hpp>
 
 #include <array>
 #include <chrono>
@@ -14,6 +17,7 @@
 #include <cstdint>
 #include <expected>
 #include <optional>
+#include <span>
 
 namespace apm32::f4::spi {
 
@@ -27,6 +31,7 @@ struct blocking_master_config {
   clock_polarity cpol;
   clock_phase cpha;
   spi::bit_order bit_order;
+  std::chrono::milliseconds timeout;
 };
 
 template<some_spi_instance Instance,
@@ -35,6 +40,12 @@ template<some_spi_instance Instance,
 class blocking_master {
 public:
   using spi_instance = Instance;
+  using frame_type = FrameFormat;
+  using error_type = error;
+
+  // What `read` clocks out while the selected part drives MISO. The part
+  // ignores MOSI during a read, so the value only has to be something.
+  static constexpr frame_type idle_frame{};
 private:
   using timeout_t = emb::chrono::timeout<chrono::steady_clock>;
 
@@ -44,6 +55,7 @@ private:
   std::optional<gpio::alternate_pin> miso_pin_;
   std::optional<gpio::alternate_pin> clk_pin_;
   std::array<std::optional<gpio::output_pin>, SlaveCount> ss_pins_;
+  std::chrono::milliseconds timeout_{};
 public:
   blocking_master(blocking_master const&) = delete;
   blocking_master& operator=(blocking_master const&) = delete;
@@ -51,6 +63,7 @@ public:
   blocking_master& operator=(blocking_master&&) = delete;
 
   blocking_master(blocking_master_config<SlaveCount> const& config)
+      : timeout_(config.timeout)
   {
     spi_instance::enable_clock();
 
@@ -141,6 +154,27 @@ public:
     ss_pins_[idx]->reset();
   }
 
+  void assert_cs(emb::spi::cs_timing timing)
+    requires(SlaveCount == 1)
+  {
+    auto _ = wait_idle();
+    auto _ = try_get();
+    select();
+    if (timing.setup > std::chrono::nanoseconds::zero()) {
+      chrono::high_resolution_clock::delay(timing.setup);
+    }
+  }
+
+  void deassert_cs(emb::spi::cs_timing timing)
+    requires(SlaveCount == 1)
+  {
+    auto _ = wait_idle();
+    if (timing.hold > std::chrono::nanoseconds::zero()) {
+      chrono::high_resolution_clock::delay(timing.hold);
+    }
+    release();
+  }
+
   bool busy() const
   {
     return emb::mmio::test<SPI_STS_BSYFLG>(REG.STS);
@@ -228,23 +262,40 @@ public:
     return {};
   }
 
-  template<typename Fn>
-  auto transaction(Fn&& fn) -> decltype(fn())
-    requires(SlaveCount == 1)
+  std::chrono::milliseconds timeout() const
   {
-    select();
-    auto result = fn();
-    release();
-    return result;
+    return timeout_;
   }
 
-  template<std::size_t Idx, typename Fn>
-  auto transaction(Fn&& fn) -> decltype(fn())
+  auto wait_idle() -> std::expected<void, error>
   {
-    select<Idx>();
-    auto result = fn();
-    release<Idx>();
-    return result;
+    return wait_idle(timeout_);
+  }
+
+  auto write(std::span<FrameFormat const> src) -> std::expected<void, error>
+  {
+    for (auto frame : src) {
+      TRY(transfer(frame, timeout_));
+    }
+    return {};
+  }
+
+  auto read(std::span<FrameFormat> dest) -> std::expected<void, error>
+  {
+    for (auto& frame : dest) {
+      frame = TRY(transfer(idle_frame, timeout_));
+    }
+    return {};
+  }
+
+  auto transfer(std::span<FrameFormat const> src, std::span<FrameFormat> dest)
+      -> std::expected<void, error>
+  {
+    emb::ensure(src.size() == dest.size());
+    for (auto i = 0uz; i < src.size(); ++i) {
+      dest[i] = TRY(transfer(src[i], timeout_));
+    }
+    return {};
   }
 
 private:
