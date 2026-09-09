@@ -11,21 +11,9 @@
 
 namespace apm32::f4::can {
 
-// This peripheral seen as emb::can::transport: the bus a protocol stack
-// talks to without knowing which controller carries it.
-//
-// Its own class rather than a base of transceiver, for two reasons. The
-// interface is virtual, and folding it in would give every transceiver a
-// vtable whether or not anything asks for the abstraction. And it is built
-// from two objects, not one — the transceiver moves frames, the filter
-// setup decides which arrive — so there is no single peripheral for the
-// interface to be a face of.
-//
-// Frames accepted by the hardware filters reach every subscriber in the
-// order they registered. MaxSubscribers sizes that list at compile time and
-// belongs to whoever assembles the stack, which is why it is a parameter
-// and not a constant here; a subscriber past the bound is dropped rather
-// than reported, since registering is a wiring step done once at startup.
+// This peripheral seen as emb::can::transport. Frames the hardware filters
+// accept reach every subscriber in the order they registered; one past
+// MaxSubscribers is dropped rather than reported.
 template<some_can_instance Instance,
          transceiver_traits Traits,
          std::size_t MaxSubscribers = 1>
