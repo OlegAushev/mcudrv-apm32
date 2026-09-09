@@ -30,13 +30,8 @@ struct transceiver_traits {
 struct transceiver_config {
   rx_pin_config rx_pin;
   tx_pin_config tx_pin;
-
   can::mode mode;
-
-  std::uint16_t prescaler;      // 1..1024
-  std::uint8_t sync_jump_width; // 1..4
-  std::uint8_t time_segment1;   // 1..16
-  std::uint8_t time_segment2;   // 1..8
+  can::bit_timing bit_timing;
 
   bool auto_bus_off_management;
   bool auto_wakeup;
@@ -51,10 +46,7 @@ struct transceiver_config {
 
   constexpr std::uint32_t bittim_reg() const
   {
-    return ((prescaler - 1u) << CAN_BITTIM_BRPSC_Pos)
-         | ((sync_jump_width - 1u) << CAN_BITTIM_RSYNJW_Pos)
-         | ((time_segment1 - 1u) << CAN_BITTIM_TIMSEG1_Pos)
-         | ((time_segment2 - 1u) << CAN_BITTIM_TIMSEG2_Pos)
+    return bit_timing.reg_bits()
          | ((std::to_underlying(mode) & 0b01u) << CAN_BITTIM_LBKMEN_Pos)
          | ((std::to_underlying(mode) >> 1) << CAN_BITTIM_SILMEN_Pos);
   }
