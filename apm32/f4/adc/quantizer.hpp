@@ -9,8 +9,9 @@
 
 namespace apm32::f4::adc {
 
-// ADC static transfer function: input voltage <-> output code.
-struct transfer_function {
+// The converting element of the ADC, as a stage of a signal path: input
+// voltage <-> output code, the static transfer function of the datasheet.
+struct quantizer {
   static constexpr std::uint16_t forward(emb::units::volt_f32 v)
   {
     return static_cast<std::uint16_t>(
