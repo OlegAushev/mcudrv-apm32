@@ -8,7 +8,7 @@
 #include <emb/assert.hpp>
 #include <emb/can.hpp>
 #include <emb/chrono.hpp>
-#include <emb/concurrent/isr_spsc_inplace_queue.hpp>
+#include <emb/concurrent/spsc_queue.hpp>
 #include <emb/delegate.hpp>
 #include <emb/meta.hpp>
 
@@ -104,8 +104,7 @@ private:
 
   std::uint32_t filters_used_ = 0;
 
-  emb::isr_spsc_inplace_queue<emb::can::frame_t, Traits.tx_queue_size>
-      tx_queue_;
+  emb::spsc_queue<emb::can::frame_t, Traits.tx_queue_size> tx_queue_;
   rx_delegate on_rx_fifo0_;
   rx_delegate on_rx_fifo1_;
 public:
