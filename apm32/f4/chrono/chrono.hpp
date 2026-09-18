@@ -4,7 +4,7 @@
 
 #include <apm32/f4/nvic/nvic.hpp>
 
-#include <emb/concurrent/isr_seqlock.hpp>
+#include <emb/concurrent/wide_counter.hpp>
 
 #include <chrono>
 #include <cstdint>
@@ -26,7 +26,12 @@ public:
   static constexpr bool is_steady = true;
 private:
   static inline bool initialized_ = false;
-  static inline emb::isr_seqlock<std::int64_t> time_{};
+  static inline emb::wide_counter time_{};
+
+  static rep count()
+  {
+    return static_cast<rep>(time_.load());
+  }
 public:
   steady_clock() = delete;
   static void init();
@@ -38,12 +43,12 @@ public:
 
   static std::chrono::time_point<steady_clock> now()
   {
-    return time_point{std::chrono::milliseconds{time_.load()}};
+    return time_point{std::chrono::milliseconds{count()}};
   }
 
   static std::chrono::milliseconds time_since_boot()
   {
-    return std::chrono::milliseconds{time_.load()};
+    return std::chrono::milliseconds{count()};
   }
 
   static void delay(std::chrono::milliseconds delay)
@@ -56,7 +61,7 @@ public:
 protected:
   static void on_interrupt()
   {
-    time_.update([](std::int64_t t) { return ++t; });
+    time_.increment();
   }
 };
 
@@ -92,9 +97,9 @@ public:
     // won't match and we retry. This handles calls from normal code or from
     // ISRs with priority lower than SysTick.
     do {
-      ms = steady_clock::time_.load();
+      ms = steady_clock::count();
       ticks = SysTick->LOAD - SysTick->VAL;
-    } while (ms != steady_clock::time_.load());
+    } while (ms != steady_clock::count());
 
     // Handle calls from ISRs with same or higher priority as SysTick.
     // In this case, SysTick cannot preempt us, so the loop above always
