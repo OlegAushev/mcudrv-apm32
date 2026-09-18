@@ -26,7 +26,7 @@ public:
   static constexpr bool is_steady = true;
 private:
   static inline bool initialized_ = false;
-  static inline emb::wide_counter time_{};
+  static inline emb::local_wide_counter time_{};
 
   static rep count()
   {
