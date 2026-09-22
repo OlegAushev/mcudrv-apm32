@@ -49,7 +49,7 @@ public:
 private:
   using timeout_t = emb::chrono::timeout<chrono::steady_clock>;
 
-  static inline registers& REG = spi_instance::REG;
+  static inline registers& reg = spi_instance::reg;
 
   std::optional<gpio::alternate_pin> mosi_pin_;
   std::optional<gpio::alternate_pin> miso_pin_;
@@ -68,7 +68,7 @@ public:
     spi_instance::enable_clock();
 
     emb::mmio::modify(
-        REG.CTRL1,
+        reg.CTRL1,
         emb::mmio::bits<SPI_CTRL1_CPHA>(config.cpha),
         emb::mmio::bits<SPI_CTRL1_CPOL>(config.cpol),
         emb::mmio::bits<SPI_CTRL1_MSMCFG>(1),
@@ -177,17 +177,17 @@ public:
 
   bool busy() const
   {
-    return emb::mmio::test<SPI_STS_BSYFLG>(REG.STS);
+    return emb::mmio::test<SPI_STS_BSYFLG>(reg.STS);
   }
 
   bool rx_empty() const
   {
-    return !emb::mmio::test<SPI_STS_RXBNEFLG>(REG.STS);
+    return !emb::mmio::test<SPI_STS_RXBNEFLG>(reg.STS);
   }
 
   bool tx_empty() const
   {
-    return emb::mmio::test<SPI_STS_TXBEFLG>(REG.STS);
+    return emb::mmio::test<SPI_STS_TXBEFLG>(reg.STS);
   }
 
   bool can_get() const
@@ -203,7 +203,7 @@ public:
   auto try_get() const -> std::optional<FrameFormat>
   {
     if (can_get()) {
-      return static_cast<FrameFormat>(REG.DATA);
+      return static_cast<FrameFormat>(reg.DATA);
     }
     return {};
   }
@@ -211,7 +211,7 @@ public:
   auto try_put(FrameFormat data) -> std::optional<FrameFormat>
   {
     if (can_put()) {
-      REG.DATA = data;
+      reg.DATA = data;
       return data;
     }
     return {};
@@ -220,7 +220,7 @@ public:
   auto get(std::chrono::milliseconds timeout) const
       -> std::expected<FrameFormat, error>
   {
-    if (emb::mmio::test<SPI_STS_OVRFLG>(REG.STS)) {
+    if (emb::mmio::test<SPI_STS_OVRFLG>(reg.STS)) {
       clear_overrun();
       return std::unexpected(error::overrun);
     }
@@ -228,13 +228,13 @@ public:
     while (rx_empty()) {
       if (t.expired()) return std::unexpected(error::timeout);
     }
-    return static_cast<FrameFormat>(REG.DATA);
+    return static_cast<FrameFormat>(reg.DATA);
   }
 
   auto put(FrameFormat data, std::chrono::milliseconds timeout)
       -> std::expected<void, error>
   {
-    if (emb::mmio::test<SPI_STS_OVRFLG>(REG.STS)) {
+    if (emb::mmio::test<SPI_STS_OVRFLG>(reg.STS)) {
       clear_overrun();
       return std::unexpected(error::overrun);
     }
@@ -242,7 +242,7 @@ public:
     while (!tx_empty()) {
       if (t.expired()) return std::unexpected(error::timeout);
     }
-    REG.DATA = data;
+    reg.DATA = data;
     return {};
   }
 
@@ -301,8 +301,8 @@ public:
 private:
   void clear_overrun() const
   {
-    [[maybe_unused]] auto volatile d = REG.DATA;
-    [[maybe_unused]] auto volatile s = REG.STS;
+    [[maybe_unused]] auto volatile d = reg.DATA;
+    [[maybe_unused]] auto volatile s = reg.STS;
   }
 };
 

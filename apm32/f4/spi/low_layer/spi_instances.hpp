@@ -22,7 +22,7 @@ inline constexpr std::size_t count = 3;
 inline constexpr emb::units::hz_f32 max_clock_frequency{42e6f};
 
 struct spi1 {
-  static inline registers& REG = *SPI1;
+  static inline registers& reg = *SPI1;
 
   template<typename T>
   static constexpr auto clock_frequency = rcc::pclk2_frequency<T>;
@@ -35,7 +35,7 @@ struct spi1 {
 };
 
 struct spi2 {
-  static inline registers& REG = *SPI2;
+  static inline registers& reg = *SPI2;
 
   template<typename T>
   static constexpr auto clock_frequency = rcc::pclk1_frequency<T>;
@@ -48,7 +48,7 @@ struct spi2 {
 };
 
 struct spi3 {
-  static inline registers& REG = *SPI3;
+  static inline registers& reg = *SPI3;
 
   template<typename T>
   static constexpr auto clock_frequency = rcc::pclk1_frequency<T>;

@@ -22,7 +22,7 @@ using registers = TMR_TypeDef;
 inline constexpr std::size_t timer_count = 14;
 
 struct tim1 {
-  static inline registers& REG = *TMR1;
+  static inline registers& reg = *TMR1;
 
   using counter_type = std::uint16_t;
   static constexpr unsigned io_channel_count = 4;
@@ -42,7 +42,7 @@ struct tim1 {
 };
 
 struct tim2 {
-  static inline registers& REG = *TMR2;
+  static inline registers& reg = *TMR2;
 
   using counter_type = std::uint32_t;
   static constexpr unsigned io_channel_count = 4;
@@ -61,7 +61,7 @@ struct tim2 {
 };
 
 struct tim3 {
-  static inline registers& REG = *TMR3;
+  static inline registers& reg = *TMR3;
 
   using counter_type = std::uint16_t;
   static constexpr unsigned io_channel_count = 4;
@@ -80,7 +80,7 @@ struct tim3 {
 };
 
 struct tim4 {
-  static inline registers& REG = *TMR4;
+  static inline registers& reg = *TMR4;
 
   using counter_type = std::uint16_t;
   static constexpr unsigned io_channel_count = 4;
@@ -99,7 +99,7 @@ struct tim4 {
 };
 
 struct tim5 {
-  static inline registers& REG = *TMR5;
+  static inline registers& reg = *TMR5;
 
   using counter_type = std::uint32_t;
   static constexpr unsigned io_channel_count = 4;
@@ -118,7 +118,7 @@ struct tim5 {
 };
 
 struct tim6 {
-  static inline registers& REG = *TMR6;
+  static inline registers& reg = *TMR6;
 
   using counter_type = std::uint16_t;
   static constexpr unsigned io_channel_count = 0;
@@ -130,7 +130,7 @@ struct tim6 {
 };
 
 struct tim7 {
-  static inline registers& REG = *TMR7;
+  static inline registers& reg = *TMR7;
 
   using counter_type = std::uint16_t;
   static constexpr unsigned io_channel_count = 0;
@@ -142,7 +142,7 @@ struct tim7 {
 };
 
 struct tim8 {
-  static inline registers& REG = *TMR8;
+  static inline registers& reg = *TMR8;
 
   using counter_type = std::uint16_t;
   static constexpr unsigned io_channel_count = 4;
@@ -162,7 +162,7 @@ struct tim8 {
 };
 
 struct tim9 {
-  static inline registers& REG = *TMR9;
+  static inline registers& reg = *TMR9;
 
   using counter_type = std::uint16_t;
   static constexpr unsigned io_channel_count = 2;
@@ -174,7 +174,7 @@ struct tim9 {
 };
 
 struct tim10 {
-  static inline registers& REG = *TMR10;
+  static inline registers& reg = *TMR10;
 
   using counter_type = std::uint16_t;
   static constexpr unsigned io_channel_count = 1;
@@ -186,7 +186,7 @@ struct tim10 {
 };
 
 struct tim11 {
-  static inline registers& REG = *TMR11;
+  static inline registers& reg = *TMR11;
 
   using counter_type = std::uint16_t;
   static constexpr unsigned io_channel_count = 1;
@@ -198,7 +198,7 @@ struct tim11 {
 };
 
 struct tim12 {
-  static inline registers& REG = *TMR12;
+  static inline registers& reg = *TMR12;
 
   using counter_type = std::uint16_t;
   static constexpr unsigned io_channel_count = 2;
@@ -210,7 +210,7 @@ struct tim12 {
 };
 
 struct tim13 {
-  static inline registers& REG = *TMR13;
+  static inline registers& reg = *TMR13;
 
   using counter_type = std::uint16_t;
   static constexpr unsigned io_channel_count = 1;
@@ -222,7 +222,7 @@ struct tim13 {
 };
 
 struct tim14 {
-  static inline registers& REG = *TMR14;
+  static inline registers& reg = *TMR14;
 
   using counter_type = std::uint16_t;
   static constexpr unsigned io_channel_count = 1;

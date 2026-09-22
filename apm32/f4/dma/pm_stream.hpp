@@ -42,8 +42,8 @@ public:
   using storage_type = Storage;
   using memory_buffer_type = typename Storage::buffer_type;
 private:
-  static inline controller_registers& DMA_REG = controller_instance::REG;
-  static inline stream_registers& STREAM_REG = stream_instance::REG;
+  static inline controller_registers& dma_reg = controller_instance::reg;
+  static inline stream_registers& stream_reg = stream_instance::reg;
   static constexpr nvic::irq_number const irqn_ = stream_instance::irqn;
 
   Storage storage_;
@@ -61,7 +61,7 @@ public:
     controller_instance::enable_clock();
 
     emb::mmio::modify(
-        STREAM_REG.SCFG,
+        stream_reg.SCFG,
         emb::mmio::bits<DMA_SCFGx_CHSEL>(channel_instance::idx),
         emb::mmio::bits<DMA_SCFGx_DIRCFG>(0b00u), // periph to memory
         emb::mmio::bits<DMA_SCFGx_CIRCMEN>(1u),   // circular mode
@@ -75,25 +75,25 @@ public:
     );
 
     if constexpr (!memory_buffer_type::double_buffer_mode) {
-      emb::mmio::clear<DMA_SCFGx_DBM>(STREAM_REG.SCFG);
-      STREAM_REG.NDATA = memory_buffer_type::size;
-      STREAM_REG.M0ADDR = reinterpret_cast<std::uint32_t>(
+      emb::mmio::clear<DMA_SCFGx_DBM>(stream_reg.SCFG);
+      stream_reg.NDATA = memory_buffer_type::size;
+      stream_reg.M0ADDR = reinterpret_cast<std::uint32_t>(
           storage_.get().data.data());
     }
     else {
-      emb::mmio::set<DMA_SCFGx_DBM>(STREAM_REG.SCFG);
-      STREAM_REG.NDATA = memory_buffer_type::size;
-      STREAM_REG.M0ADDR = reinterpret_cast<std::uint32_t>(
+      emb::mmio::set<DMA_SCFGx_DBM>(stream_reg.SCFG);
+      stream_reg.NDATA = memory_buffer_type::size;
+      stream_reg.M0ADDR = reinterpret_cast<std::uint32_t>(
           storage_.get().data1.data());
-      STREAM_REG.M1ADDR = reinterpret_cast<std::uint32_t>(
+      stream_reg.M1ADDR = reinterpret_cast<std::uint32_t>(
           storage_.get().data2.data());
     }
 
-    STREAM_REG.PADDR = reinterpret_cast<std::uint32_t>(periph_addr);
+    stream_reg.PADDR = reinterpret_cast<std::uint32_t>(periph_addr);
 
     // Interrupts configuration
     emb::mmio::set<DMA_SCFGx_DMEIEN | DMA_SCFGx_TXEIEN | DMA_SCFGx_TXCIEN>(
-        STREAM_REG.SCFG);
+        stream_reg.SCFG);
     set_irq_priority(stream_instance::irqn, conf.irq_priority);
   }
 
@@ -111,7 +111,7 @@ public:
   {
     using element = typename memory_buffer_type::element_type;
     auto const& b = storage_.get();
-    return emb::mmio::test<DMA_SCFGx_CTARG>(STREAM_REG.SCFG)
+    return emb::mmio::test<DMA_SCFGx_CTARG>(stream_reg.SCFG)
              ? std::span<element const>{b.data1.data(), b.data1.size()}
              : std::span<element const>{b.data2.data(), b.data2.size()};
   }
@@ -119,16 +119,16 @@ public:
   void enable()
   {
     nvic::enable_irq(stream_instance::irqn);
-    emb::mmio::set<DMA_SCFGx_EN>(STREAM_REG.SCFG);
+    emb::mmio::set<DMA_SCFGx_EN>(stream_reg.SCFG);
   }
 
   void ack_interrupt()
   {
     if constexpr (channel_instance::idx >= 4) {
-      DMA_REG.HIFCLR |= get_interrupt_clear_mask();
+      dma_reg.HIFCLR |= get_interrupt_clear_mask();
     }
     else {
-      DMA_REG.LIFCLR |= get_interrupt_clear_mask();
+      dma_reg.LIFCLR |= get_interrupt_clear_mask();
     }
   }
 private:

@@ -8,13 +8,13 @@
 
 namespace apm32::f4::adc::detail {
 
-void init_sequence(registers& REG, sequence_config const& conf)
+void init_sequence(registers& reg, sequence_config const& conf)
 {
   detail::init_common();
 
   // Resolution = 00: 12-bit
   // Scan mode enabled
-  emb::mmio::modify(REG.CTRL1,
+  emb::mmio::modify(reg.CTRL1,
                     emb::mmio::bits<ADC_CTRL1_RESSEL>(0u),
                     emb::mmio::bits<ADC_CTRL1_SCANEN>(1u),
                     emb::mmio::bits<ADC_CTRL1_INJGACEN>(
@@ -38,7 +38,7 @@ void init_sequence(registers& REG, sequence_config const& conf)
   }
 
   emb::mmio::modify(
-      REG.CTRL2,
+      reg.CTRL2,
       emb::mmio::bits<ADC_CTRL2_REGEXTTRGEN>(reg_ext_trgen),
       emb::mmio::bits<ADC_CTRL2_REGEXTTRGSEL>(reg_ext_trgsel),
       emb::mmio::bits<ADC_CTRL2_DALIGNCFG>(0u), // right alignment
@@ -51,35 +51,35 @@ void init_sequence(registers& REG, sequence_config const& conf)
 
   // Regular channel sequence length
   if (conf.regular_count > 0) {
-    emb::mmio::write<ADC_REGSEQ1_REGSEQLEN>(REG.REGSEQ1,
+    emb::mmio::write<ADC_REGSEQ1_REGSEQLEN>(reg.REGSEQ1,
                                             conf.regular_count - 1);
   }
   else {
-    emb::mmio::write<ADC_REGSEQ1_REGSEQLEN>(REG.REGSEQ1, 0u);
+    emb::mmio::write<ADC_REGSEQ1_REGSEQLEN>(reg.REGSEQ1, 0u);
   }
 
   // Injected sequence length (INJSEQLEN = number of conversions - 1)
   if (conf.injected_count > 0) {
-    emb::mmio::write<ADC_INJSEQ_INJSEQLEN>(REG.INJSEQ, conf.injected_count - 1);
+    emb::mmio::write<ADC_INJSEQ_INJSEQLEN>(reg.INJSEQ, conf.injected_count - 1);
   }
   else {
-    emb::mmio::write<ADC_INJSEQ_INJSEQLEN>(REG.INJSEQ, 0u);
+    emb::mmio::write<ADC_INJSEQ_INJSEQLEN>(reg.INJSEQ, 0u);
   }
 
   // Enable ADC
-  emb::mmio::set<ADC_CTRL2_ADCEN>(REG.CTRL2);
+  emb::mmio::set<ADC_CTRL2_ADCEN>(reg.CTRL2);
   chrono::high_resolution_clock::delay(powerup_time);
 
   // Clear status flags
-  REG.STS = 0;
+  reg.STS = 0;
 
   // Interrupts configuration
   if (conf.injected_count > 0) {
-    emb::mmio::set<ADC_CTRL1_INJEOCIEN>(REG.CTRL1);
+    emb::mmio::set<ADC_CTRL1_INJEOCIEN>(reg.CTRL1);
   }
 
   if (conf.regular_count > 0 && conf.eoc_on_each_conversion) {
-    emb::mmio::set<ADC_CTRL1_EOCIEN>(REG.CTRL1);
+    emb::mmio::set<ADC_CTRL1_EOCIEN>(reg.CTRL1);
   }
 }
 

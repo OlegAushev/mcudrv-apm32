@@ -8,7 +8,7 @@
 
 namespace apm32::f4::tim::pwm {
 
-void detail::configure_bdt(registers& REG,
+void detail::configure_bdt(registers& reg,
                            emb::units::hz_f32 clk_freq,
                            emb::chrono::nanoseconds_i32 const& deadtime,
                            clock_division clkdiv,
@@ -23,7 +23,7 @@ void detail::configure_bdt(registers& REG,
                                                                        : 1u;
   }
 
-  emb::mmio::modify(REG.BDT,
+  emb::mmio::modify(reg.BDT,
                     emb::mmio::bits<TMR_BDT_RMOS>(1u),
                     emb::mmio::bits<TMR_BDT_IMOS>(1u),
                     emb::mmio::bits<TMR_BDT_LOCKCFG>(0u),

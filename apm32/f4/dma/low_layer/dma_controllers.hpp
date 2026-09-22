@@ -14,7 +14,7 @@ using controller_registers = DMA_TypeDef;
 inline constexpr std::size_t controller_count = 2;
 
 struct dma1 {
-  static inline controller_registers& REG = *DMA1;
+  static inline controller_registers& reg = *DMA1;
 
   static constexpr auto enable_clock = []() {
     emb::mmio::set<RCM_AHB1CLKEN_DMA1EN>(RCM->AHB1CLKEN);
@@ -22,7 +22,7 @@ struct dma1 {
 };
 
 struct dma2 {
-  static inline controller_registers& REG = *DMA2;
+  static inline controller_registers& reg = *DMA2;
 
   static constexpr auto enable_clock = []() {
     emb::mmio::set<RCM_AHB1CLKEN_DMA2EN>(RCM->AHB1CLKEN);

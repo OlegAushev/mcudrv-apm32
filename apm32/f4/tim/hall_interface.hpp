@@ -37,9 +37,9 @@ struct timebase_config {
   std::uint32_t counter_max;
 };
 
-void configure_timebase(registers& REG, timebase_config const& cfg);
+void configure_timebase(registers& reg, timebase_config const& cfg);
 
-void configure_channel(registers& REG, capture_filter filter);
+void configure_channel(registers& reg, capture_filter filter);
 
 template<some_timer_instance Tim>
 [[nodiscard]] gpio::alternate_pin_config
@@ -62,7 +62,7 @@ public:
   using timer_instance = Tim;
   using counter_type = Tim::counter_type;
 private:
-  static inline registers& REG = timer_instance::REG;
+  static inline registers& reg = timer_instance::reg;
 
   static constexpr nvic::irq_number const irqn_ =
       timer_instance::capture_compare_irqn;
@@ -107,11 +107,11 @@ public:
           std::numeric_limits<counter_type>::max());
     }
 
-    detail::configure_timebase(REG, timebase_cfg);
-    detail::configure_channel(REG, cfg.filter);
+    detail::configure_timebase(reg, timebase_cfg);
+    detail::configure_channel(reg, cfg.filter);
 
     // Interrupt configuration
-    emb::mmio::set<TMR_DIEN_CC1IEN | TMR_DIEN_UIEN>(REG.DIEN);
+    emb::mmio::set<TMR_DIEN_CC1IEN | TMR_DIEN_UIEN>(reg.DIEN);
     set_irq_priority(irqn_, cfg.irq_priority);
   }
 
@@ -125,7 +125,7 @@ public:
 
   typename timer_instance::counter_type captured_counter() const
   {
-    return static_cast<typename timer_instance::counter_type>(REG.CC1);
+    return static_cast<typename timer_instance::counter_type>(reg.CC1);
   }
 
   emb::units::sec_f32 captured_time() const
@@ -135,7 +135,7 @@ public:
 
   emb::units::sec_f32 time_since_capture() const
   {
-    return float(REG.CNT) * counter_period_;
+    return float(reg.CNT) * counter_period_;
   }
 
   std::array<emb::gpio::level, 3> input_levels() const

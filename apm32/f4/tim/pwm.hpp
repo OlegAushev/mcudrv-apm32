@@ -77,7 +77,7 @@ get_deadtime_setup(emb::units::hz_f32 clk_freq,
   }
 }
 
-void configure_bdt(registers& REG,
+void configure_bdt(registers& reg,
                    emb::units::hz_f32 clk_freq,
                    emb::chrono::nanoseconds_i32 const& deadtime,
                    clock_division clkdiv,

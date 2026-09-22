@@ -15,53 +15,53 @@ namespace apm32::f4::tim {
 template<some_timer_instance Tim>
 void enable_counter()
 {
-  emb::mmio::set<TMR_CTRL1_CNTEN>(Tim::REG.CTRL1);
+  emb::mmio::set<TMR_CTRL1_CNTEN>(Tim::reg.CTRL1);
 }
 
 template<some_timer_instance Tim>
 void disable_counter()
 {
-  emb::mmio::clear<TMR_CTRL1_CNTEN>(Tim::REG.CTRL1);
+  emb::mmio::clear<TMR_CTRL1_CNTEN>(Tim::reg.CTRL1);
 }
 
 template<some_timer_instance Tim>
 bool update_flag()
 {
-  return emb::mmio::test<TMR_STS_UIFLG>(Tim::REG.STS);
+  return emb::mmio::test<TMR_STS_UIFLG>(Tim::reg.STS);
 }
 
 template<some_timer_instance Tim>
 void acknowledge_update()
 {
-  emb::mmio::clear_w0<TMR_STS_UIFLG>(Tim::REG.STS);
+  emb::mmio::clear_w0<TMR_STS_UIFLG>(Tim::reg.STS);
 }
 
 template<some_timer_instance Tim>
 bool break_flag()
 {
-  return emb::mmio::test<TMR_STS_BRKIFLG>(Tim::REG.STS);
+  return emb::mmio::test<TMR_STS_BRKIFLG>(Tim::reg.STS);
 }
 
 template<some_timer_instance Tim>
 void acknowledge_break()
 {
-  emb::mmio::clear_w0<TMR_STS_BRKIFLG>(Tim::REG.STS);
+  emb::mmio::clear_w0<TMR_STS_BRKIFLG>(Tim::reg.STS);
 }
 
 template<some_timer_instance Tim, some_timer_channel_instance Ch>
 bool capture_compare_flag()
 {
   if constexpr (std::same_as<Ch, channel1>) {
-    return emb::mmio::test<TMR_STS_CC1IFLG>(Tim::REG.STS);
+    return emb::mmio::test<TMR_STS_CC1IFLG>(Tim::reg.STS);
   }
   else if constexpr (std::same_as<Ch, channel2>) {
-    return emb::mmio::test<TMR_STS_CC2IFLG>(Tim::REG.STS);
+    return emb::mmio::test<TMR_STS_CC2IFLG>(Tim::reg.STS);
   }
   else if constexpr (std::same_as<Ch, channel3>) {
-    return emb::mmio::test<TMR_STS_CC3IFLG>(Tim::REG.STS);
+    return emb::mmio::test<TMR_STS_CC3IFLG>(Tim::reg.STS);
   }
   else if constexpr (std::same_as<Ch, channel4>) {
-    return emb::mmio::test<TMR_STS_CC4IFLG>(Tim::REG.STS);
+    return emb::mmio::test<TMR_STS_CC4IFLG>(Tim::reg.STS);
   }
   else {
     std::unreachable();
@@ -72,16 +72,16 @@ template<some_timer_instance Tim, some_timer_channel_instance Ch>
 void acknowledge_capture_compare()
 {
   if constexpr (std::same_as<Ch, channel1>) {
-    emb::mmio::clear_w0<TMR_STS_CC1IFLG>(Tim::REG.STS);
+    emb::mmio::clear_w0<TMR_STS_CC1IFLG>(Tim::reg.STS);
   }
   else if constexpr (std::same_as<Ch, channel2>) {
-    emb::mmio::clear_w0<TMR_STS_CC2IFLG>(Tim::REG.STS);
+    emb::mmio::clear_w0<TMR_STS_CC2IFLG>(Tim::reg.STS);
   }
   else if constexpr (std::same_as<Ch, channel3>) {
-    emb::mmio::clear_w0<TMR_STS_CC3IFLG>(Tim::REG.STS);
+    emb::mmio::clear_w0<TMR_STS_CC3IFLG>(Tim::reg.STS);
   }
   else if constexpr (std::same_as<Ch, channel4>) {
-    emb::mmio::clear_w0<TMR_STS_CC4IFLG>(Tim::REG.STS);
+    emb::mmio::clear_w0<TMR_STS_CC4IFLG>(Tim::reg.STS);
   }
   else {
     std::unreachable();

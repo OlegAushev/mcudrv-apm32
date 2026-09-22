@@ -9,7 +9,7 @@
 
 namespace apm32::f4::tim::pwm {
 
-void detail::configure_half_bridge_timebase(registers& REG,
+void detail::configure_half_bridge_timebase(registers& reg,
                                             emb::units::hz_f32 clk_freq,
                                             half_bridge_pwm_config const& conf)
 {
@@ -23,15 +23,15 @@ void detail::configure_half_bridge_timebase(registers& REG,
   emb::ensure(period <= UINT16_MAX);
 
   emb::mmio::modify(
-      REG.CTRL1,
+      reg.CTRL1,
       emb::mmio::bits<TMR_CTRL1_CNTDIR>(0),
       emb::mmio::bits<TMR_CTRL1_CAMSEL>(0b11u), // center-aligned mode 3
       emb::mmio::bits<TMR_CTRL1_CLKDIV>(conf.clkdiv));
-  REG.AUTORLD = period;
-  REG.PSC = conf.prescaler.value();
-  REG.REPCNT = 0;
-  emb::mmio::set<TMR_CEG_UEG>(REG.CEG);
-  emb::mmio::set<TMR_CTRL1_ARPEN>(REG.CTRL1);
+  reg.AUTORLD = period;
+  reg.PSC = conf.prescaler.value();
+  reg.REPCNT = 0;
+  emb::mmio::set<TMR_CEG_UEG>(reg.CEG);
+  emb::mmio::set<TMR_CTRL1_ARPEN>(reg.CTRL1);
 }
 
 } // namespace apm32::f4::tim::pwm

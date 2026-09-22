@@ -41,7 +41,7 @@ struct half_bridge_config {
 
 namespace detail {
 
-void configure_half_bridge_timebase(registers& REG,
+void configure_half_bridge_timebase(registers& reg,
                                     emb::units::hz_f32 clk_freq,
                                     half_bridge_pwm_config const& conf);
 
@@ -52,50 +52,50 @@ template<some_advanced_timer Tim, some_timer_channel_instance Ch>
   requires(!std::same_as<Ch, channel4>)
 void configure_half_bridge_channel()
 {
-  registers& REG = Tim::REG;
+  registers& reg = Tim::reg;
 
   switch (Ch::idx) {
   case channel_idx::ch1:
-    emb::mmio::modify(REG.CCM1,
+    emb::mmio::modify(reg.CCM1,
                       emb::mmio::bits<TMR_CCM1_OC1PEN>(1u),
                       emb::mmio::bits<TMR_CCM1_OC1MOD>(oc_mode_pwm1));
-    emb::mmio::modify(REG.CCEN,
+    emb::mmio::modify(reg.CCEN,
                       emb::mmio::bits<TMR_CCEN_CC1EN>(1u),
                       emb::mmio::bits<TMR_CCEN_CC1NEN>(1u),
                       emb::mmio::bits<TMR_CCEN_CC1POL>(0u),
                       emb::mmio::bits<TMR_CCEN_CC1NPOL>(0u));
-    emb::mmio::modify(REG.CTRL2,
+    emb::mmio::modify(reg.CTRL2,
                       emb::mmio::bits<TMR_CTRL2_OC1OIS>(0u),
                       emb::mmio::bits<TMR_CTRL2_OC1NOIS>(0u));
-    REG.CC1 = 0;
+    reg.CC1 = 0;
     break;
   case channel_idx::ch2:
-    emb::mmio::modify(REG.CCM1,
+    emb::mmio::modify(reg.CCM1,
                       emb::mmio::bits<TMR_CCM1_OC2PEN>(1u),
                       emb::mmio::bits<TMR_CCM1_OC2MOD>(oc_mode_pwm1));
-    emb::mmio::modify(REG.CCEN,
+    emb::mmio::modify(reg.CCEN,
                       emb::mmio::bits<TMR_CCEN_CC2EN>(1u),
                       emb::mmio::bits<TMR_CCEN_CC2NEN>(1u),
                       emb::mmio::bits<TMR_CCEN_CC2POL>(0u),
                       emb::mmio::bits<TMR_CCEN_CC2NPOL>(0u));
-    emb::mmio::modify(REG.CTRL2,
+    emb::mmio::modify(reg.CTRL2,
                       emb::mmio::bits<TMR_CTRL2_OC2OIS>(0u),
                       emb::mmio::bits<TMR_CTRL2_OC2NOIS>(0u));
-    REG.CC2 = 0;
+    reg.CC2 = 0;
     break;
   case channel_idx::ch3:
-    emb::mmio::modify(REG.CCM2,
+    emb::mmio::modify(reg.CCM2,
                       emb::mmio::bits<TMR_CCM2_OC3PEN>(1u),
                       emb::mmio::bits<TMR_CCM2_OC3MOD>(oc_mode_pwm1));
-    emb::mmio::modify(REG.CCEN,
+    emb::mmio::modify(reg.CCEN,
                       emb::mmio::bits<TMR_CCEN_CC3EN>(1u),
                       emb::mmio::bits<TMR_CCEN_CC3NEN>(1u),
                       emb::mmio::bits<TMR_CCEN_CC3POL>(0u),
                       emb::mmio::bits<TMR_CCEN_CC3NPOL>(0u));
-    emb::mmio::modify(REG.CTRL2,
+    emb::mmio::modify(reg.CTRL2,
                       emb::mmio::bits<TMR_CTRL2_OC3OIS>(0u),
                       emb::mmio::bits<TMR_CTRL2_OC3NOIS>(0u));
-    REG.CC3 = 0;
+    reg.CC3 = 0;
     break;
   case channel_idx::ch4: std::unreachable(); break;
   }
@@ -110,7 +110,7 @@ public:
   using counter_type = Tim::counter_type;
   using dutycycle_type = std::array<emb::unsigned_pu_f32, LegCount>;
 private:
-  static inline registers& REG = timer_instance::REG;
+  static inline registers& reg = timer_instance::reg;
 
   static constexpr nvic::irq_number const update_irqn_ =
       timer_instance::update_irqn;
@@ -118,8 +118,8 @@ private:
   static constexpr nvic::irq_number const break_irqn_ =
       timer_instance::break_irqn;
 
-  static inline std::array<std::uint32_t volatile*, 4> const CCR_REGS =
-      {&REG.CC1, &REG.CC2, &REG.CC3, &REG.CC4};
+  static inline std::array<std::uint32_t volatile*, 4> const ccr_regs =
+      {&reg.CC1, &reg.CC2, &reg.CC3, &reg.CC4};
 
   emb::units::hz_f32 timebase_freq_;
   emb::units::hz_f32 min_freq_;
@@ -160,7 +160,7 @@ public:
     timer_instance::enable_clock();
 
     detail::configure_half_bridge_timebase(
-        REG,
+        reg,
         timer_instance::template clock_frequency<emb::units::hz_f32>(),
         conf.pwm);
 
@@ -169,7 +169,7 @@ public:
           conf.bk_pin.value()));
     }
     detail::configure_bdt(
-        REG,
+        reg,
         timer_instance::template clock_frequency<emb::units::hz_f32>(),
         conf.pwm.deadtime,
         conf.pwm.clkdiv,
@@ -186,14 +186,14 @@ public:
 
     // Trigger output
     if (conf.pwm.trgo) {
-      emb::mmio::write<TMR_CTRL2_MMSEL>(REG.CTRL2, *conf.pwm.trgo);
+      emb::mmio::write<TMR_CTRL2_MMSEL>(reg.CTRL2, *conf.pwm.trgo);
     }
 
     // Interrupt configuration
-    emb::mmio::set<TMR_DIEN_UIEN>(REG.DIEN);
+    emb::mmio::set<TMR_DIEN_UIEN>(reg.DIEN);
     set_irq_priority(update_irqn_, conf.pwm.update_irq_priority);
     if (bk_pin_) {
-      emb::mmio::set<TMR_DIEN_BRKIEN>(REG.DIEN);
+      emb::mmio::set<TMR_DIEN_BRKIEN>(reg.DIEN);
       set_irq_priority(break_irqn_, conf.pwm.break_irq_priority);
     }
   }
@@ -227,13 +227,13 @@ public:
   {
     assert(freq >= min_freq_);
     assert(freq <= max_freq_);
-    REG.AUTORLD = static_cast<std::uint32_t>((timebase_freq_ / freq) / 2);
+    reg.AUTORLD = static_cast<std::uint32_t>((timebase_freq_ / freq) / 2);
     period_ = 1.f / freq;
   }
 
   bool active() const
   {
-    return emb::mmio::test<TMR_BDT_MOEN>(REG.BDT);
+    return emb::mmio::test<TMR_BDT_MOEN>(reg.BDT);
   }
 
   bool bad() const
@@ -242,39 +242,39 @@ public:
       return false;
     }
     return std::uint32_t(std::to_underlying(bk_pin_->read_level()))
-        == emb::mmio::read<TMR_BDT_BRKPOL>(REG.BDT);
+        == emb::mmio::read<TMR_BDT_BRKPOL>(reg.BDT);
   }
 
   void start()
   {
     if (bk_pin_) {
       acknowledge_break<timer_instance>();
-      emb::mmio::set<TMR_DIEN_BRKIEN>(REG.DIEN);
+      emb::mmio::set<TMR_DIEN_BRKIEN>(reg.DIEN);
     }
-    emb::mmio::set<TMR_BDT_MOEN>(REG.BDT);
+    emb::mmio::set<TMR_BDT_MOEN>(reg.BDT);
   }
 
   void stop()
   {
-    emb::mmio::clear<TMR_BDT_MOEN>(REG.BDT);
+    emb::mmio::clear<TMR_BDT_MOEN>(reg.BDT);
     if (bk_pin_) {
       // disable break interrupts to prevent instant call of BRK ISR
-      emb::mmio::clear<TMR_DIEN_BRKIEN>(REG.DIEN);
+      emb::mmio::clear<TMR_DIEN_BRKIEN>(reg.DIEN);
     }
   }
 
   count_direction timer_count_direction() const
   {
-    return emb::mmio::test<TMR_CTRL1_CNTDIR>(REG.CTRL1) ? count_direction::down
+    return emb::mmio::test<TMR_CTRL1_CNTDIR>(reg.CTRL1) ? count_direction::down
                                                         : count_direction::up;
   }
 
   dutycycle_type dutycycle() const
   {
     dutycycle_type dutycycle;
-    float const reload_val = static_cast<float>(REG.AUTORLD);
+    float const reload_val = static_cast<float>(reg.AUTORLD);
     emb::unroll<LegCount>([&]<std::size_t I>() {
-      dutycycle[I] = emb::unsigned_pu_f32{static_cast<float>(*CCR_REGS[I])
+      dutycycle[I] = emb::unsigned_pu_f32{static_cast<float>(*ccr_regs[I])
                                           / reload_val};
     });
     return dutycycle;
@@ -282,9 +282,9 @@ public:
 
   void set_dutycycle(dutycycle_type const& dutycycle)
   {
-    float const reload_val = static_cast<float>(REG.AUTORLD);
+    float const reload_val = static_cast<float>(reg.AUTORLD);
     emb::unroll<LegCount>([&]<std::size_t I>() {
-      *CCR_REGS[I] = static_cast<std::uint32_t>(dutycycle[I].value()
+      *ccr_regs[I] = static_cast<std::uint32_t>(dutycycle[I].value()
                                                 * reload_val);
     });
   }
