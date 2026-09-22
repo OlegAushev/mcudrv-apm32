@@ -47,8 +47,8 @@ public:
   {
     period_ = 1.f / conf.frequency;
     if (!conf.prescaler.has_value()) {
-      conf.prescaler = calculate_prescaler<timer_instance>(conf.frequency,
-                                                           counter_mode::up);
+      conf.prescaler =
+          calculate_prescaler<timer_instance>(conf.frequency, counter_mode::up);
     }
 
     timer_instance::enable_clock();

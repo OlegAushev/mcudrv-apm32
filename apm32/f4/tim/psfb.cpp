@@ -17,9 +17,8 @@ void detail::configure_psfb_timebase(registers& reg,
 
   auto const timebase_freq = clk_freq / float(conf.prescaler.value() + 1);
 
-  std::uint32_t const period = std::uint32_t(timebase_freq
-                                             / (2 * conf.frequency))
-                             - 1;
+  std::uint32_t const period =
+      std::uint32_t(timebase_freq / (2 * conf.frequency)) - 1;
   emb::ensure(period <= UINT16_MAX);
 
   emb::mmio::modify(

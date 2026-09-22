@@ -156,8 +156,8 @@ public:
   multi_channel_adc()
     requires(dma_enabled)
       : dma_stream_(
-            dma::peripheral_to_memory_stream_config{
-                .irq_priority = dma_irq_priority},
+            dma::peripheral_to_memory_stream_config{.irq_priority =
+                                                        dma_irq_priority},
             &reg.REGDATA)
   {
     adc_instance::enable_clock();

@@ -30,12 +30,12 @@ struct adc_traits_1 {
       dma_channel,
       dma::owned_storage<dma::buffer<std::uint16_t, regular_count>>>;
   static constexpr nvic::irq_priority dma_irq_priority{4};
-  static constexpr auto injected_trigger = inj_trigger{
-      .edge = trigger_edge::rising,
-      .event = inj_trigger_event::tim1_trgo};
-  static constexpr auto regular_trigger = reg_trigger{
-      .edge = trigger_edge::falling,
-      .event = reg_trigger_event::tim3_trgo};
+  static constexpr auto injected_trigger =
+      inj_trigger{.edge = trigger_edge::rising,
+                  .event = inj_trigger_event::tim1_trgo};
+  static constexpr auto regular_trigger =
+      reg_trigger{.edge = trigger_edge::falling,
+                  .event = reg_trigger_event::tim3_trgo};
   static constexpr bool eoc_on_each = true;
   static constexpr bool auto_injconv = true;
 };
@@ -69,9 +69,9 @@ struct stream_traits_3 {
       dma_channel,
       dma::owned_storage<dma::double_buffer<std::uint16_t, regular_count * 4>>>;
   static constexpr nvic::irq_priority dma_irq_priority{4};
-  static constexpr auto regular_trigger = reg_trigger{
-      .edge = trigger_edge::rising,
-      .event = reg_trigger_event::tim3_trgo};
+  static constexpr auto regular_trigger =
+      reg_trigger{.edge = trigger_edge::rising,
+                  .event = reg_trigger_event::tim3_trgo};
   static constexpr bool eoc_on_each = true;
 };
 
@@ -135,13 +135,13 @@ using adc3_reg3 =
   [[maybe_unused]] auto inj = adc_1.read(adc1_inj1{});
   [[maybe_unused]] auto ovs = adc_1.oversample(adc1_reg34{});
   [[maybe_unused]] auto frame = adc_1.read_frame(adc1_reg1{}, adc1_reg2{});
-  [[maybe_unused]] auto frame_tl = adc_1.read_frame(
-      emb::typelist<adc1_reg1, adc1_reg2>{});
+  [[maybe_unused]] auto frame_tl =
+      adc_1.read_frame(emb::typelist<adc1_reg1, adc1_reg2>{});
   // mixed frame; a single-slot channel oversamples to its plain read
-  [[maybe_unused]] auto ovs_frame = adc_1.oversample_frame(adc1_reg34{},
-                                                           adc1_inj1{});
-  [[maybe_unused]] auto ovs_frame_tl = adc_1.oversample_frame(
-      emb::typelist<adc1_reg34, adc1_inj1>{});
+  [[maybe_unused]] auto ovs_frame =
+      adc_1.oversample_frame(adc1_reg34{}, adc1_inj1{});
+  [[maybe_unused]] auto ovs_frame_tl =
+      adc_1.oversample_frame(emb::typelist<adc1_reg34, adc1_inj1>{});
   // injected read works without DMA too
   [[maybe_unused]] auto inj2 = adc_2.read(adc2_inj1{});
 

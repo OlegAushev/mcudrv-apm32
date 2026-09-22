@@ -70,11 +70,10 @@ constexpr std::uint32_t calculate_prescaler(emb::units::hz_f32 clk_freq,
   std::uint32_t clk_freq_u32 = static_cast<std::uint32_t>(clk_freq.value());
   std::uint32_t adc_freq_u32 = static_cast<std::uint32_t>(adc_freq.value());
 
-  std::uint32_t ratio = clk_freq_u32 / adc_freq_u32
-                      + (clk_freq_u32 % adc_freq_u32 != 0);
-  auto it = std::upper_bound(clock_prescalers.begin(),
-                             clock_prescalers.end(),
-                             ratio);
+  std::uint32_t ratio =
+      clk_freq_u32 / adc_freq_u32 + (clk_freq_u32 % adc_freq_u32 != 0);
+  auto it =
+      std::upper_bound(clock_prescalers.begin(), clock_prescalers.end(), ratio);
   emb::ensure(it != clock_prescalers.end());
   return *it;
 }

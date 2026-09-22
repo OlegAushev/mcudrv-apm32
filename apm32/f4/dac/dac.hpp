@@ -20,8 +20,7 @@ using peripheral_registers = DAC_TypeDef;
 inline constexpr std::size_t peripheral_count = 1;
 
 inline std::array<peripheral_registers*, peripheral_count> const peripherals = {
-    DAC
-};
+    DAC};
 
 enum class peripheral_id : std::uint32_t { dac1 };
 
@@ -59,17 +58,18 @@ private:
 public:
   peripheral(peripheral_id id);
 
-  [[nodiscard]] std::unique_ptr<gpio::analog_pin> configure_channel(
-      channel ch,
-      pin_config const& pinconf,
-      channel_config chconf
-  );
+  [[nodiscard]] std::unique_ptr<gpio::analog_pin>
+  configure_channel(channel ch,
+                    pin_config const& pinconf,
+                    channel_config chconf);
 
-  peripheral_id id() const {
+  peripheral_id id() const
+  {
     return id_;
   }
 
-  peripheral_registers* regs() {
+  peripheral_registers* regs()
+  {
     return regs_;
   }
 

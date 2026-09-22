@@ -4,8 +4,8 @@
 
 #include <apm32f4xx_i2c.h>
 
-#include <apm32/f4/gpio.hpp>
 #include <apm32/f4/core/core.hpp>
+#include <apm32/f4/gpio.hpp>
 
 #include <emb/noncopyable.hpp>
 #include <emb/singleton.hpp>
@@ -19,23 +19,17 @@ using Regs = I2C_T;
 
 constexpr std::size_t periph_num{3};
 
-enum class Peripheral : std::size_t {
-  i2c1,
-  i2c2,
-  i2c3
-};
+enum class Peripheral : std::size_t { i2c1, i2c2, i2c3 };
 
 inline std::array<Regs*, periph_num> const regs{I2C1, I2C2, I2C3};
 
-inline Peripheral get_peripheral(Regs const* reg) {
+inline Peripheral get_peripheral(Regs const* reg)
+{
   return static_cast<Peripheral>(
       std::distance(regs.begin(), std::find(regs.begin(), regs.end(), reg)));
 }
 
-enum class Direction {
-  rx,
-  tx
-};
+enum class Direction { rx, tx };
 
 enum class Event : std::uint32_t {
   ev5_master_mode_select =
@@ -108,10 +102,12 @@ public:
   SclPin(SclPinConfig const& conf);
 };
 
-inline constexpr std::array<IRQn_Type, periph_num> event_irqn = {
-    I2C1_EV_IRQn, I2C2_EV_IRQn, I2C3_EV_IRQn};
-inline constexpr std::array<IRQn_Type, periph_num> error_irqn = {
-    I2C1_ER_IRQn, I2C2_ER_IRQn, I2C3_ER_IRQn};
+inline constexpr std::array<IRQn_Type, periph_num> event_irqn = {I2C1_EV_IRQn,
+                                                                 I2C2_EV_IRQn,
+                                                                 I2C3_EV_IRQn};
+inline constexpr std::array<IRQn_Type, periph_num> error_irqn = {I2C1_ER_IRQn,
+                                                                 I2C2_ER_IRQn,
+                                                                 I2C3_ER_IRQn};
 
 } // namespace internal
 
@@ -129,60 +125,103 @@ public:
          SclPinConfig const& scl_pinconf,
          Config const& conf);
 
-  Peripheral peripheral() const { return peripheral_; }
+  Peripheral peripheral() const
+  {
+    return peripheral_;
+  }
 
-  I2C_T* regs() { return regs_; }
+  I2C_T* regs()
+  {
+    return regs_;
+  }
 
-  static Module* instance(Peripheral peripheral) {
+  static Module* instance(Peripheral peripheral)
+  {
     return emb::singleton_array<Module, periph_num>::instance(
         std::to_underlying(peripheral));
   }
 
-  void enable() { regs_->CTRL1_B.I2CEN = 1; }
+  void enable()
+  {
+    regs_->CTRL1_B.I2CEN = 1;
+  }
 
-  void disable() { regs_->CTRL1_B.I2CEN = 0; }
+  void disable()
+  {
+    regs_->CTRL1_B.I2CEN = 0;
+  }
 
-  void reset() {
+  void reset()
+  {
     I2C_Reset(regs_);
     I2C_Config(regs_, const_cast<I2C_Config_T*>(&conf_.hal_config));
   }
 
-  void toggle_reset(bool v = true) { regs_->CTRL1_B.SWRST = v; }
+  void toggle_reset(bool v = true)
+  {
+    regs_->CTRL1_B.SWRST = v;
+  }
 
-  void toggle_start(bool v = true) { regs_->CTRL1_B.START = v; }
+  void toggle_start(bool v = true)
+  {
+    regs_->CTRL1_B.START = v;
+  }
 
-  void toggle_stop(bool v = true) { regs_->CTRL1_B.STOP = v; }
+  void toggle_stop(bool v = true)
+  {
+    regs_->CTRL1_B.STOP = v;
+  }
 
-  void toggle_ack(bool v = true) { regs_->CTRL1_B.ACKEN = v; }
+  void toggle_ack(bool v = true)
+  {
+    regs_->CTRL1_B.ACKEN = v;
+  }
 
-  void toggle_ackpos(bool v = true) { regs_->CTRL1_B.ACKPOS = v; }
+  void toggle_ackpos(bool v = true)
+  {
+    regs_->CTRL1_B.ACKPOS = v;
+  }
 
-  bool busy() const { return regs_->STS2_B.BUSBSYFLG == 1; }
+  bool busy() const
+  {
+    return regs_->STS2_B.BUSBSYFLG == 1;
+  }
 
-  bool rx_empty() const { return regs_->STS1_B.RXBNEFLG == 0; }
+  bool rx_empty() const
+  {
+    return regs_->STS1_B.RXBNEFLG == 0;
+  }
 
-  bool tx_empty() const { return regs_->STS1_B.TXBEFLG == 1; }
+  bool tx_empty() const
+  {
+    return regs_->STS1_B.TXBEFLG == 1;
+  }
 
-  std::uint32_t read_status_regs() const {
+  std::uint32_t read_status_regs() const
+  {
     std::uint32_t const sts1{regs_->STS1 & 0x0000FFFF};
     std::uint32_t const sts2{regs_->STS2 & 0x000000FF};
     return sts1 | (sts2 << 16);
   }
 
-  static bool is_event(std::uint32_t sts_regs, Event event) {
+  static bool is_event(std::uint32_t sts_regs, Event event)
+  {
     return (sts_regs & std::to_underlying(event)) == std::to_underlying(event);
   }
 
-  void put_addr(std::uint8_t addr, Direction dir) {
+  void put_addr(std::uint8_t addr, Direction dir)
+  {
     addr = std::uint8_t((addr & 0x7F) << 1);
     if (dir == Direction::rx) {
       regs_->DATA_B.DATA = addr | 0x01;
-    } else {
+    }
+    else {
       regs_->DATA_B.DATA = addr & 0xFE;
     }
   }
 
-  exec_status put_data(std::uint8_t data) {
+  exec_status put_data(std::uint8_t data)
+  {
     if (!tx_empty()) {
       return exec_status::busy;
     }
@@ -190,7 +229,8 @@ public:
     return exec_status::ok;
   }
 
-  std::optional<std::uint8_t> get_data() const {
+  std::optional<std::uint8_t> get_data() const
+  {
     if (rx_empty()) {
       return {};
     }
@@ -198,7 +238,8 @@ public:
     return {data};
   }
 
-  void clear_errors() {
+  void clear_errors()
+  {
     regs_->STS1_B.SMBALTFLG = 0;
     regs_->STS1_B.TTEFLG = 0;
     regs_->STS1_B.PECEFLG = 0;
@@ -208,7 +249,8 @@ public:
     regs_->STS1_B.BERRFLG = 0;
   }
 public:
-  void init_event_interrupts(bool enable_buf_it, IrqPriority priority) {
+  void init_event_interrupts(bool enable_buf_it, IrqPriority priority)
+  {
     if (enable_buf_it) {
       regs_->CTRL2_B.BUFIEN = 1;
     }
@@ -217,25 +259,30 @@ public:
                      priority);
   }
 
-  void init_error_interrupts(IrqPriority priority) {
+  void init_error_interrupts(IrqPriority priority)
+  {
     regs_->CTRL2_B.ERRIEN = 1;
     set_irq_priority(internal::error_irqn[std::to_underlying(peripheral_)],
                      priority);
   }
 
-  void enable_event_interrupts() {
+  void enable_event_interrupts()
+  {
     enable_irq(internal::event_irqn[std::to_underlying(peripheral_)]);
   }
 
-  void enable_error_interrupts() {
+  void enable_error_interrupts()
+  {
     enable_irq(internal::error_irqn[std::to_underlying(peripheral_)]);
   }
 
-  void disable_event_interrupts() {
+  void disable_event_interrupts()
+  {
     disable_irq(internal::event_irqn[std::to_underlying(peripheral_)]);
   }
 
-  void disable_error_interrupts() {
+  void disable_error_interrupts()
+  {
     disable_irq(internal::event_irqn[std::to_underlying(peripheral_)]);
   }
 private:
@@ -247,6 +294,6 @@ private:
       []() { RCM_EnableAPB1PeriphClock(RCM_APB1_PERIPH_I2C3); }};
 };
 
-} // namespace mcu::apm32::f4::i2c
+} // namespace mcu::inline apm32::inline f4::i2c
 
 #endif

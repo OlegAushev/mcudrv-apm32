@@ -117,8 +117,8 @@ public:
     // instead of direct cast to int64_t allows use of hardware FPU instruction
     // and avoids software floating-point conversion routine __fixsfdi
     // that would be needed for float-to-int64 conversion.
-    auto const nsec_count = static_cast<std::int32_t>(static_cast<float>(ticks)
-                                                      * nsec_per_tick_);
+    auto const nsec_count =
+        static_cast<std::int32_t>(static_cast<float>(ticks) * nsec_per_tick_);
 
     return time_point{
         std::chrono::duration_cast<duration>(std::chrono::milliseconds{ms})

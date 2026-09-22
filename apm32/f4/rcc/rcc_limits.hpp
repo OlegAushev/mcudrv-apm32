@@ -4,6 +4,7 @@
 
 namespace apm32::f4::rcc {
 
+// clang-format off
 inline constexpr std::uint64_t hse_min      = 4'000'000;
 inline constexpr std::uint64_t hse_max      = 26'000'000;
 inline constexpr std::uint64_t vco_in_min   = 1'000'000;
@@ -14,5 +15,6 @@ inline constexpr std::uint64_t sysclk_max   = 168'000'000;
 inline constexpr std::uint64_t hclk_max     = 168'000'000;
 inline constexpr std::uint64_t pclk1_max    = 42'000'000;
 inline constexpr std::uint64_t pclk2_max    = 84'000'000;
+// clang-format on
 
 } // namespace apm32::f4::rcc

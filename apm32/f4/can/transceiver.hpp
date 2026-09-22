@@ -358,8 +358,8 @@ private:
                                          frame.len);
 
     // data
-    auto const words = std::bit_cast<std::array<std::uint32_t, 2>>(
-        frame.payload);
+    auto const words =
+        std::bit_cast<std::array<std::uint32_t, 2>>(frame.payload);
     reg.sTxMailBox[mailbox].TXMDL = words[0];
     reg.sTxMailBox[mailbox].TXMDH = words[1];
 

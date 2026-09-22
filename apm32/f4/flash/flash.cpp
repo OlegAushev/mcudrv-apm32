@@ -133,8 +133,8 @@ auto write(std::uintptr_t addr, std::span<std::byte const> data)
 
   emb::mmio::write<FLASH_CTRL_PGSIZE>(FLASH->CTRL, program_size::_8);
   emb::mmio::set<FLASH_CTRL_PG>(FLASH->CTRL);
-  auto unprogram = emb::scope_exit(
-      [] { emb::mmio::clear<FLASH_CTRL_PG>(FLASH->CTRL); });
+  auto unprogram =
+      emb::scope_exit([] { emb::mmio::clear<FLASH_CTRL_PG>(FLASH->CTRL); });
 
   auto* dst = reinterpret_cast<std::byte volatile*>(addr);
   for (std::byte b : data) {

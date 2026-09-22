@@ -77,16 +77,16 @@ public:
     if constexpr (!memory_buffer_type::double_buffer_mode) {
       emb::mmio::clear<DMA_SCFGx_DBM>(stream_reg.SCFG);
       stream_reg.NDATA = memory_buffer_type::size;
-      stream_reg.M0ADDR = reinterpret_cast<std::uint32_t>(
-          storage_.get().data.data());
+      stream_reg.M0ADDR =
+          reinterpret_cast<std::uint32_t>(storage_.get().data.data());
     }
     else {
       emb::mmio::set<DMA_SCFGx_DBM>(stream_reg.SCFG);
       stream_reg.NDATA = memory_buffer_type::size;
-      stream_reg.M0ADDR = reinterpret_cast<std::uint32_t>(
-          storage_.get().data1.data());
-      stream_reg.M1ADDR = reinterpret_cast<std::uint32_t>(
-          storage_.get().data2.data());
+      stream_reg.M0ADDR =
+          reinterpret_cast<std::uint32_t>(storage_.get().data1.data());
+      stream_reg.M1ADDR =
+          reinterpret_cast<std::uint32_t>(storage_.get().data2.data());
     }
 
     stream_reg.PADDR = reinterpret_cast<std::uint32_t>(periph_addr);

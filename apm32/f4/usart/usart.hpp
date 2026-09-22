@@ -29,10 +29,11 @@ enum class Peripheral : std::size_t {
   usart6,
 };
 
-inline std::array<Regs*, periph_num> const regs = {
-    USART1, USART2, USART3, UART4, UART5, USART6};
+inline std::array<Regs*, periph_num> const regs =
+    {USART1, USART2, USART3, UART4, UART5, USART6};
 
-inline Peripheral get_peripheral(Regs const* reg) {
+inline Peripheral get_peripheral(Regs const* reg)
+{
   return static_cast<Peripheral>(
       std::distance(regs.begin(), std::find(regs.begin(), regs.end(), reg)));
 }
@@ -81,21 +82,27 @@ public:
          TxPinConfig const& tx_pinconf,
          Config const& conf);
 
-  Peripheral peripheral() const { return peripheral_; }
+  Peripheral peripheral() const
+  {
+    return peripheral_;
+  }
 
-  static Module* instance(Peripheral peripheral) {
+  static Module* instance(Peripheral peripheral)
+  {
     return emb::singleton_array<Module, periph_num>::instance(
         std::to_underlying(peripheral));
   }
 
-  virtual int getchar() override {
+  virtual int getchar() override
+  {
     if (bit_is_clear<std::uint32_t>(regs_->STS, USART_FLAG_RXBNE)) {
       return EOF;
     }
     return regs_->DATA_B.DATA;
   }
 
-  virtual int putchar(int ch) override {
+  virtual int putchar(int ch) override
+  {
     if (bit_is_clear<std::uint32_t>(regs_->STS, USART_FLAG_TXBE)) {
       return EOF;
     }
@@ -133,6 +140,6 @@ protected:
       []() { RCM_EnableAPB2PeriphClock(RCM_APB2_PERIPH_USART6); }};
 };
 
-} // namespace mcu::apm32::f4::usart
+} // namespace mcu::inline apm32::inline f4::usart
 
 #endif

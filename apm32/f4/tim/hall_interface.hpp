@@ -101,10 +101,10 @@ public:
       timebase_cfg.counter_max = std::numeric_limits<counter_type>::max();
     }
     else {
-      timebase_cfg.counter_max = std::clamp(
-          static_cast<counter_type>(*cfg.timeout / counter_period_),
-          counter_type{0},
-          std::numeric_limits<counter_type>::max());
+      timebase_cfg.counter_max =
+          std::clamp(static_cast<counter_type>(*cfg.timeout / counter_period_),
+                     counter_type{0},
+                     std::numeric_limits<counter_type>::max());
     }
 
     detail::configure_timebase(reg, timebase_cfg);

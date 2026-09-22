@@ -15,11 +15,11 @@ void detail::configure_half_bridge_timebase(registers& reg,
 {
   emb::ensure(conf.prescaler.has_value());
 
-  auto const timebase_freq = clk_freq
-                           / static_cast<float>(conf.prescaler.value() + 1);
+  auto const timebase_freq =
+      clk_freq / static_cast<float>(conf.prescaler.value() + 1);
 
-  std::uint32_t const period = static_cast<std::uint32_t>(
-      (timebase_freq / conf.frequency) / 2);
+  std::uint32_t const period =
+      static_cast<std::uint32_t>((timebase_freq / conf.frequency) / 2);
   emb::ensure(period <= UINT16_MAX);
 
   emb::mmio::modify(

@@ -144,17 +144,17 @@ public:
 
     // use prescaler from config or calculate it from required pwm frequency
     if (!conf.pwm.prescaler.has_value()) {
-      conf.pwm.prescaler = calculate_prescaler<timer_instance>(
-          conf.pwm.frequency,
-          counter_mode::updown);
+      conf.pwm.prescaler =
+          calculate_prescaler<timer_instance>(conf.pwm.frequency,
+                                              counter_mode::updown);
     }
 
     timebase_freq_ =
         timer_instance::template clock_frequency<emb::units::hz_f32>()
         / static_cast<float>(conf.pwm.prescaler.value() + 1);
 
-    min_freq_ = timebase_freq_
-              / (2.f * std::numeric_limits<counter_type>::max());
+    min_freq_ =
+        timebase_freq_ / (2.f * std::numeric_limits<counter_type>::max());
     max_freq_ = timebase_freq_ / 2.f;
 
     timer_instance::enable_clock();
@@ -274,8 +274,8 @@ public:
     dutycycle_type dutycycle;
     float const reload_val = static_cast<float>(reg.AUTORLD);
     emb::unroll<LegCount>([&]<std::size_t I>() {
-      dutycycle[I] = emb::unsigned_pu_f32{static_cast<float>(*ccr_regs[I])
-                                          / reload_val};
+      dutycycle[I] =
+          emb::unsigned_pu_f32{static_cast<float>(*ccr_regs[I]) / reload_val};
     });
     return dutycycle;
   }
@@ -284,8 +284,8 @@ public:
   {
     float const reload_val = static_cast<float>(reg.AUTORLD);
     emb::unroll<LegCount>([&]<std::size_t I>() {
-      *ccr_regs[I] = static_cast<std::uint32_t>(dutycycle[I].value()
-                                                * reload_val);
+      *ccr_regs[I] =
+          static_cast<std::uint32_t>(dutycycle[I].value() * reload_val);
     });
   }
 public:

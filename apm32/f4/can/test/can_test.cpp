@@ -47,13 +47,13 @@ static_assert(!detail::find_bit_timing(42'000'000, 800'000, 0.875f));
 
 // A wider jump width is the caller's to ask for, up to min(4, TS2); wider than
 // that does not compile.
-static_assert(
-    detail::with_sync_jump_width(
-        *detail::find_bit_timing(42'000'000, 500'000, 0.875f), 2)
-    == bit_timing{.prescaler = 6,
-                  .sync_jump_width = 2,
-                  .time_segment1 = 11,
-                  .time_segment2 = 2});
+static_assert(detail::with_sync_jump_width(
+                  *detail::find_bit_timing(42'000'000, 500'000, 0.875f),
+                  2)
+              == bit_timing{.prescaler = 6,
+                            .sync_jump_width = 2,
+                            .time_segment1 = 11,
+                            .time_segment2 = 2});
 
 static_assert(bit_timing{.prescaler = 6,
                          .sync_jump_width = 1,

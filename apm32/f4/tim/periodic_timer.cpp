@@ -16,11 +16,11 @@ void detail::configure_timebase(registers& reg,
 {
   emb::ensure(conf.prescaler.has_value());
 
-  auto const timebase_freq = clk_freq
-                           / static_cast<float>(conf.prescaler.value() + 1);
+  auto const timebase_freq =
+      clk_freq / static_cast<float>(conf.prescaler.value() + 1);
 
-  std::uint32_t const period = std::uint32_t(timebase_freq / conf.frequency)
-                             - 1;
+  std::uint32_t const period =
+      std::uint32_t(timebase_freq / conf.frequency) - 1;
   emb::ensure(period <= counter_max);
 
   emb::mmio::modify(reg.CTRL1,

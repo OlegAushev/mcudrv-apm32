@@ -99,15 +99,14 @@ constexpr std::uint16_t calculate_prescaler(emb::units::hz_f32 clk_freq,
   std::uint32_t tim_freq_u32 = static_cast<std::uint32_t>(tim_freq.value());
 
   // constexpr replacement for std::div (must be constrexpr since c++23, but...)
-  std::uint32_t total_ticks = clk_freq_u32 / tim_freq_u32
-                            + (clk_freq_u32 % tim_freq_u32 != 0)
-                            - 1;
+  std::uint32_t total_ticks =
+      clk_freq_u32 / tim_freq_u32 + (clk_freq_u32 % tim_freq_u32 != 0) - 1;
   if (mode == counter_mode::updown) {
     total_ticks = (total_ticks + 1) / 2;
   }
 
-  std::uint32_t ret = total_ticks
-                    / std::numeric_limits<typename Tim::counter_type>::max();
+  std::uint32_t ret =
+      total_ticks / std::numeric_limits<typename Tim::counter_type>::max();
   emb::ensure(ret <= UINT16_MAX);
 
   return static_cast<std::uint16_t>(ret);

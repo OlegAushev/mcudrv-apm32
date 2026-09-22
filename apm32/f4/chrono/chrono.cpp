@@ -20,8 +20,8 @@ void steady_clock::init()
 {
   emb::ensure(!initialized_);
 
-  std::uint32_t const ticks_per_msec = rcc::hclk_frequency<std::uint32_t>()
-                                     / 1000u;
+  std::uint32_t const ticks_per_msec =
+      rcc::hclk_frequency<std::uint32_t>() / 1000u;
   SysTick->LOAD = ticks_per_msec - 1;
   NVIC_SetPriority(SysTick_IRQn, 0);
   SysTick->VAL = 0;

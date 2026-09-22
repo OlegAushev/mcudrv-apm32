@@ -154,12 +154,14 @@ class region {
 
   static_assert(first <= last, "the range is empty");
   static_assert(last < sector_count, "the part has no such sector");
-  static_assert([] {
-    for (auto n = first; n <= last; ++n) {
-      if (size(sector{n}) != size(First)) return false;
-    }
-    return true;
-  }(), "the sectors of a region must be of one size");
+  static_assert(
+      [] {
+        for (auto n = first; n <= last; ++n) {
+          if (size(sector{n}) != size(First)) return false;
+        }
+        return true;
+      }(),
+      "the sectors of a region must be of one size");
 
 public:
   using addr_type = std::uint32_t;
@@ -198,7 +200,8 @@ public:
 
   auto erase(addr_type at, std::size_t size) -> std::expected<void, error>
   {
-    if (!in_range(at, size) || (at % sector_size != 0)
+    if (!in_range(at, size)
+        || (at % sector_size != 0)
         || (size % sector_size != 0)) {
       return std::unexpected(error::invalid_argument);
     }

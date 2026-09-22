@@ -258,8 +258,8 @@ public:
     dutycycle_type dutycycle;
     float const reload_val = static_cast<float>(reg.AUTORLD);
     emb::unroll<LegCount>([&]<std::size_t I>() {
-      dutycycle[I] = emb::unsigned_pu_f32{static_cast<float>(*ccr_regs[I])
-                                          / reload_val};
+      dutycycle[I] =
+          emb::unsigned_pu_f32{static_cast<float>(*ccr_regs[I]) / reload_val};
     });
     return dutycycle;
   }
@@ -268,8 +268,8 @@ public:
   {
     float const reload_val = static_cast<float>(reg.AUTORLD);
     emb::unroll<LegCount>([&]<std::size_t I>() {
-      *ccr_regs[I] = static_cast<std::uint32_t>(dutycycle[I].value()
-                                                * reload_val);
+      *ccr_regs[I] =
+          static_cast<std::uint32_t>(dutycycle[I].value() * reload_val);
     });
   }
 
@@ -279,10 +279,8 @@ public:
     auto mn = min_ccr_v();
     auto mx = max_ccr_v(arr_v);
 
-    auto ccr2_v = std::clamp(
-        mx - counter_type(overlap.value() * float(mx - mn)),
-        mn,
-        mx);
+    auto ccr2_v =
+        std::clamp(mx - counter_type(overlap.value() * float(mx - mn)), mn, mx);
 
     reg.CC1 = mx;
     reg.CC2 = ccr2_v;
