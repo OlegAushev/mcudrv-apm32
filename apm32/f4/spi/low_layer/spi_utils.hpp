@@ -31,8 +31,8 @@ namespace detail {
 constexpr baudrate_prescaler calculate_prescaler(emb::units::hz_f32 clk_freq,
                                                  emb::units::hz_f32 spi_freq)
 {
-  std::uint32_t clk_freq_u32 = static_cast<std::uint32_t>(clk_freq.value());
-  std::uint32_t spi_freq_u32 = static_cast<std::uint32_t>(spi_freq.value());
+  std::uint32_t clk_freq_u32 = static_cast<std::uint32_t>(clk_freq.value);
+  std::uint32_t spi_freq_u32 = static_cast<std::uint32_t>(spi_freq.value);
 
   std::uint32_t ratio =
       clk_freq_u32 / spi_freq_u32 + (clk_freq_u32 % spi_freq_u32 != 0);

@@ -14,13 +14,13 @@ struct temperature_sensor {
   static constexpr emb::units::volt_f32
   forward(emb::units::degree_celsius_f32 t)
   {
-    return emb::units::volt_f32{V0 + slope * (t.value() - T0)};
+    return emb::units::volt_f32{V0 + slope * (t.value - T0)};
   }
 
   static constexpr emb::units::degree_celsius_f32
   inverse(emb::units::volt_f32 v)
   {
-    return emb::units::degree_celsius_f32{(v.value() - V0) / slope + T0};
+    return emb::units::degree_celsius_f32{(v.value - V0) / slope + T0};
   }
 };
 

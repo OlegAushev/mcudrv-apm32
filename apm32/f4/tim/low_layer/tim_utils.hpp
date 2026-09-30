@@ -95,8 +95,8 @@ constexpr std::uint16_t calculate_prescaler(emb::units::hz_f32 clk_freq,
                                             emb::units::hz_f32 tim_freq,
                                             counter_mode mode)
 {
-  std::uint32_t clk_freq_u32 = static_cast<std::uint32_t>(clk_freq.value());
-  std::uint32_t tim_freq_u32 = static_cast<std::uint32_t>(tim_freq.value());
+  std::uint32_t clk_freq_u32 = static_cast<std::uint32_t>(clk_freq.value);
+  std::uint32_t tim_freq_u32 = static_cast<std::uint32_t>(tim_freq.value);
 
   // constexpr replacement for std::div (must be constrexpr since c++23, but...)
   std::uint32_t total_ticks =

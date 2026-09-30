@@ -67,8 +67,8 @@ constexpr std::uint32_t prescaler_to_field(std::uint32_t prescaler)
 constexpr std::uint32_t calculate_prescaler(emb::units::hz_f32 clk_freq,
                                             emb::units::hz_f32 adc_freq)
 {
-  std::uint32_t clk_freq_u32 = static_cast<std::uint32_t>(clk_freq.value());
-  std::uint32_t adc_freq_u32 = static_cast<std::uint32_t>(adc_freq.value());
+  std::uint32_t clk_freq_u32 = static_cast<std::uint32_t>(clk_freq.value);
+  std::uint32_t adc_freq_u32 = static_cast<std::uint32_t>(adc_freq.value);
 
   std::uint32_t ratio =
       clk_freq_u32 / adc_freq_u32 + (clk_freq_u32 % adc_freq_u32 != 0);

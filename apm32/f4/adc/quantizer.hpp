@@ -15,7 +15,7 @@ struct quantizer {
   static constexpr std::uint16_t forward(emb::units::volt_f32 v)
   {
     return static_cast<std::uint16_t>(
-        std::clamp(v.value() * codes_per_volt, 0.f, max_code<float>));
+        std::clamp(v.value * codes_per_volt, 0.f, max_code<float>));
   }
 
   static constexpr emb::units::volt_f32 inverse(std::uint16_t code)
