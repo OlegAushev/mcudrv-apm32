@@ -55,4 +55,22 @@ void init_clock()
   SystemCoreClockUpdate();
 }
 
+reset_flags read_reset_flags()
+{
+  return {
+      .brownout = emb::mmio::test<RCM_CSTS_BORRSTFLG>(RCM->CSTS),
+      .pin = emb::mmio::test<RCM_CSTS_PINRSTFLG>(RCM->CSTS),
+      .power_on = emb::mmio::test<RCM_CSTS_PODRSTFLG>(RCM->CSTS),
+      .software = emb::mmio::test<RCM_CSTS_SWRSTFLG>(RCM->CSTS),
+      .iwdt = emb::mmio::test<RCM_CSTS_IWDTRSTFLG>(RCM->CSTS),
+      .wwdt = emb::mmio::test<RCM_CSTS_WWDTRSTFLG>(RCM->CSTS),
+      .low_power = emb::mmio::test<RCM_CSTS_LPWRRSTFLG>(RCM->CSTS),
+  };
+}
+
+void clear_reset_flags()
+{
+  emb::mmio::set<RCM_CSTS_RSTFLGCLR>(RCM->CSTS);
+}
+
 } // namespace apm32::f4::rcc

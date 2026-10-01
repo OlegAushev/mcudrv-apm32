@@ -17,6 +17,22 @@ inline constexpr std::uint64_t hsi_value = 16'000'000;
 
 void init_clock();
 
+// The reset flags of RCM_CSTS. A flag stays set across resets until
+// clear_reset_flags().
+struct reset_flags {
+  bool brownout;
+  bool pin;
+  bool power_on;
+  bool software;
+  bool iwdt;
+  bool wwdt;
+  bool low_power;
+};
+
+reset_flags read_reset_flags();
+
+void clear_reset_flags();
+
 template<typename T>
 constexpr T hse_frequency()
 {
