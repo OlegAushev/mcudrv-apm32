@@ -7,12 +7,12 @@ namespace apm32::f4::flash {
 
 namespace {
 
-auto locked() -> bool
+bool locked()
 {
   return emb::mmio::test<FLASH_CTRL_LOCK>(FLASH->CTRL);
 }
 
-auto unlock() -> std::expected<void, error>
+std::expected<void, error> unlock()
 {
   constexpr std::uint32_t key1 = 0x45670123;
   constexpr std::uint32_t key2 = 0xCDEF89AB;
@@ -33,12 +33,12 @@ auto unlock() -> std::expected<void, error>
   return {};
 }
 
-auto lock() -> void
+void lock()
 {
   emb::mmio::set<FLASH_CTRL_LOCK>(FLASH->CTRL);
 }
 
-auto busy() -> bool
+bool busy()
 {
   return emb::mmio::test<FLASH_STS_BUSY>(FLASH->STS);
 }
@@ -49,12 +49,12 @@ constexpr auto sts_errors = FLASH_STS_WPROTERR
                           | FLASH_STS_PGSEQERR
                           | FLASH_STS_OPRERR;
 
-auto clear_errors() -> void
+void clear_errors()
 {
   emb::mmio::clear_w1<sts_errors>(FLASH->STS);
 }
 
-auto check_errors() -> std::expected<void, error>
+std::expected<void, error> check_errors()
 {
   std::uint32_t const sts = FLASH->STS;
 
@@ -82,7 +82,7 @@ auto check_errors() -> std::expected<void, error>
 // Programming keeps the data cache coherent, erasing does not: after a
 // sector erase the caches may still hold its old contents, so flush both.
 // The reset bits may only be set while the corresponding cache is disabled.
-auto reset_caches() -> void
+void reset_caches()
 {
   std::uint32_t const acctrl = FLASH->ACCTRL;
 
@@ -100,7 +100,7 @@ auto reset_caches() -> void
 
 } // namespace
 
-auto erase_sector(sector s) -> std::expected<void, error>
+std::expected<void, error> erase_sector(sector s)
 {
   TRY(unlock());
   auto relock = emb::scope_exit([] { lock(); });
@@ -122,8 +122,8 @@ auto erase_sector(sector s) -> std::expected<void, error>
   return check_errors();
 }
 
-auto write(std::uintptr_t addr, std::span<std::byte const> data)
-    -> std::expected<void, error>
+std::expected<void, error> write(std::uintptr_t addr,
+                                 std::span<std::byte const> data)
 {
   TRY(unlock());
   auto relock = emb::scope_exit([] { lock(); });
@@ -148,7 +148,7 @@ auto write(std::uintptr_t addr, std::span<std::byte const> data)
   return {};
 }
 
-auto write_byte(std::uintptr_t addr, std::byte b) -> std::expected<void, error>
+std::expected<void, error> write_byte(std::uintptr_t addr, std::byte b)
 {
   return write(addr, {&b, 1});
 }

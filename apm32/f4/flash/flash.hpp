@@ -50,7 +50,7 @@ inline constexpr std::size_t capacity = 0x10'0000;
 inline constexpr std::uint32_t sector_count = 12;
 #endif
 
-constexpr auto address(sector s) -> std::uintptr_t
+constexpr std::uintptr_t address(sector s)
 {
   auto const n = std::to_underlying(s);
   return n <= 3 ? base + 0x4000 * n
@@ -58,13 +58,13 @@ constexpr auto address(sector s) -> std::uintptr_t
                 : base + 0x2'0000 * (n - 4);
 }
 
-constexpr auto size(sector s) -> std::size_t
+constexpr std::size_t size(sector s)
 {
   auto const n = std::to_underlying(s);
   return n <= 3 ? 0x4000 : n == 4 ? 0x1'0000 : 0x2'0000;
 }
 
-inline auto view(sector s) -> std::span<std::byte const>
+inline std::span<std::byte const> view(sector s)
 {
   return {reinterpret_cast<std::byte const*>(address(s)), size(s)};
 }
@@ -83,7 +83,7 @@ static_assert([] {
 }());
 
 // Factory-programmed flash size of the actual part; may differ from capacity.
-inline auto device_flash_size() -> std::size_t
+inline std::size_t device_flash_size()
 {
   return *reinterpret_cast<std::uint16_t volatile*>(FLASHSIZE_BASE) * 1024u;
 }
@@ -114,7 +114,7 @@ inline void enable_acceleration()
       FLASH->ACCTRL);
 }
 
-constexpr auto erased(std::span<std::byte const> data) -> bool
+constexpr bool erased(std::span<std::byte const> data)
 {
   for (std::byte b : data) {
     if (b != std::byte{0xFF}) {
@@ -124,14 +124,14 @@ constexpr auto erased(std::span<std::byte const> data) -> bool
   return true;
 }
 
-auto erase_sector(sector s) -> std::expected<void, error>;
+std::expected<void, error> erase_sector(sector s);
 
 // Programming only clears bits and the hardware does not detect overwrites:
 // the target range must be erased beforehand.
-auto write(std::uintptr_t addr, std::span<std::byte const> data)
-    -> std::expected<void, error>;
+std::expected<void, error> write(std::uintptr_t addr,
+                                 std::span<std::byte const> data);
 
-auto write_byte(std::uintptr_t addr, std::byte b) -> std::expected<void, error>;
+std::expected<void, error> write_byte(std::uintptr_t addr, std::byte b);
 
 // A run of equally sized sectors seen as one addressable medium, addressed
 // from zero rather than by absolute address.
@@ -178,8 +178,7 @@ public:
 
   static constexpr std::uintptr_t base_address = address(First);
 
-  auto read(addr_type at, std::span<std::byte> dest) const
-      -> std::expected<void, error>
+  std::expected<void, error> read(addr_type at, std::span<std::byte> dest) const
   {
     if (!in_range(at, dest.size())) {
       return std::unexpected(error::invalid_argument);
@@ -189,8 +188,7 @@ public:
     return {};
   }
 
-  auto write(addr_type at, std::span<std::byte const> src)
-      -> std::expected<void, error>
+  std::expected<void, error> write(addr_type at, std::span<std::byte const> src)
   {
     if (!in_range(at, src.size())) {
       return std::unexpected(error::invalid_argument);
@@ -198,7 +196,7 @@ public:
     return flash::write(base_address + at, src);
   }
 
-  auto erase(addr_type at, std::size_t size) -> std::expected<void, error>
+  std::expected<void, error> erase(addr_type at, std::size_t size)
   {
     if (!in_range(at, size)
         || (at % sector_size != 0)

@@ -200,7 +200,7 @@ public:
     return tx_empty();
   }
 
-  auto try_get() const -> std::optional<FrameFormat>
+  std::optional<FrameFormat> try_get() const
   {
     if (can_get()) {
       return static_cast<FrameFormat>(reg.DATA);
@@ -208,7 +208,7 @@ public:
     return {};
   }
 
-  auto try_put(FrameFormat data) -> std::optional<FrameFormat>
+  std::optional<FrameFormat> try_put(FrameFormat data)
   {
     if (can_put()) {
       reg.DATA = data;
@@ -217,8 +217,7 @@ public:
     return {};
   }
 
-  auto get(std::chrono::milliseconds timeout) const
-      -> std::expected<FrameFormat, error>
+  std::expected<FrameFormat, error> get(std::chrono::milliseconds timeout) const
   {
     if (emb::mmio::test<SPI_STS_OVRFLG>(reg.STS)) {
       clear_overrun();
@@ -231,8 +230,8 @@ public:
     return static_cast<FrameFormat>(reg.DATA);
   }
 
-  auto put(FrameFormat data, std::chrono::milliseconds timeout)
-      -> std::expected<void, error>
+  std::expected<void, error> put(FrameFormat data,
+                                 std::chrono::milliseconds timeout)
   {
     if (emb::mmio::test<SPI_STS_OVRFLG>(reg.STS)) {
       clear_overrun();
@@ -246,14 +245,13 @@ public:
     return {};
   }
 
-  auto transfer(FrameFormat tx_data, std::chrono::milliseconds timeout)
-      -> std::expected<FrameFormat, error>
+  std::expected<FrameFormat, error> transfer(FrameFormat tx_data,
+                                             std::chrono::milliseconds timeout)
   {
     return put(tx_data, timeout).and_then([&]() { return get(timeout); });
   }
 
-  auto wait_idle(std::chrono::milliseconds timeout)
-      -> std::expected<void, error>
+  std::expected<void, error> wait_idle(std::chrono::milliseconds timeout)
   {
     timeout_t t(timeout);
     while (!tx_empty() || busy()) {
@@ -267,12 +265,12 @@ public:
     return timeout_;
   }
 
-  auto wait_idle() -> std::expected<void, error>
+  std::expected<void, error> wait_idle()
   {
     return wait_idle(timeout_);
   }
 
-  auto write(std::span<FrameFormat const> src) -> std::expected<void, error>
+  std::expected<void, error> write(std::span<FrameFormat const> src)
   {
     for (auto frame : src) {
       TRY(transfer(frame, timeout_));
@@ -280,7 +278,7 @@ public:
     return {};
   }
 
-  auto read(std::span<FrameFormat> dest) -> std::expected<void, error>
+  std::expected<void, error> read(std::span<FrameFormat> dest)
   {
     for (auto& frame : dest) {
       frame = TRY(transfer(idle_frame, timeout_));
@@ -288,8 +286,8 @@ public:
     return {};
   }
 
-  auto transfer(std::span<FrameFormat const> src, std::span<FrameFormat> dest)
-      -> std::expected<void, error>
+  std::expected<void, error> transfer(std::span<FrameFormat const> src,
+                                      std::span<FrameFormat> dest)
   {
     emb::ensure(src.size() == dest.size());
     for (auto i = 0uz; i < src.size(); ++i) {

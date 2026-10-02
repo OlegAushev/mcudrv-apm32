@@ -69,19 +69,20 @@ class filter_setup;
 
 template<transceiver_traits Traits>
   requires(Traits.filter_count <= filter_count_total)
-[[nodiscard]] auto init_filter_banks(transceiver<can1, Traits>& can1_xcvr)
-    -> filter_setup<can1, Traits>;
+[[nodiscard]] filter_setup<can1, Traits>
+init_filter_banks(transceiver<can1, Traits>& can1_xcvr);
 
 template<transceiver_traits Traits>
   requires(Traits.filter_count <= filter_count_total)
-[[nodiscard]] auto init_filter_banks(transceiver<can2, Traits>& can2_xcvr)
-    -> filter_setup<can2, Traits>;
+[[nodiscard]] filter_setup<can2, Traits>
+init_filter_banks(transceiver<can2, Traits>& can2_xcvr);
 
 template<transceiver_traits Traits1, transceiver_traits Traits2>
   requires(Traits1.filter_count + Traits2.filter_count <= filter_count_total)
-[[nodiscard]] auto init_filter_banks(transceiver<can1, Traits1>& can1_xcvr,
-                                     transceiver<can2, Traits2>& can2_xcvr)
-    -> std::pair<filter_setup<can1, Traits1>, filter_setup<can2, Traits2>>;
+[[nodiscard]] std::pair<filter_setup<can1, Traits1>,
+                        filter_setup<can2, Traits2>>
+init_filter_banks(transceiver<can1, Traits1>& can1_xcvr,
+                  transceiver<can2, Traits2>& can2_xcvr);
 
 template<some_can_instance Instance, transceiver_traits Traits>
 class transceiver {
@@ -193,7 +194,7 @@ public:
     on_rx_fifo1_ = sink;
   }
 
-  auto put(emb::can::frame_t const& frame) -> std::expected<void, error>
+  std::expected<void, error> put(emb::can::frame_t const& frame)
   {
     if (!tx_queue_.try_push(frame)) return std::unexpected(error::overflow);
     if (!all_mailboxes_busy()) nvic::set_pending_irq(tx_irqn);
@@ -201,7 +202,7 @@ public:
   }
 
   template<rx_fifo RxFifo>
-  auto get() -> std::optional<emb::can::frame_t>
+  std::optional<emb::can::frame_t> get()
   {
     if (rx_messages_pending<RxFifo>() == 0) {
       return {};
@@ -408,19 +409,19 @@ class filter_setup {
 
   template<transceiver_traits T>
     requires(T.filter_count <= filter_count_total)
-  friend auto init_filter_banks(transceiver<can1, T>& can1_xcvr)
-      -> filter_setup<can1, T>;
+  friend filter_setup<can1, T>
+  init_filter_banks(transceiver<can1, T>& can1_xcvr);
 
   template<transceiver_traits T>
     requires(T.filter_count <= filter_count_total)
-  friend auto init_filter_banks(transceiver<can2, T>& can2_xcvr)
-      -> filter_setup<can2, T>;
+  friend filter_setup<can2, T>
+  init_filter_banks(transceiver<can2, T>& can2_xcvr);
 
   template<transceiver_traits T1, transceiver_traits T2>
     requires(T1.filter_count + T2.filter_count <= filter_count_total)
-  friend auto init_filter_banks(transceiver<can1, T1>& can1_xcvr,
-                                transceiver<can2, T2>& can2_xcvr)
-      -> std::pair<filter_setup<can1, T1>, filter_setup<can2, T2>>;
+  friend std::pair<filter_setup<can1, T1>, filter_setup<can2, T2>>
+  init_filter_banks(transceiver<can1, T1>& can1_xcvr,
+                    transceiver<can2, T2>& can2_xcvr);
 
 public:
   void add(filter_32_mask const& filter, rx_fifo fifo)
@@ -446,8 +447,8 @@ public:
 
 template<transceiver_traits Traits>
   requires(Traits.filter_count <= filter_count_total)
-[[nodiscard]] auto init_filter_banks(transceiver<can1, Traits>& can1_xcvr)
-    -> filter_setup<can1, Traits>
+[[nodiscard]] filter_setup<can1, Traits>
+init_filter_banks(transceiver<can1, Traits>& can1_xcvr)
 {
   filter_init_session fg;
   emb::mmio::write<CAN_FCTRL_CAN2SB>(can1::reg.FCTRL, Traits.filter_count);
@@ -456,8 +457,8 @@ template<transceiver_traits Traits>
 
 template<transceiver_traits Traits>
   requires(Traits.filter_count <= filter_count_total)
-[[nodiscard]] auto init_filter_banks(transceiver<can2, Traits>& can2_xcvr)
-    -> filter_setup<can2, Traits>
+[[nodiscard]] filter_setup<can2, Traits>
+init_filter_banks(transceiver<can2, Traits>& can2_xcvr)
 {
   can1::enable_clock();
   filter_init_session fg;
@@ -469,9 +470,10 @@ template<transceiver_traits Traits>
 
 template<transceiver_traits Traits1, transceiver_traits Traits2>
   requires(Traits1.filter_count + Traits2.filter_count <= filter_count_total)
-[[nodiscard]] auto init_filter_banks(transceiver<can1, Traits1>& can1_xcvr,
-                                     transceiver<can2, Traits2>& can2_xcvr)
-    -> std::pair<filter_setup<can1, Traits1>, filter_setup<can2, Traits2>>
+[[nodiscard]] std::pair<filter_setup<can1, Traits1>,
+                        filter_setup<can2, Traits2>>
+init_filter_banks(transceiver<can1, Traits1>& can1_xcvr,
+                  transceiver<can2, Traits2>& can2_xcvr)
 {
   filter_init_session fg;
   emb::mmio::write<CAN_FCTRL_CAN2SB>(can1::reg.FCTRL, Traits1.filter_count);
