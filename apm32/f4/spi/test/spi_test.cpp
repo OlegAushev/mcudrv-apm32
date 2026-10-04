@@ -1,4 +1,4 @@
-#include <apm32/f4/spi/spi.hpp>
+#include <apm32/f4/spi.hpp>
 
 #include <apm32/f4/spi/blocking_master.hpp>
 

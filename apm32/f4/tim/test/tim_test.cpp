@@ -1,5 +1,5 @@
+#include <apm32/f4/tim.hpp>
 #include <apm32/f4/tim/pwm.hpp>
-#include <apm32/f4/tim/tim.hpp>
 
 #include <cstdint>
 

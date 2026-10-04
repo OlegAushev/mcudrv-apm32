@@ -1,8 +1,10 @@
 #pragma once
 
-#include <apm32/f4/can/can.hpp>
+#include <apm32/f4/can.hpp>
+#include <apm32/f4/can/bit_timing.hpp>
+#include <apm32/f4/can/filter.hpp>
 
-#include <apm32/f4/chrono/chrono.hpp>
+#include <apm32/f4/chrono.hpp>
 #include <apm32/f4/gpio/alternate_pin.hpp>
 
 #include <emb/assert.hpp>

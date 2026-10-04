@@ -2,7 +2,8 @@
 
 #include <apm32/device.hpp>
 
-#include <apm32/f4/gpio/gpio.hpp>
+#include <apm32/f4/gpio.hpp>
+#include <apm32/f4/gpio/pin_base.hpp>
 
 namespace apm32::f4::gpio {
 

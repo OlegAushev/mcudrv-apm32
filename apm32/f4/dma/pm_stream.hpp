@@ -1,6 +1,7 @@
 #pragma once
 
-#include <apm32/f4/dma/dma.hpp>
+#include <apm32/f4/dma.hpp>
+#include <apm32/f4/dma/buffer.hpp>
 
 #include <emb/mmio.hpp>
 

@@ -1,8 +1,8 @@
 #pragma once
 
-#include <apm32/f4/tim/tim.hpp>
+#include <apm32/f4/tim.hpp>
 
-#include <apm32/f4/core/core.hpp>
+#include <apm32/f4/core.hpp>
 #include <apm32/f4/gpio/alternate_pin.hpp>
 
 #include <emb/assert.hpp>

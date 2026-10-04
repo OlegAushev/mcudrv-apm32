@@ -1,10 +1,11 @@
 #pragma once
 
+#include <apm32/f4/tim.hpp>
+#include <apm32/f4/tim/channels.hpp>
 #include <apm32/f4/tim/pwm.hpp>
-#include <apm32/f4/tim/tim.hpp>
 
 #include <apm32/f4/gpio/alternate_pin.hpp>
-#include <apm32/f4/nvic/nvic.hpp>
+#include <apm32/f4/nvic.hpp>
 
 #include <emb/chrono.hpp>
 #include <emb/math.hpp>

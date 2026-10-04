@@ -1,4 +1,4 @@
-#include <apm32/f4/can/can.hpp>
+#include <apm32/f4/can/bit_timing.hpp>
 
 #include <apm32/f4/can/transceiver.hpp>
 

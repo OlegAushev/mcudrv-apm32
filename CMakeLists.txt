@@ -3,7 +3,7 @@ file(GLOB_RECURSE sources CONFIGURE_DEPENDS
 
 # OBJECT (not STATIC): consumers link in every .obj rather than letting the
 # linker cherry-pick by demand. Translation units like
-# `apm32/f4/can/can_irq_handlers.cpp` only export symbols referenced by the
+# `apm32/f4/can/irq_handlers.cpp` only export symbols referenced by the
 # vector table in startup.S; in a STATIC archive those .obj are skipped
 # because the weak Default_Handler aliases from startup.S already satisfy the
 # vector table. With OBJECT every .obj reaches the executable, the strong

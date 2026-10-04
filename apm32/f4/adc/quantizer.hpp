@@ -1,6 +1,6 @@
 #pragma once
 
-#include <apm32/f4/adc/low_layer/adc_instances.hpp>
+#include <apm32/f4/adc.hpp>
 
 #include <emb/units.hpp>
 

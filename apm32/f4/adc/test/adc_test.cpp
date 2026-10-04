@@ -1,4 +1,5 @@
-#include <apm32/f4/adc/adc.hpp>
+#include <apm32/f4/adc.hpp>
+#include <apm32/f4/adc/channels.hpp>
 #include <apm32/f4/adc/multi_channel_adc.hpp>
 #include <apm32/f4/adc/streaming_adc.hpp>
 

@@ -1,8 +1,8 @@
 #pragma once
 
-#include <apm32/f4/adc/adc.hpp>
-#include <apm32/f4/adc/adc_sequence.hpp>
-#include <apm32/f4/adc/common_adc.hpp>
+#include <apm32/f4/adc.hpp>
+#include <apm32/f4/adc/channels.hpp>
+#include <apm32/f4/adc/sequence.hpp>
 #include <apm32/f4/dma/pm_stream.hpp>
 #include <apm32/f4/gpio/analog_pin.hpp>
 
