@@ -220,7 +220,7 @@ constexpr std::uint32_t calculate_prescaler(emb::units::hz_f32 clk_freq,
 inline std::uint32_t calculate_prescaler()
 {
   return detail::calculate_prescaler(
-      rcc::pclk2_timer_frequency<emb::units::hz_f32>(),
+      rcc::pclk2_frequency<emb::units::hz_f32>(),
       max_clock_frequency);
 }
 
