@@ -32,4 +32,10 @@ static_assert(detail::calculate_prescaler(emb::units::hz_f32{42000000},
                                           emb::units::hz_f32{1000000})
               == baudrate_prescaler::div64);
 
+// a ratio that lands exactly on a divider takes that divider, not the next
+// one up
+static_assert(detail::calculate_prescaler(emb::units::hz_f32{84000000},
+                                          emb::units::hz_f32{21000000})
+              == baudrate_prescaler::div4);
+
 } // namespace

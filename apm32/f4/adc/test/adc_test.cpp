@@ -19,6 +19,15 @@ static_assert(detail::calculate_prescaler(emb::units::hz_f32{84e6f},
                                           max_clock_frequency)
               == 4);
 
+// a ratio that lands exactly on a divider takes that divider, not the next
+// one up, and the last divider is still reachable
+static_assert(detail::calculate_prescaler(emb::units::hz_f32{84e6f},
+                                          emb::units::hz_f32{42e6f})
+              == 2);
+static_assert(detail::calculate_prescaler(emb::units::hz_f32{84e6f},
+                                          emb::units::hz_f32{10.5e6f})
+              == 8);
+
 struct adc_traits_1 {
   using adc_instance = adc1;
   static constexpr unsigned injected_count = 2;
