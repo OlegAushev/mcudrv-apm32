@@ -43,6 +43,13 @@ enum class apb_div : std::uint32_t {
   _16 = 0b111,
 };
 
+enum class adc_div : std::uint32_t {
+  _2 = 0b00,
+  _4 = 0b01,
+  _6 = 0b10,
+  _8 = 0b11
+};
+
 constexpr std::uint32_t to_divisor(pll1c_div v)
 {
   switch (v) {
@@ -77,6 +84,17 @@ constexpr std::uint32_t to_divisor(apb_div v)
   case apb_div::_4: return 4;
   case apb_div::_8: return 8;
   case apb_div::_16: return 16;
+  }
+  std::unreachable();
+}
+
+constexpr std::uint32_t to_divisor(adc_div v)
+{
+  switch (v) {
+  case adc_div::_2: return 2;
+  case adc_div::_4: return 4;
+  case adc_div::_6: return 6;
+  case adc_div::_8: return 8;
   }
   std::unreachable();
 }

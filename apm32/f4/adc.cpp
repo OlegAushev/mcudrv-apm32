@@ -12,8 +12,8 @@ void init_common()
   }
   initialized = true;
 
-  auto prescaler_field =
-      detail::prescaler_to_field(apm32::f4::adc::calculate_prescaler());
+  constexpr auto prescaler_field =
+      detail::prescaler_to_field(clock_prescaler());
 
   emb::mmio::modify(ADC123_COMMON->CCTRL,
                     emb::mmio::bits<ADC_CCTRL_ADCMSEL>(0u), // independent mode

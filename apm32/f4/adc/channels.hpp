@@ -9,6 +9,7 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <utility>
 
 namespace apm32::f4::adc {
 
@@ -91,6 +92,21 @@ enum class sampletime : std::uint32_t {
   cycles_144,
   cycles_480
 };
+
+constexpr unsigned to_cycles(sampletime v)
+{
+  switch (v) {
+  case sampletime::cycles_3:   return 3;
+  case sampletime::cycles_15:  return 15;
+  case sampletime::cycles_28:  return 28;
+  case sampletime::cycles_56:  return 56;
+  case sampletime::cycles_84:  return 84;
+  case sampletime::cycles_112: return 112;
+  case sampletime::cycles_144: return 144;
+  case sampletime::cycles_480: return 480;
+  }
+  std::unreachable();
+}
 
 namespace detail {
 
@@ -370,6 +386,8 @@ struct channel {
   static constexpr bool injected = is_injected_sequence<Ranks>;
   static constexpr auto sampletime = Sampletime;
   static constexpr std::array ranks = Ranks::values;
+  static constexpr unsigned sampling_cycles = to_cycles(Sampletime);
+  static constexpr unsigned conversion_cycles = sampling_cycles + resolution;
 
   static constexpr unsigned rank()
     requires(Ranks::values.size() == 1)

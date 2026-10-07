@@ -11,6 +11,8 @@ struct temperature_sensor {
   static constexpr float V0 = 0.7782f;    // V at t0
   static constexpr float slope = 0.0024f; // V/degC
 
+  static constexpr emb::units::sec_f32 min_sampling_time{10e-6f};
+
   static constexpr emb::units::volt_f32
   forward(emb::units::degree_celsius_f32 t)
   {

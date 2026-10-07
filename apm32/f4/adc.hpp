@@ -22,7 +22,7 @@ using registers = ADC_TypeDef;
 
 inline constexpr std::size_t count = 3;
 
-inline constexpr emb::units::hz_f32 max_clock_frequency{30e6f};
+inline constexpr emb::units::hz_f32 max_clock_frequency{36e6f};
 inline constexpr std::chrono::microseconds powerup_time{3};
 
 inline constexpr float vref = 3.3f;
@@ -217,12 +217,31 @@ constexpr std::uint32_t calculate_prescaler(emb::units::hz_f32 clk_freq,
 
 } // namespace detail
 
-inline std::uint32_t calculate_prescaler()
+// Returns the ADCPRE divider: `Config::adc_div` if the clock config sets one,
+// else the smallest divider that keeps ADCCLK within max_clock_frequency.
+template<typename Config = rcc::clock_config>
+constexpr std::uint32_t clock_prescaler()
 {
-  return detail::calculate_prescaler(
-      rcc::pclk2_frequency<emb::units::hz_f32>(),
-      max_clock_frequency);
+  if constexpr (requires { Config::adc_div; }) {
+    return rcc::to_divisor(Config::adc_div);
+  }
+  else {
+    return detail::calculate_prescaler(
+        rcc::pclk2_frequency<emb::units::hz_f32>(),
+        max_clock_frequency);
+  }
 }
+
+// Returns ADCCLK, PCLK2 / clock_prescaler(). Sampling and conversion times
+// are counted in its cycles.
+template<typename T>
+constexpr T clock_frequency()
+{
+  return rcc::pclk2_frequency<T>() / clock_prescaler();
+}
+
+static_assert(clock_frequency<emb::units::hz_f32>() <= max_clock_frequency,
+              "ADC clock frequency exceeds maximum");
 
 inline nvic::irq_priority common_irq_priority{0};
 

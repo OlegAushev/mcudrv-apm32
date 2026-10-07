@@ -28,6 +28,13 @@ static_assert(detail::calculate_prescaler(emb::units::hz_f32{84e6f},
                                           emb::units::hz_f32{10.5e6f})
               == 8);
 
+// a clock config that sets adc_div overrides the pick
+struct clock_config_with_adc_div {
+  static constexpr auto adc_div = rcc::adc_div::_6;
+};
+
+static_assert(clock_prescaler<clock_config_with_adc_div>() == 6);
+
 struct adc_traits_1 {
   using adc_instance = adc1;
   static constexpr unsigned injected_count = 2;
@@ -115,6 +122,13 @@ using adc3_reg2 =
     channel<adc3_in5, sampletime::cycles_3, regular_rank_sequence<2>>;
 using adc3_reg3 =
     channel<adc3_in6, sampletime::cycles_3, regular_rank_sequence<3>>;
+
+// a 12-bit conversion takes the sampling time plus 12 cycles
+static_assert(adc1_inj1::sampling_cycles == 3);
+static_assert(adc1_inj1::conversion_cycles == 15);
+static_assert(adc1_inj2::sampling_cycles == 144);
+static_assert(adc1_inj2::conversion_cycles == 156);
+static_assert(to_cycles(sampletime::cycles_480) == 480);
 
 [[maybe_unused]] void test()
 {
