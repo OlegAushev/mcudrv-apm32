@@ -5,6 +5,7 @@
 
 #include <emb/mmio.hpp>
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <span>
@@ -29,6 +30,13 @@ consteval std::uint32_t dma_size_cfg()
   else {
     return 0b10u;
   }
+}
+
+template<some_dma_stream_instance Stream>
+consteval std::uint32_t interrupt_clear_mask()
+{
+  constexpr std::array<std::uint32_t, 4> offsets = {0, 6, 16, 22};
+  return 0b101100u << offsets[Stream::idx % 4]; // TCIF, TEIF, DMEIF
 }
 } // namespace detail
 
@@ -125,21 +133,13 @@ public:
 
   void ack_interrupt()
   {
-    if constexpr (channel_instance::idx >= 4) {
-      dma_reg.HIFCLR |= get_interrupt_clear_mask();
+    constexpr auto mask = detail::interrupt_clear_mask<stream_instance>();
+    if constexpr (stream_instance::idx >= 4) {
+      dma_reg.HIFCLR = mask;
     }
     else {
-      dma_reg.LIFCLR |= get_interrupt_clear_mask();
+      dma_reg.LIFCLR = mask;
     }
-  }
-private:
-  consteval std::uint32_t get_interrupt_clear_mask()
-  {
-    static constexpr std::uint32_t mask = 0b101100; // TCIF, TEIF, DMEIF
-    static constexpr std::array<std::uint32_t, 4> offsets = {0, 6, 16, 22};
-    std::size_t i = (channel_instance::idx >= 4) ? channel_instance::idx - 4
-                                                 : channel_instance::idx;
-    return mask << offsets[i];
   }
 };
 
