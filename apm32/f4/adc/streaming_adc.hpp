@@ -105,6 +105,7 @@ public:
       nvic::set_irq_priority(adc_instance::irqn, common_irq_priority);
       nvic::enable_irq(adc_instance::irqn);
     }
+    arm_regular_trigger<adc_instance>(regular_trigger.edge);
   }
 
   // Call from the DMA stream's transfer-complete ISR.

@@ -14,6 +14,7 @@
 #include <chrono>
 #include <cstddef>
 #include <cstdint>
+#include <utility>
 
 namespace apm32::f4::adc {
 
@@ -159,6 +160,20 @@ template<some_adc_instance Instance>
 void start_regular()
 {
   emb::mmio::set<ADC_CTRL2_REGSWSC>(Instance::reg.CTRL2);
+}
+
+template<some_adc_instance Instance>
+void arm_injected_trigger(trigger_edge edge)
+{
+  emb::mmio::write<ADC_CTRL2_INJEXTTRGEN>(Instance::reg.CTRL2,
+                                          std::to_underlying(edge));
+}
+
+template<some_adc_instance Instance>
+void arm_regular_trigger(trigger_edge edge)
+{
+  emb::mmio::write<ADC_CTRL2_REGEXTTRGEN>(Instance::reg.CTRL2,
+                                          std::to_underlying(edge));
 }
 
 template<some_adc_instance Instance>

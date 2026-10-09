@@ -173,6 +173,12 @@ public:
     }
     nvic::set_irq_priority(adc_instance::irqn, common_irq_priority);
     nvic::enable_irq(adc_instance::irqn);
+    if constexpr (injected_trigger.has_value()) {
+      arm_injected_trigger<adc_instance>(injected_trigger->edge);
+    }
+    if constexpr (regular_trigger.has_value()) {
+      arm_regular_trigger<adc_instance>(regular_trigger->edge);
+    }
   }
 
   void start_injected()

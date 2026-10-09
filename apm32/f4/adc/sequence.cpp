@@ -21,32 +21,26 @@ void init_sequence(registers& reg, sequence_config const& conf)
                         conf.auto_injected_conversion ? 1u : 0u),
                     emb::mmio::bits<ADC_CTRL1_INJDISCEN>(0u));
 
-  // External trigger for regular channels
-  std::uint32_t reg_ext_trgen = 0;
   std::uint32_t reg_ext_trgsel = 0;
   if (conf.regular_trigger.has_value()) {
-    reg_ext_trgen = std::to_underlying(conf.regular_trigger->edge);
     reg_ext_trgsel = std::to_underlying(conf.regular_trigger->event);
   }
 
-  // External trigger for injected channels
-  std::uint32_t inj_ext_trgen = 0;
   std::uint32_t inj_ext_trgsel = 0;
   if (conf.injected_trigger.has_value()) {
-    inj_ext_trgen = std::to_underlying(conf.injected_trigger->edge);
     inj_ext_trgsel = std::to_underlying(conf.injected_trigger->event);
   }
 
   emb::mmio::modify(
       reg.CTRL2,
-      emb::mmio::bits<ADC_CTRL2_REGEXTTRGEN>(reg_ext_trgen),
+      emb::mmio::bits<ADC_CTRL2_REGEXTTRGEN>(0u), // disarmed, see enable()
       emb::mmio::bits<ADC_CTRL2_REGEXTTRGSEL>(reg_ext_trgsel),
       emb::mmio::bits<ADC_CTRL2_DALIGNCFG>(0u), // right alignment
       emb::mmio::bits<ADC_CTRL2_CONTCEN>(0u),   // single conversion
       emb::mmio::bits<ADC_CTRL2_EOCSEL>(conf.eoc_on_each_conversion ? 1u : 0u),
       emb::mmio::bits<ADC_CTRL2_DMAEN>(conf.dma_enabled ? 1u : 0u),
       emb::mmio::bits<ADC_CTRL2_DMADISSEL>(conf.dma_enabled ? 1u : 0u),
-      emb::mmio::bits<ADC_CTRL2_INJEXTTRGEN>(inj_ext_trgen),
+      emb::mmio::bits<ADC_CTRL2_INJEXTTRGEN>(0u), // disarmed, see enable()
       emb::mmio::bits<ADC_CTRL2_INJGEXTTRGSEL>(inj_ext_trgsel));
 
   // Regular channel sequence length
