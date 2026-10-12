@@ -140,7 +140,6 @@ public:
 
   half_bridge(half_bridge_config<LegCount> conf)
   {
-    period_ = 1.f / conf.pwm.frequency;
     deadtime_ = emb::units::sec_f32{float(conf.pwm.deadtime.count()) / 1e9f};
 
     // use prescaler from config or calculate it from required pwm frequency
@@ -164,6 +163,8 @@ public:
         reg,
         timer_instance::template clock_frequency<emb::units::hz_f32>(),
         conf.pwm);
+
+    period_ = 2.f * static_cast<float>(reg.AUTORLD) / timebase_freq_;
 
     if (conf.bk_pin.has_value()) {
       bk_pin_.emplace(detail::make_break_input_gpio_config<timer_instance>(
@@ -228,8 +229,9 @@ public:
   {
     assert(freq >= min_freq_);
     assert(freq <= max_freq_);
-    reg.AUTORLD = static_cast<std::uint32_t>((timebase_freq_ / freq) / 2);
-    period_ = 1.f / freq;
+    auto const arr = static_cast<std::uint32_t>((timebase_freq_ / freq) / 2);
+    reg.AUTORLD = arr;
+    period_ = 2.f * static_cast<float>(arr) / timebase_freq_;
   }
 
   bool active() const
