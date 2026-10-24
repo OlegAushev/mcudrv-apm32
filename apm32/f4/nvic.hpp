@@ -4,8 +4,8 @@
 
 #include <apm32/f4/core.hpp>
 
-#include <emb/assert.hpp>
 #include <emb/math.hpp>
+#include <emb/panic.hpp>
 
 #include <algorithm>
 #include <cstdint>

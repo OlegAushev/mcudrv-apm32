@@ -6,9 +6,9 @@
 #include <apm32/f4/gpio/alternate_pin.hpp>
 #include <apm32/f4/gpio/output_pin.hpp>
 
-#include <emb/assert.hpp>
 #include <emb/chrono.hpp>
 #include <emb/expected.hpp>
+#include <emb/panic.hpp>
 #include <emb/spi.hpp>
 
 #include <array>

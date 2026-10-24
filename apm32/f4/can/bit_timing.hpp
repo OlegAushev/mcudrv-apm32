@@ -2,7 +2,7 @@
 
 #include <apm32/f4/can.hpp>
 
-#include <emb/assert.hpp>
+#include <emb/panic.hpp>
 
 #include <algorithm>
 #include <cstdint>

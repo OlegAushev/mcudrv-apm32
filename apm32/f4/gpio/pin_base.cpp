@@ -2,8 +2,8 @@
 
 #include <apm32/f4/core.hpp>
 
-#include <emb/assert.hpp>
 #include <emb/mmio.hpp>
+#include <emb/panic.hpp>
 
 #include <bit>
 #include <cstddef>

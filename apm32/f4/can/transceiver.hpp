@@ -7,12 +7,12 @@
 #include <apm32/f4/chrono.hpp>
 #include <apm32/f4/gpio/alternate_pin.hpp>
 
-#include <emb/assert.hpp>
 #include <emb/can.hpp>
 #include <emb/chrono.hpp>
 #include <emb/concurrent/spsc_queue.hpp>
 #include <emb/delegate.hpp>
 #include <emb/meta.hpp>
+#include <emb/panic.hpp>
 
 #include <cstddef>
 #include <cstdint>

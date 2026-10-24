@@ -6,8 +6,8 @@
 #include <apm32/f4/gpio/alternate_pin.hpp>
 #include <apm32/f4/nvic.hpp>
 
-#include <emb/assert.hpp>
 #include <emb/mmio.hpp>
+#include <emb/panic.hpp>
 
 #include <cstdint>
 #include <limits>

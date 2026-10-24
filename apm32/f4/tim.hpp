@@ -7,9 +7,9 @@
 #include <apm32/f4/nvic.hpp>
 #include <apm32/f4/rcc.hpp>
 
-#include <emb/assert.hpp>
 #include <emb/meta.hpp>
 #include <emb/mmio.hpp>
+#include <emb/panic.hpp>
 #include <emb/units.hpp>
 
 #include <array>

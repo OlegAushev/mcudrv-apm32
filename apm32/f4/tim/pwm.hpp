@@ -5,9 +5,9 @@
 #include <apm32/f4/core.hpp>
 #include <apm32/f4/gpio/alternate_pin.hpp>
 
-#include <emb/assert.hpp>
 #include <emb/chrono.hpp>
 #include <emb/mmio.hpp>
+#include <emb/panic.hpp>
 #include <emb/units.hpp>
 
 #include <cstdint>
