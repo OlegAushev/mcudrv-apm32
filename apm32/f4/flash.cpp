@@ -102,7 +102,7 @@ void reset_caches()
 
 std::expected<void, error> erase_sector(sector s)
 {
-  TRY(unlock());
+  EMB_TRY(unlock());
   auto relock = emb::scope_exit([] { lock(); });
 
   while (busy()) {}
@@ -125,7 +125,7 @@ std::expected<void, error> erase_sector(sector s)
 std::expected<void, error> write(std::uintptr_t addr,
                                  std::span<std::byte const> data)
 {
-  TRY(unlock());
+  EMB_TRY(unlock());
   auto relock = emb::scope_exit([] { lock(); });
 
   while (busy()) {}
@@ -142,7 +142,7 @@ std::expected<void, error> write(std::uintptr_t addr,
     // Drain the write buffer so BUSY is observed set before the first poll.
     __DSB();
     while (busy()) {}
-    TRY(check_errors());
+    EMB_TRY(check_errors());
   }
 
   return {};

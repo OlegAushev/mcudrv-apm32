@@ -273,7 +273,7 @@ public:
   std::expected<void, error> write(std::span<FrameFormat const> src)
   {
     for (auto frame : src) {
-      TRY(transfer(frame, timeout_));
+      EMB_TRY(transfer(frame, timeout_));
     }
     return {};
   }
@@ -281,7 +281,7 @@ public:
   std::expected<void, error> read(std::span<FrameFormat> dest)
   {
     for (auto& frame : dest) {
-      frame = TRY(transfer(idle_frame, timeout_));
+      frame = EMB_TRY(transfer(idle_frame, timeout_));
     }
     return {};
   }
@@ -291,7 +291,7 @@ public:
   {
     if (src.size() != dest.size()) emb::panic();
     for (auto i = 0uz; i < src.size(); ++i) {
-      dest[i] = TRY(transfer(src[i], timeout_));
+      dest[i] = EMB_TRY(transfer(src[i], timeout_));
     }
     return {};
   }
