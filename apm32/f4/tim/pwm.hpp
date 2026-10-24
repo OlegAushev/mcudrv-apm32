@@ -61,7 +61,7 @@ get_deadtime_setup(emb::units::hz_f32 clk_freq,
   float const t_dts_ns = mul * 1e9f / clk_freq.value;
   float const dt = static_cast<float>(deadtime.count());
 
-  emb::ensure(dt <= (32 + 0x1F) * 16 * t_dts_ns);
+  if (dt > (32 + 0x1F) * 16 * t_dts_ns) emb::panic();
 
   if (dt <= 0x7F * t_dts_ns) {
     return std::uint8_t(dt / t_dts_ns) & 0x7F;

@@ -226,7 +226,7 @@ constexpr std::uint32_t calculate_prescaler(emb::units::hz_f32 clk_freq,
       clk_freq_u32 / adc_freq_u32 + (clk_freq_u32 % adc_freq_u32 != 0);
   auto it =
       std::lower_bound(clock_prescalers.begin(), clock_prescalers.end(), ratio);
-  emb::ensure(it != clock_prescalers.end());
+  if (it == clock_prescalers.end()) emb::panic();
   return *it;
 }
 

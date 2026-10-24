@@ -25,10 +25,11 @@ struct bit_timing {
 
   constexpr std::uint32_t reg_bits() const
   {
-    emb::ensure(prescaler >= 1 && prescaler <= prescaler_max);
-    emb::ensure(sync_jump_width >= 1 && sync_jump_width <= sync_jump_width_max);
-    emb::ensure(time_segment1 >= 1 && time_segment1 <= time_segment1_max);
-    emb::ensure(time_segment2 >= 1 && time_segment2 <= time_segment2_max);
+    if (prescaler < 1 || prescaler > prescaler_max) emb::panic();
+    if (sync_jump_width < 1 || sync_jump_width > sync_jump_width_max)
+      emb::panic();
+    if (time_segment1 < 1 || time_segment1 > time_segment1_max) emb::panic();
+    if (time_segment2 < 1 || time_segment2 > time_segment2_max) emb::panic();
 
     return ((prescaler - 1u) << CAN_BITTIM_BRPSC_Pos)
          | ((sync_jump_width - 1u) << CAN_BITTIM_RSYNJW_Pos)

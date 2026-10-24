@@ -86,7 +86,7 @@ public:
 
     if (!cfg.counter_prescaler.has_value()) {
       // 16-bit timers must choose the prescaler explicitly.
-      emb::ensure(std::same_as<counter_type, std::uint32_t>);
+      if (!std::same_as<counter_type, std::uint32_t>) emb::panic();
       cfg.counter_prescaler = 0;
     }
 

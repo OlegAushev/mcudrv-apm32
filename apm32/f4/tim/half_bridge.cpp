@@ -13,14 +13,14 @@ void detail::configure_half_bridge_timebase(registers& reg,
                                             emb::units::hz_f32 clk_freq,
                                             half_bridge_pwm_config const& conf)
 {
-  emb::ensure(conf.prescaler.has_value());
+  if (!conf.prescaler.has_value()) emb::panic();
 
   auto const timebase_freq =
       clk_freq / static_cast<float>(conf.prescaler.value() + 1);
 
   std::uint32_t const period =
       static_cast<std::uint32_t>((timebase_freq / conf.frequency) / 2);
-  emb::ensure(period <= UINT16_MAX);
+  if (period > UINT16_MAX) emb::panic();
 
   emb::mmio::modify(
       reg.CTRL1,

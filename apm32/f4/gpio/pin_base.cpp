@@ -22,7 +22,7 @@ detail::pin_base::pin_base(port p,
     : port_(p), pin_(pin_mask), regs_(ports[std::to_underlying(p)])
 {
   std::size_t const port_idx = std::to_underlying(port_);
-  emb::ensure(!(used_pins_[port_idx] & pin_));
+  if (used_pins_[port_idx] & pin_) emb::panic();
   used_pins_[port_idx] |= std::uint16_t(pin_);
 
   if (!is_clock_enabled_[port_idx]) {

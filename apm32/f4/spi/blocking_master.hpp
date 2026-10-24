@@ -289,7 +289,7 @@ public:
   std::expected<void, error> transfer(std::span<FrameFormat const> src,
                                       std::span<FrameFormat> dest)
   {
-    emb::ensure(src.size() == dest.size());
+    if (src.size() != dest.size()) emb::panic();
     for (auto i = 0uz; i < src.size(); ++i) {
       dest[i] = TRY(transfer(src[i], timeout_));
     }

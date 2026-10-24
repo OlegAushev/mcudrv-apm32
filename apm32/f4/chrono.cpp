@@ -18,7 +18,7 @@ namespace apm32::f4::chrono {
 
 void steady_clock::init()
 {
-  emb::ensure(!initialized_);
+  if (initialized_) emb::panic();
 
   std::uint32_t const ticks_per_msec =
       rcc::hclk_frequency<std::uint32_t>() / 1000u;
@@ -34,7 +34,8 @@ void steady_clock::init()
 
 void high_resolution_clock::init()
 {
-  emb::ensure(steady_clock::initialized() && !initialized_);
+  if (!steady_clock::initialized()) emb::panic();
+  if (initialized_) emb::panic();
   nsec_per_tick_ = 1'000'000'000.0f / rcc::hclk_frequency<float>();
   initialized_ = true;
 }

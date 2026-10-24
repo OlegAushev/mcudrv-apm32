@@ -124,14 +124,14 @@ public:
     emb::mmio::set<CAN_MCTRL_INITREQ>(reg.MCTRL);
     timeout_t init_timeout(std::chrono::milliseconds(2));
     while (!emb::mmio::test<CAN_MSTS_INITFLG>(reg.MSTS)) {
-      emb::ensure(!init_timeout.expired());
+      if (init_timeout.expired()) emb::panic();
     }
 
     // exit sleep mode
     emb::mmio::clear<CAN_MCTRL_SLEEPREQ>(reg.MCTRL);
     timeout_t sleep_timeout(std::chrono::milliseconds(2));
     while (emb::mmio::test<CAN_MSTS_SLEEPFLG>(reg.MSTS)) {
-      emb::ensure(!sleep_timeout.expired());
+      if (sleep_timeout.expired()) emb::panic();
     }
 
     // configure
@@ -182,7 +182,7 @@ public:
     emb::mmio::clear<CAN_MCTRL_INITREQ>(reg.MCTRL);
     timeout_t start_timeout(std::chrono::milliseconds(2));
     while (emb::mmio::test<CAN_MSTS_INITFLG>(reg.MSTS)) {
-      emb::ensure(!start_timeout.expired());
+      if (start_timeout.expired()) emb::panic();
     }
   }
 
@@ -252,7 +252,7 @@ private:
 
   void add_filter(filter_32_mask const& filter, rx_fifo fifo)
   {
-    emb::ensure(filters_used_ < Traits.filter_count);
+    if (filters_used_ >= Traits.filter_count) emb::panic();
 
     setup_filter_bank(filter_scale::_32bit,
                       filter_mode::mask,
@@ -266,7 +266,7 @@ private:
 
   void add_filter(filter_32_list const& filter, rx_fifo fifo)
   {
-    emb::ensure(filters_used_ < Traits.filter_count);
+    if (filters_used_ >= Traits.filter_count) emb::panic();
 
     setup_filter_bank(filter_scale::_32bit,
                       filter_mode::list,
@@ -280,7 +280,7 @@ private:
 
   void add_filter(filter_16_mask const& filter, rx_fifo fifo)
   {
-    emb::ensure(filters_used_ < Traits.filter_count);
+    if (filters_used_ >= Traits.filter_count) emb::panic();
 
     std::uint32_t const bank1 = detail::encode_16bit_mask(filter.mask1) << 16
                               | detail::encode_16bit_id(filter.id1);
@@ -299,7 +299,7 @@ private:
 
   void add_filter(filter_16_list const& filter, rx_fifo fifo)
   {
-    emb::ensure(filters_used_ < Traits.filter_count);
+    if (filters_used_ >= Traits.filter_count) emb::panic();
 
     std::uint32_t const bank1 = detail::encode_16bit_id(filter.id2) << 16
                               | detail::encode_16bit_id(filter.id1);

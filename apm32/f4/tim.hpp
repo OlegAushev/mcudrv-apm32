@@ -378,7 +378,7 @@ constexpr std::uint16_t calculate_prescaler(emb::units::hz_f32 clk_freq,
 
   std::uint32_t ret =
       total_ticks / std::numeric_limits<typename Tim::counter_type>::max();
-  emb::ensure(ret <= UINT16_MAX);
+  if (ret > UINT16_MAX) emb::panic();
 
   return static_cast<std::uint16_t>(ret);
 }

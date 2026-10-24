@@ -28,10 +28,10 @@ public:
             std::clamp(preempt_pri, std::uint8_t{0}, preempt_priority_max)},
         sub_{std::clamp(sub_pri, std::uint8_t{0}, sub_priority_max)}
   {
-    emb::ensure(preempt_pri <= preempt_priority_max);
-    emb::ensure(sub_pri <= sub_priority_max);
+    if (preempt_pri > preempt_priority_max) emb::panic();
+    if (sub_pri > sub_priority_max) emb::panic();
 #ifdef SILICON_REVISION_A
-    emb::ensure(emb::iseven(preempt_pri));
+    if (emb::isodd(preempt_pri)) emb::panic();
 #endif
   }
 

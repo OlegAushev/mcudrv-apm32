@@ -14,14 +14,14 @@ void detail::configure_timebase(registers& reg,
                                 periodic_timer_config const& conf,
                                 std::uint32_t counter_max)
 {
-  emb::ensure(conf.prescaler.has_value());
+  if (!conf.prescaler.has_value()) emb::panic();
 
   auto const timebase_freq =
       clk_freq / static_cast<float>(conf.prescaler.value() + 1);
 
   std::uint32_t const period =
       std::uint32_t(timebase_freq / conf.frequency) - 1;
-  emb::ensure(period <= counter_max);
+  if (period > counter_max) emb::panic();
 
   emb::mmio::modify(reg.CTRL1,
                     emb::mmio::bits<TMR_CTRL1_CNTDIR>(0), // up counting

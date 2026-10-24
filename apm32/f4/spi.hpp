@@ -148,7 +148,7 @@ constexpr baudrate_prescaler calculate_prescaler(emb::units::hz_f32 clk_freq,
   auto it =
       std::lower_bound(clock_prescalers.begin(), clock_prescalers.end(), ratio);
 
-  emb::ensure(it != clock_prescalers.end());
+  if (it == clock_prescalers.end()) emb::panic();
 
   return static_cast<baudrate_prescaler>(
       std::distance(clock_prescalers.begin(), it));
