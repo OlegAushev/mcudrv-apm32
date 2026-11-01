@@ -30,12 +30,8 @@ struct channel4 {
 };
 
 template<typename T>
-struct is_timer_channel_instance
-    : std::bool_constant<
-          emb::same_as_any<T, channel1, channel2, channel3, channel4>> {};
-
-template<typename T>
-concept timer_channel_instance = is_timer_channel_instance<T>::value;
+concept timer_channel =
+    emb::same_as_any<T, channel1, channel2, channel3, channel4>;
 
 template<std::size_t I>
   requires(I < 4)
@@ -61,7 +57,7 @@ enum class capture_filter : std::uint32_t {
   div32_n8,
 };
 
-template<timer_instance Tim, timer_channel_instance Ch>
+template<timer_instance Tim, timer_channel Ch>
 bool capture_compare_flag()
 {
   if constexpr (std::same_as<Ch, channel1>) {
@@ -81,7 +77,7 @@ bool capture_compare_flag()
   }
 }
 
-template<timer_instance Tim, timer_channel_instance Ch>
+template<timer_instance Tim, timer_channel Ch>
 void acknowledge_capture_compare()
 {
   if constexpr (std::same_as<Ch, channel1>) {

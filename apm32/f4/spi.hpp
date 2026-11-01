@@ -63,11 +63,7 @@ struct spi3 {
 };
 
 template<typename T>
-struct is_spi_instance
-    : std::bool_constant<emb::same_as_any<T, spi1, spi2, spi3>> {};
-
-template<typename T>
-concept spi_instance = is_spi_instance<T>::value;
+concept spi_instance = emb::same_as_any<T, spi1, spi2, spi3>;
 
 enum class error {
   timeout,

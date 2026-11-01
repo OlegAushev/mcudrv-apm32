@@ -41,13 +41,13 @@ consteval std::uint32_t interrupt_clear_mask()
 } // namespace detail
 
 template<dma_stream_instance Stream,
-         dma_channel_instance Channel,
+         dma_request_channel Channel,
          typename Storage>
 class peripheral_to_memory_stream {
 public:
   using controller_instance = Stream::controller;
   using stream_instance = Stream;
-  using channel_instance = Channel;
+  using request_channel = Channel;
   using storage_type = Storage;
   using memory_buffer_type = typename Storage::buffer_type;
 private:
@@ -71,7 +71,7 @@ public:
 
     emb::mmio::modify(
         stream_reg.SCFG,
-        emb::mmio::bits<DMA_SCFGx_CHSEL>(channel_instance::idx),
+        emb::mmio::bits<DMA_SCFGx_CHSEL>(request_channel::idx),
         emb::mmio::bits<DMA_SCFGx_DIRCFG>(0b00u), // periph to memory
         emb::mmio::bits<DMA_SCFGx_CIRCMEN>(1u),   // circular mode
         emb::mmio::bits<DMA_SCFGx_PERIM>(0u),     // no periph increment

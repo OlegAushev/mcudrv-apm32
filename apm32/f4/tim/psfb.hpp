@@ -49,7 +49,7 @@ void configure_psfb_timebase(registers& reg,
 inline constexpr std::uint32_t oc_mode_force_inactive = 0b100u;
 inline constexpr std::uint32_t oc_mode_toggle = 0b011u;
 
-template<advanced_timer Tim, timer_channel_instance Ch>
+template<advanced_timer Tim, timer_channel Ch>
   requires(emb::same_as_any<Ch, channel1, channel2>)
 void configure_psfb_channel()
 {

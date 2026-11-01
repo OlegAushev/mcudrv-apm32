@@ -236,71 +236,48 @@ struct tim14 {
 };
 
 template<typename T>
-struct is_timer_instance : std::bool_constant<emb::same_as_any<T,
-                                                               tim1,
-                                                               tim2,
-                                                               tim3,
-                                                               tim4,
-                                                               tim5,
-                                                               tim6,
-                                                               tim7,
-                                                               tim8,
-                                                               tim9,
-                                                               tim10,
-                                                               tim11,
-                                                               tim12,
-                                                               tim13,
-                                                               tim14>> {};
+concept timer_instance = emb::same_as_any<T,
+                                          tim1,
+                                          tim2,
+                                          tim3,
+                                          tim4,
+                                          tim5,
+                                          tim6,
+                                          tim7,
+                                          tim8,
+                                          tim9,
+                                          tim10,
+                                          tim11,
+                                          tim12,
+                                          tim13,
+                                          tim14>;
 
 template<typename T>
-concept timer_instance = is_timer_instance<T>::value;
+concept advanced_timer = emb::same_as_any<T, tim1, tim8>;
 
 template<typename T>
-struct is_advanced_timer : std::bool_constant<emb::same_as_any<T, tim1, tim8>> {
-};
+concept general_purpose_timer = emb::same_as_any<T,
+                                                 tim2,
+                                                 tim3,
+                                                 tim4,
+                                                 tim5,
+                                                 tim9,
+                                                 tim10,
+                                                 tim11,
+                                                 tim12,
+                                                 tim13,
+                                                 tim14>;
 
 template<typename T>
-concept advanced_timer = is_advanced_timer<T>::value;
+concept timer_32bit =
+    timer_instance<T> && std::same_as<typename T::counter_type, std::uint32_t>;
 
 template<typename T>
-struct is_general_purpose_timer : std::bool_constant<emb::same_as_any<T,
-                                                                      tim2,
-                                                                      tim3,
-                                                                      tim4,
-                                                                      tim5,
-                                                                      tim9,
-                                                                      tim10,
-                                                                      tim11,
-                                                                      tim12,
-                                                                      tim13,
-                                                                      tim14>> {
-};
+concept basic_timer = emb::same_as_any<T, tim6, tim7>;
 
 template<typename T>
-concept general_purpose_timer = is_general_purpose_timer<T>::value;
-
-template<typename T>
-struct is_timer_32bit
-    : std::bool_constant<
-          std::same_as<typename T::counter_type, std::uint32_t>> {};
-
-template<typename T>
-concept timer_32bit = is_timer_32bit<T>::value;
-
-template<typename T>
-struct is_basic_timer : std::bool_constant<emb::same_as_any<T, tim6, tim7>> {};
-
-template<typename T>
-concept basic_timer = is_basic_timer<T>::value;
-
-template<typename T>
-struct is_master_timer
-    : std::bool_constant<
-          emb::same_as_any<T, tim1, tim2, tim3, tim4, tim5, tim6, tim7, tim8>> {
-};
-
-template<typename T>
-concept master_timer = is_master_timer<T>::value;
+concept master_timer =
+    emb::same_as_any<T, tim1, tim2, tim3, tim4, tim5, tim6, tim7, tim8>;
 
 enum class clock_division : std::uint32_t {
   div1 = 0b00u,

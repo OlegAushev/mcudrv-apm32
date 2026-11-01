@@ -78,11 +78,7 @@ struct adc3 {
 };
 
 template<typename T>
-struct is_adc_instance
-    : std::bool_constant<emb::same_as_any<T, adc1, adc2, adc3>> {};
-
-template<typename T>
-concept adc_instance = is_adc_instance<T>::value;
+concept adc_instance = emb::same_as_any<T, adc1, adc2, adc3>;
 
 template<adc_instance Instance, typename T>
 consteval bool is_compatible_dma_stream()

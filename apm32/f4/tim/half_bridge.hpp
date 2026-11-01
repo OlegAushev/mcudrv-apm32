@@ -49,7 +49,7 @@ void configure_half_bridge_timebase(registers& reg,
 // PWM1 mode = 0b110
 inline constexpr std::uint32_t oc_mode_pwm1 = 0b110u;
 
-template<advanced_timer Tim, timer_channel_instance Ch>
+template<advanced_timer Tim, timer_channel Ch>
   requires(!std::same_as<Ch, channel4>)
 void configure_half_bridge_channel()
 {
