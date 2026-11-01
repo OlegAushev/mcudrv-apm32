@@ -266,7 +266,7 @@ private:
   template<adc_channel Channel, unsigned Rank>
   [[nodiscard]] std::uint16_t result() const
   {
-    static_assert(emb::typelist_contains_v<channels, Channel>,
+    static_assert(emb::listed_in<Channel, channels>,
                   "channel is not part of this ADC's conversion sequence");
     if constexpr (Channel::injected) {
       return injected_result<Rank>();

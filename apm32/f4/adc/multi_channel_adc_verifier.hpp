@@ -62,10 +62,10 @@ public:
       "only external channels can be stimulated by drive pins");
   static_assert((... && !Bindings::channel::injected),
                 "only regular channels are covered by the regular DMA buffer");
-  static_assert((...
-                 && emb::typelist_contains_v<typename Adc::channels,
-                                             typename Bindings::channel>),
-                "every bound channel must belong to the verified ADC");
+  static_assert(
+      (...
+       && emb::listed_in<typename Bindings::channel, typename Adc::channels>),
+      "every bound channel must belong to the verified ADC");
   static_assert(
       []() consteval {
         std::array<bool, pin_count> used{};

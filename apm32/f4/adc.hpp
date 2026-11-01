@@ -83,7 +83,7 @@ concept adc_instance = emb::same_as_any<T, adc1, adc2, adc3>;
 template<adc_instance Instance, typename T>
 consteval bool is_compatible_dma_stream()
 {
-  return emb::typelist_contains_v<typename Instance::dma_streams, T>;
+  return emb::listed_in<T, typename Instance::dma_streams>;
 }
 
 template<adc_instance Instance, typename T>
