@@ -445,6 +445,6 @@ inline constexpr bool is_adc_channel<channel<Channel, Sampletime, Ranks>> =
     true;
 
 template<typename T>
-concept some_adc_channel = is_adc_channel<T>;
+concept adc_channel = is_adc_channel<T>;
 
 } // namespace apm32::f4::adc

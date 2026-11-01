@@ -253,14 +253,14 @@ struct is_timer_instance : std::bool_constant<emb::same_as_any<T,
                                                                tim14>> {};
 
 template<typename T>
-concept some_timer_instance = is_timer_instance<T>::value;
+concept timer_instance = is_timer_instance<T>::value;
 
 template<typename T>
 struct is_advanced_timer : std::bool_constant<emb::same_as_any<T, tim1, tim8>> {
 };
 
 template<typename T>
-concept some_advanced_timer = is_advanced_timer<T>::value;
+concept advanced_timer = is_advanced_timer<T>::value;
 
 template<typename T>
 struct is_general_purpose_timer : std::bool_constant<emb::same_as_any<T,
@@ -277,30 +277,30 @@ struct is_general_purpose_timer : std::bool_constant<emb::same_as_any<T,
 };
 
 template<typename T>
-concept some_general_purpose_timer = is_general_purpose_timer<T>::value;
+concept general_purpose_timer = is_general_purpose_timer<T>::value;
 
 template<typename T>
-struct is_32bit_timer
+struct is_timer_32bit
     : std::bool_constant<
           std::same_as<typename T::counter_type, std::uint32_t>> {};
 
 template<typename T>
-concept some_32bit_timer = is_32bit_timer<T>::value;
+concept timer_32bit = is_timer_32bit<T>::value;
 
 template<typename T>
 struct is_basic_timer : std::bool_constant<emb::same_as_any<T, tim6, tim7>> {};
 
 template<typename T>
-concept some_basic_timer = is_basic_timer<T>::value;
+concept basic_timer = is_basic_timer<T>::value;
 
 template<typename T>
-struct is_master_timer_instance
+struct is_master_timer
     : std::bool_constant<
           emb::same_as_any<T, tim1, tim2, tim3, tim4, tim5, tim6, tim7, tim8>> {
 };
 
 template<typename T>
-concept some_master_timer_instance = is_master_timer_instance<T>::value;
+concept master_timer = is_master_timer<T>::value;
 
 enum class clock_division : std::uint32_t {
   div1 = 0b00u,
@@ -323,37 +323,37 @@ enum class trigger_output : std::uint32_t {
   oc4ref
 };
 
-template<some_timer_instance Tim>
+template<timer_instance Tim>
 void enable_counter()
 {
   emb::mmio::set<TMR_CTRL1_CNTEN>(Tim::reg.CTRL1);
 }
 
-template<some_timer_instance Tim>
+template<timer_instance Tim>
 void disable_counter()
 {
   emb::mmio::clear<TMR_CTRL1_CNTEN>(Tim::reg.CTRL1);
 }
 
-template<some_timer_instance Tim>
+template<timer_instance Tim>
 bool update_flag()
 {
   return emb::mmio::test<TMR_STS_UIFLG>(Tim::reg.STS);
 }
 
-template<some_timer_instance Tim>
+template<timer_instance Tim>
 void acknowledge_update()
 {
   emb::mmio::clear_w0<TMR_STS_UIFLG>(Tim::reg.STS);
 }
 
-template<some_timer_instance Tim>
+template<timer_instance Tim>
 bool break_flag()
 {
   return emb::mmio::test<TMR_STS_BRKIFLG>(Tim::reg.STS);
 }
 
-template<some_timer_instance Tim>
+template<timer_instance Tim>
 void acknowledge_break()
 {
   emb::mmio::clear_w0<TMR_STS_BRKIFLG>(Tim::reg.STS);
@@ -361,7 +361,7 @@ void acknowledge_break()
 
 namespace detail {
 
-template<some_timer_instance Tim>
+template<timer_instance Tim>
 constexpr std::uint16_t calculate_prescaler(emb::units::hz_f32 clk_freq,
                                             emb::units::hz_f32 tim_freq,
                                             counter_mode mode)
@@ -385,7 +385,7 @@ constexpr std::uint16_t calculate_prescaler(emb::units::hz_f32 clk_freq,
 
 } // namespace detail
 
-template<some_timer_instance Tim>
+template<timer_instance Tim>
 std::uint16_t calculate_prescaler(emb::units::hz_f32 tim_freq,
                                   counter_mode mode)
 {

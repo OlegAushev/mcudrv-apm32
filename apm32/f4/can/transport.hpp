@@ -14,7 +14,7 @@ namespace apm32::f4::can {
 // This peripheral seen as emb::can::transport. Frames the hardware filters
 // accept reach every subscriber in the order they registered; one past
 // MaxSubscribers is dropped rather than reported.
-template<some_can_instance Instance,
+template<can_instance Instance,
          transceiver_traits Traits,
          std::size_t MaxSubscribers = 1>
 class transport : public emb::can::transport {

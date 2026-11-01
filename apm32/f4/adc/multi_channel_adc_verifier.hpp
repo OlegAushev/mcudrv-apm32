@@ -18,7 +18,7 @@ namespace apm32::f4::adc {
 
 // Binds a regular external channel of a multi_channel_adc to the index of
 // the drive pin that stimulates it on the bench.
-template<some_adc_channel Channel, std::size_t Pin>
+template<adc_channel Channel, std::size_t Pin>
 struct verifier_binding {
   using channel = Channel;
   static constexpr std::size_t pin = Pin;
@@ -29,9 +29,6 @@ inline constexpr bool is_verifier_binding = false;
 
 template<typename C, std::size_t P>
 inline constexpr bool is_verifier_binding<verifier_binding<C, P>> = true;
-
-template<typename T>
-concept some_verifier_binding = is_verifier_binding<T>;
 
 // Verifies the regular sequence -> DMA buffer layout of a multi_channel_adc
 // without external test equipment. N spare GPIO outputs (drive pins) are
@@ -49,8 +46,11 @@ concept some_verifier_binding = is_verifier_binding<T>;
 // invokes step()/check() at its own pace and renders the verdicts. After
 // each step() the next settle_checks calls of check() return settling,
 // covering the sequence in flight and the level switch transient.
-template<some_multi_channel_adc Adc, some_verifier_binding... Bindings>
-  requires(sizeof...(Bindings) > 0 && Adc::dma_enabled)
+template<typename Adc, typename... Bindings>
+  requires(is_multi_channel_adc<Adc>
+           && (... && is_verifier_binding<Bindings>)
+           && sizeof...(Bindings) > 0
+           && Adc::dma_enabled)
 class multi_channel_adc_verifier {
 public:
   using bindings = emb::typelist<Bindings...>;

@@ -104,7 +104,7 @@ consteval bit_timing with_sync_jump_width(bit_timing timing,
 
 } // namespace detail
 
-template<some_can_instance Instance>
+template<can_instance Instance>
 consteval bit_timing calculate_bit_timing(
     std::uint32_t bitrate,
     std::uint32_t sync_jump_width = detail::default_sync_jump_width,

@@ -42,7 +42,7 @@ void configure_timebase(registers& reg, timebase_config const& cfg);
 
 void configure_channel(registers& reg, capture_filter filter);
 
-template<some_timer_instance Tim>
+template<timer_instance Tim>
 [[nodiscard]] gpio::alternate_pin_config
 make_input_config(input_pin_config const& pin)
 {
@@ -56,17 +56,17 @@ make_input_config(input_pin_config const& pin)
 
 } // namespace detail
 
-template<some_timer_instance Tim>
+template<timer_instance Tim>
   requires(Tim::io_channel_count >= 3)
 class hall_interface {
 public:
-  using timer_instance = Tim;
+  using instance = Tim;
   using counter_type = Tim::counter_type;
 private:
-  static inline registers& reg = timer_instance::reg;
+  static inline registers& reg = instance::reg;
 
   static constexpr nvic::irq_number const irqn_ =
-      timer_instance::capture_compare_irqn;
+      instance::capture_compare_irqn;
 
   std::array<std::optional<gpio::alternate_pin>, 3> pins_;
   emb::units::sec_f32 counter_period_;
@@ -78,10 +78,10 @@ public:
 
   hall_interface(hall_interface_config cfg)
   {
-    timer_instance::enable_clock();
+    instance::enable_clock();
 
     for (auto i = 0uz; i < 3; ++i) {
-      pins_[i].emplace(detail::make_input_config<timer_instance>(cfg.pins[i]));
+      pins_[i].emplace(detail::make_input_config<instance>(cfg.pins[i]));
     }
 
     if (!cfg.counter_prescaler.has_value()) {
@@ -90,9 +90,8 @@ public:
       cfg.counter_prescaler = 0;
     }
 
-    counter_period_ =
-        static_cast<float>(cfg.counter_prescaler.value() + 1)
-        / timer_instance::template clock_frequency<emb::units::hz_f32>();
+    counter_period_ = static_cast<float>(cfg.counter_prescaler.value() + 1)
+                    / instance::template clock_frequency<emb::units::hz_f32>();
 
     detail::timebase_config timebase_cfg{};
     timebase_cfg.filter_clock_division = cfg.filter_clock_division;
@@ -118,15 +117,15 @@ public:
 
   void enable()
   {
-    acknowledge_update<timer_instance>();
+    acknowledge_update<instance>();
     nvic::clear_pending_irq(irqn_);
     nvic::enable_irq(irqn_);
-    enable_counter<timer_instance>();
+    enable_counter<instance>();
   }
 
-  typename timer_instance::counter_type captured_counter() const
+  typename instance::counter_type captured_counter() const
   {
-    return static_cast<typename timer_instance::counter_type>(reg.CC1);
+    return static_cast<typename instance::counter_type>(reg.CC1);
   }
 
   emb::units::sec_f32 captured_time() const

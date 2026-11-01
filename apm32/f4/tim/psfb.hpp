@@ -49,7 +49,7 @@ void configure_psfb_timebase(registers& reg,
 inline constexpr std::uint32_t oc_mode_force_inactive = 0b100u;
 inline constexpr std::uint32_t oc_mode_toggle = 0b011u;
 
-template<some_advanced_timer Tim, some_timer_channel_instance Ch>
+template<advanced_timer Tim, timer_channel_instance Ch>
   requires(emb::same_as_any<Ch, channel1, channel2>)
 void configure_psfb_channel()
 {
@@ -96,21 +96,19 @@ void configure_psfb_channel()
 
 } // namespace detail
 
-template<some_advanced_timer Tim>
+template<advanced_timer Tim>
 class psfb {
 public:
-  using timer_instance = Tim;
+  using instance = Tim;
   using counter_type = Tim::counter_type;
   static constexpr std::size_t LegCount = 2;
   using dutycycle_type = std::array<emb::unsigned_pu_f32, LegCount>;
 private:
-  static inline registers& reg = timer_instance::reg;
+  static inline registers& reg = instance::reg;
 
-  static constexpr nvic::irq_number const update_irqn_ =
-      timer_instance::update_irqn;
+  static constexpr nvic::irq_number const update_irqn_ = instance::update_irqn;
 
-  static constexpr nvic::irq_number const break_irqn_ =
-      timer_instance::break_irqn;
+  static constexpr nvic::irq_number const break_irqn_ = instance::break_irqn;
 
   static inline std::array<std::uint32_t volatile*, 4> const ccr_regs =
       {&reg.CC1, &reg.CC2, &reg.CC3, &reg.CC4};
@@ -138,41 +136,40 @@ public:
     deadtime_ = emb::units::sec_f32{float(cfg.pwm.deadtime.count()) / 1e9f};
 
     if (!cfg.pwm.prescaler.has_value()) {
-      cfg.pwm.prescaler = calculate_prescaler<timer_instance>(cfg.pwm.frequency,
-                                                              counter_mode::up);
+      cfg.pwm.prescaler =
+          calculate_prescaler<instance>(cfg.pwm.frequency, counter_mode::up);
     }
 
-    timebase_freq_ =
-        timer_instance::template clock_frequency<emb::units::hz_f32>()
-        / static_cast<float>(cfg.pwm.prescaler.value() + 1);
+    timebase_freq_ = instance::template clock_frequency<emb::units::hz_f32>()
+                   / static_cast<float>(cfg.pwm.prescaler.value() + 1);
 
     min_freq_ = timebase_freq_ / (std::numeric_limits<counter_type>::max() + 1);
     max_freq_ = timebase_freq_;
 
-    timer_instance::enable_clock();
+    instance::enable_clock();
 
     detail::configure_psfb_timebase(
         reg,
-        timer_instance::template clock_frequency<emb::units::hz_f32>(),
+        instance::template clock_frequency<emb::units::hz_f32>(),
         cfg.pwm);
 
     if (cfg.bk_pin.has_value()) {
-      bk_pin_.emplace(detail::make_break_input_gpio_config<timer_instance>(
-          cfg.bk_pin.value()));
+      bk_pin_.emplace(
+          detail::make_break_input_gpio_config<instance>(cfg.bk_pin.value()));
     }
     detail::configure_bdt(
         reg,
-        timer_instance::template clock_frequency<emb::units::hz_f32>(),
+        instance::template clock_frequency<emb::units::hz_f32>(),
         cfg.pwm.deadtime,
         cfg.pwm.clkdiv,
         cfg.bk_pin);
 
     emb::unroll<LegCount>([&]<std::size_t I>() {
-      detail::configure_psfb_channel<timer_instance, tim::channel_at<I>>();
+      detail::configure_psfb_channel<instance, tim::channel_at<I>>();
       hi_pins_[I].emplace(
-          detail::make_output_gpio_config<timer_instance>(cfg.hi_pins[I]));
+          detail::make_output_gpio_config<instance>(cfg.hi_pins[I]));
       lo_pins_[I].emplace(
-          detail::make_output_gpio_config<timer_instance>(cfg.lo_pins[I]));
+          detail::make_output_gpio_config<instance>(cfg.lo_pins[I]));
     });
 
     // Trigger output
@@ -240,7 +237,7 @@ public:
   void start()
   {
     if (bk_pin_) {
-      acknowledge_break<timer_instance>();
+      acknowledge_break<instance>();
       emb::mmio::set<TMR_DIEN_BRKIEN>(reg.DIEN);
     }
     emb::mmio::set<TMR_BDT_MOEN>(reg.BDT);
@@ -291,11 +288,11 @@ public:
 public:
   void enable()
   {
-    acknowledge_update<timer_instance>();
+    acknowledge_update<instance>();
     nvic::clear_pending_irq(update_irqn_);
     nvic::enable_irq(update_irqn_);
     if (bk_pin_) {
-      acknowledge_break<timer_instance>();
+      acknowledge_break<instance>();
       nvic::clear_pending_irq(break_irqn_);
       nvic::enable_irq(break_irqn_);
     }
@@ -305,7 +302,7 @@ public:
     reg.CC1 = max_ccr_v(arr_v);
     reg.CC2 = max_ccr_v(arr_v);
 
-    enable_counter<timer_instance>();
+    enable_counter<instance>();
   }
 private:
   static std::uint32_t min_ccr_v()

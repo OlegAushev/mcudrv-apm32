@@ -82,15 +82,15 @@ struct is_adc_instance
     : std::bool_constant<emb::same_as_any<T, adc1, adc2, adc3>> {};
 
 template<typename T>
-concept some_adc_instance = is_adc_instance<T>::value;
+concept adc_instance = is_adc_instance<T>::value;
 
-template<some_adc_instance Instance, typename T>
+template<adc_instance Instance, typename T>
 consteval bool is_compatible_dma_stream()
 {
   return emb::typelist_contains_v<typename Instance::dma_streams, T>;
 }
 
-template<some_adc_instance Instance, typename T>
+template<adc_instance Instance, typename T>
 consteval bool is_compatible_dma_channel()
 {
   return std::same_as<T, typename Instance::dma_channel>;
@@ -150,51 +150,51 @@ struct reg_trigger {
   reg_trigger_event event;
 };
 
-template<some_adc_instance Instance>
+template<adc_instance Instance>
 void start_injected()
 {
   emb::mmio::set<ADC_CTRL2_INJSWSC>(Instance::reg.CTRL2);
 }
 
-template<some_adc_instance Instance>
+template<adc_instance Instance>
 void start_regular()
 {
   emb::mmio::set<ADC_CTRL2_REGSWSC>(Instance::reg.CTRL2);
 }
 
-template<some_adc_instance Instance>
+template<adc_instance Instance>
 void arm_injected_trigger(trigger_edge edge)
 {
   emb::mmio::write<ADC_CTRL2_INJEXTTRGEN>(Instance::reg.CTRL2,
                                           std::to_underlying(edge));
 }
 
-template<some_adc_instance Instance>
+template<adc_instance Instance>
 void arm_regular_trigger(trigger_edge edge)
 {
   emb::mmio::write<ADC_CTRL2_REGEXTTRGEN>(Instance::reg.CTRL2,
                                           std::to_underlying(edge));
 }
 
-template<some_adc_instance Instance>
+template<adc_instance Instance>
 bool jeoc_flag()
 {
   return emb::mmio::test<ADC_STS_INJEOCFLG>(Instance::reg.STS);
 }
 
-template<some_adc_instance Instance>
+template<adc_instance Instance>
 void acknowledge_jeoc()
 {
   emb::mmio::clear_w0<ADC_STS_INJEOCFLG>(Instance::reg.STS);
 }
 
-template<some_adc_instance Instance>
+template<adc_instance Instance>
 bool eoc_flag()
 {
   return emb::mmio::test<ADC_STS_EOCFLG>(Instance::reg.STS);
 }
 
-template<some_adc_instance Instance>
+template<adc_instance Instance>
 void acknowledge_eoc()
 {
   emb::mmio::clear_w0<ADC_STS_EOCFLG>(Instance::reg.STS);

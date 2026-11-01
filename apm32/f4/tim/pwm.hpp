@@ -28,7 +28,7 @@ struct break_pin_config {
 
 namespace detail {
 
-template<some_advanced_timer Tim>
+template<advanced_timer Tim>
 [[nodiscard]] gpio::alternate_pin_config
 make_output_gpio_config(output_pin_config const& pin)
 {
@@ -40,7 +40,7 @@ make_output_gpio_config(output_pin_config const& pin)
                                     .altfunc = Tim::gpio_altfunc};
 }
 
-template<some_advanced_timer Tim>
+template<advanced_timer Tim>
 [[nodiscard]] gpio::alternate_pin_config
 make_break_input_gpio_config(break_pin_config const& bk_pin)
 {

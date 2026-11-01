@@ -63,10 +63,10 @@ struct transceiver_config {
   }
 };
 
-template<some_can_instance Instance, transceiver_traits Traits>
+template<can_instance Instance, transceiver_traits Traits>
 class transceiver;
 
-template<some_can_instance Instance, transceiver_traits Traits>
+template<can_instance Instance, transceiver_traits Traits>
 class filter_setup;
 
 template<transceiver_traits Traits>
@@ -86,12 +86,12 @@ template<transceiver_traits Traits1, transceiver_traits Traits2>
 init_filter_banks(transceiver<can1, Traits1>& can1_xcvr,
                   transceiver<can2, Traits2>& can2_xcvr);
 
-template<some_can_instance Instance, transceiver_traits Traits>
+template<can_instance Instance, transceiver_traits Traits>
 class transceiver {
-  template<some_can_instance, transceiver_traits>
+  template<can_instance, transceiver_traits>
   friend class filter_setup;
 public:
-  using can_instance = Instance;
+  using instance = Instance;
   using rx_delegate = emb::delegate<void(emb::can::frame_t const&)>;
 private:
   using timeout_t = emb::chrono::timeout<chrono::steady_clock>;
@@ -403,7 +403,7 @@ private:
 // Phase guard for filter configuration: only `init_filter_banks` can construct
 // a `filter_setup`, so `add_filter` is unreachable until CAN2SB has been
 // programmed.
-template<some_can_instance Instance, transceiver_traits Traits>
+template<can_instance Instance, transceiver_traits Traits>
 class filter_setup {
   transceiver<Instance, Traits>& xcvr_;
 

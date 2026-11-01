@@ -34,12 +34,12 @@ struct blocking_master_config {
   std::chrono::milliseconds timeout;
 };
 
-template<some_spi_instance Instance,
+template<spi_instance Instance,
          frame_format FrameFormat,
          std::size_t SlaveCount>
 class blocking_master {
 public:
-  using spi_instance = Instance;
+  using instance = Instance;
   using frame_type = FrameFormat;
   using error_type = error;
 
@@ -49,7 +49,7 @@ public:
 private:
   using timeout_t = emb::chrono::timeout<chrono::steady_clock>;
 
-  static inline registers& reg = spi_instance::reg;
+  static inline registers& reg = instance::reg;
 
   std::optional<gpio::alternate_pin> mosi_pin_;
   std::optional<gpio::alternate_pin> miso_pin_;
@@ -65,22 +65,21 @@ public:
   blocking_master(blocking_master_config<SlaveCount> const& config)
       : timeout_(config.timeout)
   {
-    spi_instance::enable_clock();
+    instance::enable_clock();
 
-    emb::mmio::modify(
-        reg.CTRL1,
-        emb::mmio::bits<SPI_CTRL1_CPHA>(config.cpha),
-        emb::mmio::bits<SPI_CTRL1_CPOL>(config.cpol),
-        emb::mmio::bits<SPI_CTRL1_MSMCFG>(1),
-        emb::mmio::bits<SPI_CTRL1_BRSEL>(
-            calculate_prescaler<spi_instance>(config.clk_frequency)),
-        emb::mmio::bits<SPI_CTRL1_LSBSEL>(config.bit_order),
-        emb::mmio::bits<SPI_CTRL1_SSEN>(1u),
-        emb::mmio::bits<SPI_CTRL1_ISSEL>(1u),
-        emb::mmio::bits<SPI_CTRL1_RXOMEN>(0u),
-        emb::mmio::bits<SPI_CTRL1_BMEN>(0u),
-        emb::mmio::bits<SPI_CTRL1_DFLSEL>(
-            std::is_same_v<FrameFormat, std::uint8_t> ? 0u : 1u));
+    emb::mmio::modify(reg.CTRL1,
+                      emb::mmio::bits<SPI_CTRL1_CPHA>(config.cpha),
+                      emb::mmio::bits<SPI_CTRL1_CPOL>(config.cpol),
+                      emb::mmio::bits<SPI_CTRL1_MSMCFG>(1),
+                      emb::mmio::bits<SPI_CTRL1_BRSEL>(
+                          calculate_prescaler<instance>(config.clk_frequency)),
+                      emb::mmio::bits<SPI_CTRL1_LSBSEL>(config.bit_order),
+                      emb::mmio::bits<SPI_CTRL1_SSEN>(1u),
+                      emb::mmio::bits<SPI_CTRL1_ISSEL>(1u),
+                      emb::mmio::bits<SPI_CTRL1_RXOMEN>(0u),
+                      emb::mmio::bits<SPI_CTRL1_BMEN>(0u),
+                      emb::mmio::bits<SPI_CTRL1_DFLSEL>(
+                          std::is_same_v<FrameFormat, std::uint8_t> ? 0u : 1u));
 
     mosi_pin_.emplace(
         gpio::alternate_pin_config{.port = config.mosi_pin.port,
@@ -88,7 +87,7 @@ public:
                                    .pull = gpio::pull::none,
                                    .output_type = gpio::output_type::pushpull,
                                    .speed = pin_speed(config.clk_frequency),
-                                   .altfunc = spi_instance::gpio_altfunc});
+                                   .altfunc = instance::gpio_altfunc});
 
     miso_pin_.emplace(
         gpio::alternate_pin_config{.port = config.miso_pin.port,
@@ -96,7 +95,7 @@ public:
                                    .pull = gpio::pull::none,
                                    .output_type = gpio::output_type::pushpull,
                                    .speed = pin_speed(config.clk_frequency),
-                                   .altfunc = spi_instance::gpio_altfunc});
+                                   .altfunc = instance::gpio_altfunc});
 
     clk_pin_.emplace(
         gpio::alternate_pin_config{.port = config.clk_pin.port,
@@ -104,7 +103,7 @@ public:
                                    .pull = gpio::pull::none,
                                    .output_type = gpio::output_type::pushpull,
                                    .speed = pin_speed(config.clk_frequency),
-                                   .altfunc = spi_instance::gpio_altfunc});
+                                   .altfunc = instance::gpio_altfunc});
 
     for (auto i = 0uz; i < ss_pins_.size(); ++i) {
       ss_pins_[i].emplace(
@@ -117,7 +116,7 @@ public:
       ss_pins_[i]->reset();
     }
 
-    enable<spi_instance>();
+    enable<instance>();
   }
 
   void select()

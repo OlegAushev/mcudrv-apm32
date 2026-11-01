@@ -32,7 +32,7 @@ consteval std::uint32_t dma_size_cfg()
   }
 }
 
-template<some_dma_stream_instance Stream>
+template<dma_stream_instance Stream>
 consteval std::uint32_t interrupt_clear_mask()
 {
   constexpr std::array<std::uint32_t, 4> offsets = {0, 6, 16, 22};
@@ -40,8 +40,8 @@ consteval std::uint32_t interrupt_clear_mask()
 }
 } // namespace detail
 
-template<some_dma_stream_instance Stream,
-         some_dma_channel_instance Channel,
+template<dma_stream_instance Stream,
+         dma_channel_instance Channel,
          typename Storage>
 class peripheral_to_memory_stream {
 public:

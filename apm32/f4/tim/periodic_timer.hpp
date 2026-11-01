@@ -26,15 +26,14 @@ void configure_timebase(registers& reg,
 
 } // namespace detail
 
-template<some_general_purpose_timer Tim>
+template<general_purpose_timer Tim>
 class periodic_timer {
 public:
-  using timer_instance = Tim;
+  using instance = Tim;
 private:
-  static inline registers& reg = timer_instance::reg;
+  static inline registers& reg = instance::reg;
 
-  static constexpr nvic::irq_number const update_irqn_ =
-      timer_instance::update_irqn;
+  static constexpr nvic::irq_number const update_irqn_ = instance::update_irqn;
 
   emb::units::sec_f32 period_;
 public:
@@ -48,19 +47,19 @@ public:
     period_ = 1.f / conf.frequency;
     if (!conf.prescaler.has_value()) {
       conf.prescaler =
-          calculate_prescaler<timer_instance>(conf.frequency, counter_mode::up);
+          calculate_prescaler<instance>(conf.frequency, counter_mode::up);
     }
 
-    timer_instance::enable_clock();
+    instance::enable_clock();
 
     detail::configure_timebase(
         reg,
-        timer_instance::template clock_frequency<emb::units::hz_f32>(),
+        instance::template clock_frequency<emb::units::hz_f32>(),
         conf,
-        std::numeric_limits<typename timer_instance::counter_type>::max());
+        std::numeric_limits<typename instance::counter_type>::max());
 
     // Trigger output
-    if constexpr (some_master_timer_instance<Tim>) {
+    if constexpr (master_timer<Tim>) {
       if (conf.trgo) {
         emb::mmio::write<TMR_CTRL2_MMSEL>(reg.CTRL2, *conf.trgo);
       }

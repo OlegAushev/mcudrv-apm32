@@ -67,7 +67,7 @@ struct is_spi_instance
     : std::bool_constant<emb::same_as_any<T, spi1, spi2, spi3>> {};
 
 template<typename T>
-concept some_spi_instance = is_spi_instance<T>::value;
+concept spi_instance = is_spi_instance<T>::value;
 
 enum class error {
   timeout,
@@ -120,13 +120,13 @@ enum class baudrate_prescaler : std::uint32_t {
 template<typename T>
 concept frame_format = emb::same_as_any<T, std::uint8_t, std::uint16_t>;
 
-template<some_spi_instance Instance>
+template<spi_instance Instance>
 void enable()
 {
   emb::mmio::set<SPI_CTRL1_SPIEN>(Instance::reg.CTRL1);
 }
 
-template<some_spi_instance Instance>
+template<spi_instance Instance>
 void disable()
 {
   emb::mmio::clear<SPI_CTRL1_SPIEN>(Instance::reg.CTRL1);
@@ -156,7 +156,7 @@ constexpr baudrate_prescaler calculate_prescaler(emb::units::hz_f32 clk_freq,
 
 } // namespace detail
 
-template<some_spi_instance Instance>
+template<spi_instance Instance>
 baudrate_prescaler calculate_prescaler(emb::units::hz_f32 spi_freq)
 {
   return detail::calculate_prescaler(

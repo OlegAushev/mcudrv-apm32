@@ -56,7 +56,7 @@ def words(*names):
 
 
 ADC = ('adc.hpp',
-       words(r'adc[123]', r'(?:some|is)_adc_instance', r'common_registers',
+       words(r'adc[123]', r'(?:some_|is_)?adc_instance', r'common_registers',
              r'max_clock_frequency', r'powerup_time', r'vref', r'resolution',
              r'full_scale', r'max_code', r'lsb', r'codes_per_volt',
              r'is_compatible_dma_(?:stream|channel)', r'trigger_edge',
@@ -66,12 +66,12 @@ ADC = ('adc.hpp',
              r'common_irq_priority', r'init_common'),
        [('adc/channels.hpp',
          words(r'adc\d+_in\d+', r'channel_type', r'sampletime',
-               r'(?:some|is)_adc_channel',
+               r'(?:some_|is_)?adc_channel',
                r'(?:injected|regular)_rank_sequence',
                r'is_(?:injected|regular)_sequence', r'adc::channel(?=\s*<)'))])
 
 CAN = ('can.hpp',
-       words(r'can[12]', r'(?:some|is)_can_instance', r'irq_handler',
+       words(r'can[12]', r'(?:some_|is_)?can_instance', r'irq_handler',
              r'[rt]x_pin_config', r'rx_fifo', r'mode', r'error'),
        [('can/bit_timing.hpp',
          words(r'(?:calculate_|find_)?bit_timing', r'with_sync_jump_width',
@@ -84,7 +84,7 @@ CAN = ('can.hpp',
 
 DMA = ('dma.hpp',
        words(r'dma[12]', r'dma[12]_stream[0-7]', r'channel[0-7]',
-             r'(?:some|is)_dma_(?:controller|stream|channel)_instance',
+             r'(?:some_|is_)?dma_(?:controller|stream|channel)_instance',
              r'(?:controller|stream)_(?:registers|count)'),
        [('dma/buffer.hpp',
          words(r'dma_data_type', r'double_buffer', r'owned_storage',
@@ -97,17 +97,19 @@ GPIO = ('gpio.hpp',
         [('gpio/pin_base.hpp', words(r'pin_base'))])
 
 TIMERS = (r'(?:timer_instance|advanced_timer|general_purpose_timer'
-          r'|32bit_timer|basic_timer|master_timer_instance)')
+          r'|32bit_timer|timer_32bit|basic_timer'
+          r'|master_timer_instance|master_timer)')
 TIM = ('tim.hpp',
-       words(r'tim(?:1[0-4]|[1-9])', r'(?:some|is)_' + TIMERS,
+       words(r'tim(?:1[0-4]|[1-9])', r'(?:some_|is_)?' + TIMERS,
              r'timer_count', r'clock_division', r'count_direction',
              r'counter_mode', r'trigger_output', r'(?:enable|disable)_counter',
              r'update_flag', r'acknowledge_update', r'break_flag',
              r'acknowledge_break', r'calculate_prescaler'),
        [('tim/channels.hpp',
          words(r'channel[1-4]', r'channel_at', r'channel_idx',
-               r'(?:some|is)_timer_channel_instance', r'capture_compare_flag',
-               r'acknowledge_capture_compare', r'capture_filter'))])
+               r'(?:some_|is_)?timer_channel_instance',
+               r'capture_compare_flag', r'acknowledge_capture_compare',
+               r'capture_filter'))])
 
 SPLIT = {
     'adc/adc.hpp': ADC,

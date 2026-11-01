@@ -72,7 +72,7 @@ template<typename T>
 struct is_can_instance : std::bool_constant<emb::same_as_any<T, can1, can2>> {};
 
 template<typename T>
-concept some_can_instance = is_can_instance<T>::value;
+concept can_instance = is_can_instance<T>::value;
 
 enum class error { timeout, overflow, unknown };
 

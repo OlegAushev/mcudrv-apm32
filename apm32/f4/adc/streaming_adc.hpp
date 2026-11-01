@@ -33,7 +33,7 @@ consteval bool is_valid_stream_buffer()
 // reads a whole completed window. Conversions are driven by regular_trigger.
 template<typename T>
 concept some_streaming_adc_traits = requires {
-  requires some_adc_instance<typename T::adc_instance>;
+  requires adc_instance<typename T::instance>;
   { T::regular_count } -> std::convertible_to<unsigned>;
   typename T::dma_stream;
   typename T::dma_channel;
@@ -43,10 +43,10 @@ concept some_streaming_adc_traits = requires {
   { T::eoc_on_each } -> std::convertible_to<bool>;
 };
 
-template<some_streaming_adc_traits Traits, some_adc_channel... Channels>
+template<some_streaming_adc_traits Traits, adc_channel... Channels>
 class streaming_adc {
 public:
-  using adc_instance = Traits::adc_instance;
+  using instance = Traits::instance;
   using dma_stream = Traits::dma_stream;
   using dma_channel = Traits::dma_channel;
   using dma_stream_type = Traits::stream_type;
@@ -67,17 +67,17 @@ public:
   static_assert(detail::ranks_cover_exactly<false, Channels...>(regular_count),
                 "regular channel ranks must cover 1..regular_count exactly "
                 "(no gaps, duplicates, or out-of-range positions)");
-  static_assert(is_compatible_dma_stream<adc_instance, dma_stream>(),
+  static_assert(is_compatible_dma_stream<instance, dma_stream>(),
                 "dma_stream is not wired to this ADC instance");
   static_assert(
-      is_compatible_dma_channel<adc_instance, dma_channel>(),
+      is_compatible_dma_channel<instance, dma_channel>(),
       "dma_channel is not the DMA request channel for this ADC instance");
   static_assert(
       detail::is_valid_stream_buffer<Traits>(),
       "streaming_adc needs a double buffer whose size is a multiple of "
       "regular_count");
 private:
-  static inline registers& reg = adc_instance::reg;
+  static inline registers& reg = instance::reg;
   dma_stream_type dma_stream_;
   std::array<std::optional<gpio::analog_pin>, sizeof...(Channels)> pins_;
   std::atomic<bool> completed_ = false;
@@ -93,7 +93,7 @@ public:
                                                         dma_irq_priority},
             &reg.REGDATA)
   {
-    adc_instance::enable_clock();
+    instance::enable_clock();
     detail::init_sequence(reg, get_config());
     init_channels();
   }
@@ -102,10 +102,10 @@ public:
   {
     dma_stream_.enable();
     if constexpr (eoc_on_each) {
-      nvic::set_irq_priority(adc_instance::irqn, common_irq_priority);
-      nvic::enable_irq(adc_instance::irqn);
+      nvic::set_irq_priority(instance::irqn, common_irq_priority);
+      nvic::enable_irq(instance::irqn);
     }
-    arm_regular_trigger<adc_instance>(regular_trigger.edge);
+    arm_regular_trigger<instance>(regular_trigger.edge);
   }
 
   // Call from the DMA stream's transfer-complete ISR.

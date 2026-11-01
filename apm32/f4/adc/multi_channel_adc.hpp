@@ -70,9 +70,9 @@ template<typename T>
 consteval bool is_compatible_dma()
 {
   if constexpr (T::dma_enabled) {
-    return is_compatible_dma_stream<typename T::adc_instance,
+    return is_compatible_dma_stream<typename T::instance,
                                     typename T::dma_stream>()
-        && is_compatible_dma_channel<typename T::adc_instance,
+        && is_compatible_dma_channel<typename T::instance,
                                      typename T::dma_channel>();
   }
   else {
@@ -84,7 +84,7 @@ consteval bool is_compatible_dma()
 
 template<typename T>
 concept some_multi_channel_adc_traits = requires {
-  requires some_adc_instance<typename T::adc_instance>;
+  requires adc_instance<typename T::instance>;
   { T::injected_count } -> std::convertible_to<unsigned>;
   { T::regular_count } -> std::convertible_to<unsigned>;
   { T::dma_enabled } -> std::convertible_to<bool>;
@@ -97,10 +97,10 @@ concept some_multi_channel_adc_traits = requires {
   { T::auto_injconv } -> std::convertible_to<bool>;
 };
 
-template<some_multi_channel_adc_traits Traits, some_adc_channel... Channels>
+template<some_multi_channel_adc_traits Traits, adc_channel... Channels>
 class multi_channel_adc {
 public:
-  using adc_instance = Traits::adc_instance;
+  using instance = Traits::instance;
   using dma_stream = Traits::dma_stream;
   using dma_channel = Traits::dma_channel;
   using dma_stream_type = Traits::stream_type;
@@ -136,7 +136,7 @@ public:
   static_assert(detail::uses_single_buffer<Traits>(),
                 "multi_channel_adc requires a single-buffer DMA stream");
 private:
-  static inline registers& reg = adc_instance::reg;
+  static inline registers& reg = instance::reg;
   dma_stream_type dma_stream_;
   std::array<std::optional<gpio::analog_pin>, sizeof...(Channels)> pins_;
 public:
@@ -148,7 +148,7 @@ public:
   multi_channel_adc()
     requires(!dma_enabled)
   {
-    adc_instance::enable_clock();
+    instance::enable_clock();
     detail::init_sequence(reg, get_config());
     init_channels();
   }
@@ -160,7 +160,7 @@ public:
                                                         dma_irq_priority},
             &reg.REGDATA)
   {
-    adc_instance::enable_clock();
+    instance::enable_clock();
     detail::init_sequence(reg, get_config());
     init_channels();
   }
@@ -171,13 +171,13 @@ public:
     if constexpr (dma_enabled) {
       dma_stream_.enable();
     }
-    nvic::set_irq_priority(adc_instance::irqn, common_irq_priority);
-    nvic::enable_irq(adc_instance::irqn);
+    nvic::set_irq_priority(instance::irqn, common_irq_priority);
+    nvic::enable_irq(instance::irqn);
     if constexpr (injected_trigger.has_value()) {
-      arm_injected_trigger<adc_instance>(injected_trigger->edge);
+      arm_injected_trigger<instance>(injected_trigger->edge);
     }
     if constexpr (regular_trigger.has_value()) {
-      arm_regular_trigger<adc_instance>(regular_trigger->edge);
+      arm_regular_trigger<instance>(regular_trigger->edge);
     }
   }
 
@@ -217,14 +217,14 @@ public:
     return slot;
   }
 
-  template<some_adc_channel Channel>
+  template<adc_channel Channel>
     requires(Channel::ranks.size() == 1)
   [[nodiscard]] std::uint16_t read(Channel) const
   {
     return result<Channel, Channel::ranks[0]>();
   }
 
-  template<some_adc_channel Channel>
+  template<adc_channel Channel>
   [[nodiscard]] std::uint16_t oversample(Channel) const
   {
     constexpr std::size_t n = Channel::ranks.size();
@@ -235,7 +235,7 @@ public:
     return static_cast<std::uint16_t>((sum + n / 2) / n);
   }
 
-  template<some_adc_channel... Cs>
+  template<adc_channel... Cs>
     requires(sizeof...(Cs) > 0)
   [[nodiscard]] std::array<std::uint16_t, sizeof...(Cs)>
   read_frame(Cs... chs) const
@@ -243,13 +243,13 @@ public:
     return {read(chs)...};
   }
 
-  template<some_adc_channel... Cs>
+  template<adc_channel... Cs>
   [[nodiscard]] auto read_frame(emb::typelist<Cs...>) const
   {
     return read_frame(Cs{}...);
   }
 
-  template<some_adc_channel... Cs>
+  template<adc_channel... Cs>
     requires(sizeof...(Cs) > 0)
   [[nodiscard]] std::array<std::uint16_t, sizeof...(Cs)>
   oversample_frame(Cs... chs) const
@@ -257,13 +257,13 @@ public:
     return {oversample(chs)...};
   }
 
-  template<some_adc_channel... Cs>
+  template<adc_channel... Cs>
   [[nodiscard]] auto oversample_frame(emb::typelist<Cs...>) const
   {
     return oversample_frame(Cs{}...);
   }
 private:
-  template<some_adc_channel Channel, unsigned Rank>
+  template<adc_channel Channel, unsigned Rank>
   [[nodiscard]] std::uint16_t result() const
   {
     static_assert(emb::typelist_contains_v<channels, Channel>,
@@ -313,11 +313,8 @@ private:
 template<typename T>
 inline constexpr bool is_multi_channel_adc = false;
 
-template<some_multi_channel_adc_traits Traits, some_adc_channel... Channels>
+template<some_multi_channel_adc_traits Traits, adc_channel... Channels>
 inline constexpr bool
     is_multi_channel_adc<multi_channel_adc<Traits, Channels...>> = true;
-
-template<typename T>
-concept some_multi_channel_adc = is_multi_channel_adc<T>;
 
 } // namespace apm32::f4::adc

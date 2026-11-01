@@ -27,7 +27,7 @@ void init_sequence(registers& reg, sequence_config const& conf);
 // Cross-channel check: the ranks of all channels of the given kind must
 // cover positions 1..count exactly — every position assigned once, no
 // gaps, duplicates, or out-of-range ranks.
-template<bool Injected, some_adc_channel... Channels>
+template<bool Injected, adc_channel... Channels>
 consteval bool ranks_cover_exactly(unsigned count)
 {
   std::array<unsigned, 17> tally{}; // tally[rank], rank in 1..16

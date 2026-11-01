@@ -36,7 +36,7 @@ struct is_dma_controller_instance
     : std::bool_constant<emb::same_as_any<T, dma1, dma2>> {};
 
 template<typename T>
-concept some_dma_controller_instance = is_dma_controller_instance<T>::value;
+concept dma_controller_instance = is_dma_controller_instance<T>::value;
 
 using stream_registers = DMA_Stream_TypeDef;
 
@@ -175,7 +175,7 @@ struct is_dma_stream_instance
                                           dma2_stream7>> {};
 
 template<typename T>
-concept some_dma_stream_instance = is_dma_stream_instance<T>::value;
+concept dma_stream_instance = is_dma_stream_instance<T>::value;
 
 struct channel0 {
   static constexpr unsigned idx = 0;
@@ -222,6 +222,6 @@ struct is_dma_channel_instance
                                           channel7>> {};
 
 template<typename T>
-concept some_dma_channel_instance = is_dma_channel_instance<T>::value;
+concept dma_channel_instance = is_dma_channel_instance<T>::value;
 
 } // namespace apm32::f4::dma

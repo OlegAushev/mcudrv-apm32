@@ -36,7 +36,7 @@ struct clock_config_with_adc_div {
 static_assert(clock_prescaler<clock_config_with_adc_div>() == 6);
 
 struct adc_traits_1 {
-  using adc_instance = adc1;
+  using instance = adc1;
   static constexpr unsigned injected_count = 2;
   static constexpr unsigned regular_count = 4;
   static constexpr bool dma_enabled = true;
@@ -58,7 +58,7 @@ struct adc_traits_1 {
 };
 
 struct adc_traits_2 {
-  using adc_instance = adc2;
+  using instance = adc2;
   static constexpr unsigned injected_count = 1;
   static constexpr unsigned regular_count = 2;
   static constexpr bool dma_enabled = false;
@@ -77,7 +77,7 @@ static_assert(some_multi_channel_adc_traits<adc_traits_2>);
 // adc_3: DMA-only double-buffered streaming, 3 regular channels, 4 frames per
 // half-window (buffer size = 3 * 4 = 12 uint16_t).
 struct stream_traits_3 {
-  using adc_instance = adc3;
+  using instance = adc3;
   static constexpr unsigned regular_count = 3;
   using dma_stream = dma::dma2_stream0;
   using dma_channel = dma::channel2;

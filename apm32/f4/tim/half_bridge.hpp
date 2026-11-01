@@ -49,7 +49,7 @@ void configure_half_bridge_timebase(registers& reg,
 // PWM1 mode = 0b110
 inline constexpr std::uint32_t oc_mode_pwm1 = 0b110u;
 
-template<some_advanced_timer Tim, some_timer_channel_instance Ch>
+template<advanced_timer Tim, timer_channel_instance Ch>
   requires(!std::same_as<Ch, channel4>)
 void configure_half_bridge_channel()
 {
@@ -104,20 +104,18 @@ void configure_half_bridge_channel()
 
 } // namespace detail
 
-template<some_advanced_timer Tim, std::size_t LegCount = 1>
+template<advanced_timer Tim, std::size_t LegCount = 1>
 class half_bridge {
 public:
-  using timer_instance = Tim;
+  using instance = Tim;
   using counter_type = Tim::counter_type;
   using dutycycle_type = std::array<emb::unsigned_pu_f32, LegCount>;
 private:
-  static inline registers& reg = timer_instance::reg;
+  static inline registers& reg = instance::reg;
 
-  static constexpr nvic::irq_number const update_irqn_ =
-      timer_instance::update_irqn;
+  static constexpr nvic::irq_number const update_irqn_ = instance::update_irqn;
 
-  static constexpr nvic::irq_number const break_irqn_ =
-      timer_instance::break_irqn;
+  static constexpr nvic::irq_number const break_irqn_ = instance::break_irqn;
 
   static inline std::array<std::uint32_t volatile*, 4> const ccr_regs =
       {&reg.CC1, &reg.CC2, &reg.CC3, &reg.CC4};
@@ -144,46 +142,43 @@ public:
 
     // use prescaler from config or calculate it from required pwm frequency
     if (!conf.pwm.prescaler.has_value()) {
-      conf.pwm.prescaler =
-          calculate_prescaler<timer_instance>(conf.pwm.frequency,
-                                              counter_mode::updown);
+      conf.pwm.prescaler = calculate_prescaler<instance>(conf.pwm.frequency,
+                                                         counter_mode::updown);
     }
 
-    timebase_freq_ =
-        timer_instance::template clock_frequency<emb::units::hz_f32>()
-        / static_cast<float>(conf.pwm.prescaler.value() + 1);
+    timebase_freq_ = instance::template clock_frequency<emb::units::hz_f32>()
+                   / static_cast<float>(conf.pwm.prescaler.value() + 1);
 
     min_freq_ =
         timebase_freq_ / (2.f * std::numeric_limits<counter_type>::max());
     max_freq_ = timebase_freq_ / 2.f;
 
-    timer_instance::enable_clock();
+    instance::enable_clock();
 
     detail::configure_half_bridge_timebase(
         reg,
-        timer_instance::template clock_frequency<emb::units::hz_f32>(),
+        instance::template clock_frequency<emb::units::hz_f32>(),
         conf.pwm);
 
     period_ = 2.f * static_cast<float>(reg.AUTORLD) / timebase_freq_;
 
     if (conf.bk_pin.has_value()) {
-      bk_pin_.emplace(detail::make_break_input_gpio_config<timer_instance>(
-          conf.bk_pin.value()));
+      bk_pin_.emplace(
+          detail::make_break_input_gpio_config<instance>(conf.bk_pin.value()));
     }
     detail::configure_bdt(
         reg,
-        timer_instance::template clock_frequency<emb::units::hz_f32>(),
+        instance::template clock_frequency<emb::units::hz_f32>(),
         conf.pwm.deadtime,
         conf.pwm.clkdiv,
         conf.bk_pin);
 
     emb::unroll<LegCount>([&]<std::size_t I>() {
-      detail::configure_half_bridge_channel<timer_instance,
-                                            tim::channel_at<I>>();
+      detail::configure_half_bridge_channel<instance, tim::channel_at<I>>();
       hi_pins_[I].emplace(
-          detail::make_output_gpio_config<timer_instance>(conf.hi_pins[I]));
+          detail::make_output_gpio_config<instance>(conf.hi_pins[I]));
       lo_pins_[I].emplace(
-          detail::make_output_gpio_config<timer_instance>(conf.lo_pins[I]));
+          detail::make_output_gpio_config<instance>(conf.lo_pins[I]));
     });
 
     // Trigger output
@@ -251,7 +246,7 @@ public:
   void start()
   {
     if (bk_pin_) {
-      acknowledge_break<timer_instance>();
+      acknowledge_break<instance>();
       emb::mmio::set<TMR_DIEN_BRKIEN>(reg.DIEN);
     }
     emb::mmio::set<TMR_BDT_MOEN>(reg.BDT);
@@ -294,15 +289,15 @@ public:
 public:
   void enable()
   {
-    acknowledge_update<timer_instance>();
+    acknowledge_update<instance>();
     nvic::clear_pending_irq(update_irqn_);
     nvic::enable_irq(update_irqn_);
     if (bk_pin_) {
-      acknowledge_break<timer_instance>();
+      acknowledge_break<instance>();
       nvic::clear_pending_irq(break_irqn_);
       nvic::enable_irq(break_irqn_);
     }
-    enable_counter<timer_instance>();
+    enable_counter<instance>();
   }
 };
 
