@@ -2,6 +2,7 @@
 
 #include <apm32/device.hpp>
 
+#include <array>
 #include <cstdint>
 
 namespace apm32::f4::core {
@@ -12,10 +13,11 @@ void reset_device();
 
 [[noreturn]] void halt_device();
 
-inline std::uint32_t serial_number()
+// Factory-programmed 96-bit unique ID of the part, U_ID[31:0] first.
+inline std::array<std::uint32_t, 3> uid()
 {
-  std::uint32_t* uid_ptr{reinterpret_cast<std::uint32_t*>(0x1FFF7A10)};
-  return *uid_ptr;
+  auto const* words = reinterpret_cast<std::uint32_t const volatile*>(UID_BASE);
+  return {words[0], words[1], words[2]};
 }
 
 } // namespace apm32::f4::core
