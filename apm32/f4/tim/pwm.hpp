@@ -57,24 +57,19 @@ get_deadtime_setup(emb::units::hz_f32 clk_freq,
                    emb::chrono::nanoseconds_i32 const& deadtime,
                    clock_division clkdiv)
 {
-  float const mul = static_cast<float>(1ul << std::to_underlying(clkdiv));
-  float const t_dts_ns = mul * 1e9f / clk_freq.value;
-  float const dt = static_cast<float>(deadtime.count());
+  if (deadtime.count() < 0) emb::panic();
 
-  if (dt > (32 + 0x1F) * 16 * t_dts_ns) emb::panic();
+  auto const ns = static_cast<std::uint64_t>(deadtime.count());
+  std::uint64_t const clk_hz = static_cast<std::uint32_t>(clk_freq.value);
+  std::uint64_t const divisor = 1'000'000'000ull << std::to_underlying(clkdiv);
+  std::uint64_t const ticks = (ns * clk_hz + divisor - 1u) / divisor;
 
-  if (dt <= 0x7F * t_dts_ns) {
-    return std::uint8_t(dt / t_dts_ns) & 0x7F;
-  }
-  else if (dt <= (64 + 0x3F) * 2 * t_dts_ns) {
-    return std::uint8_t((dt - 64 * 2 * t_dts_ns) / (2 * t_dts_ns)) | 0x80;
-  }
-  else if (dt <= (32 + 0x1F) * 8 * t_dts_ns) {
-    return std::uint8_t((dt - 32 * 8 * t_dts_ns) / (8 * t_dts_ns)) | 0xC0;
-  }
-  else {
-    return std::uint8_t((dt - 32 * 16 * t_dts_ns) / (16 * t_dts_ns)) | 0xE0;
-  }
+  if (ticks > 1008u) emb::panic();
+
+  if (ticks <= 127u) return std::uint8_t(ticks);
+  if (ticks <= 254u) return std::uint8_t(((ticks + 1u) / 2u - 64u) | 0x80u);
+  if (ticks <= 504u) return std::uint8_t(((ticks + 7u) / 8u - 32u) | 0xC0u);
+  return std::uint8_t(((ticks + 15u) / 16u - 32u) | 0xE0u);
 }
 
 void configure_bdt(registers& reg,
