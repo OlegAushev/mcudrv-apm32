@@ -9,7 +9,7 @@
 #include <emb/chrono.hpp>
 #include <emb/expected.hpp>
 #include <emb/panic.hpp>
-#include <emb/spi.hpp>
+#include <emb/spi/device.hpp>
 
 #include <array>
 #include <chrono>
