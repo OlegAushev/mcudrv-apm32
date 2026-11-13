@@ -2,7 +2,7 @@
 
 #include <apm32/f4/can.hpp>
 
-#include <emb/can.hpp>
+#include <emb/can/frame.hpp>
 #include <emb/mmio.hpp>
 
 #include <cstddef>

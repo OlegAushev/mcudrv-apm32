@@ -2,8 +2,8 @@
 
 #include <apm32/f4/can/transceiver.hpp>
 
-#include <emb/can.hpp>
 #include <emb/can/bus.hpp>
+#include <emb/can/frame.hpp>
 #include <emb/containers/inplace_vector.hpp>
 #include <emb/delegate.hpp>
 
